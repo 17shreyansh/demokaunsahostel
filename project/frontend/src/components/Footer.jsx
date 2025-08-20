@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import logo from '../assets/logo.png'
+
 
 
 const Footer = () => {
@@ -9,9 +9,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="md:col-span-1">
             <Link to="/" className="flex items-center mb-4">
-              <img src={logo} alt="KaunsaHostel Logo" className="h-10 mr-2 bg-white rounded-md p-1" />
+              <div className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                StayNest
+              </div>
             </Link>
-            <p className="text-gray-400">The easiest way to find your next hostel in Greater Noida. We provide a home away from home for students and professionals.</p>
+            <p className="text-gray-400">Your perfect nest awaits! Find premium hostels in Greater Noida. We create comfortable, safe, and vibrant communities for students and professionals.</p>
           </div>
 
           <div>
@@ -49,7 +51,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 border-t border-gray-800 pt-8 text-center text-gray-500">
-          <p>&copy; 2024 KaunsaHostel. All Rights Reserved. Designed with ❤️ in India.</p>
+          <p>&copy; 2024 StayNest. All Rights Reserved. Designed with ❤️ in India.</p>
         </div>
       </div>
     </footer>

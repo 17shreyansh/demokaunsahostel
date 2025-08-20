@@ -146,7 +146,7 @@ const HeroSection = ({ hostels, loading }) => {
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-xl">
-              Discover verified, premium hostels with world-class amenities. Your journey to the perfect student life starts here.
+              Find your perfect nest! Premium hostels with modern amenities and vibrant communities. Where comfort meets convenience in Greater Noida.
             </p>
             
             {/* Action Buttons */}

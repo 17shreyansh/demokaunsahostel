@@ -1,4 +1,4 @@
-# KaunsaHostel - Complete Hostel Enquiry System
+# StayNest - Premium Student Hostels Platform
 
 ## 🚀 Quick Start
 
@@ -45,7 +45,7 @@ npm run dev     # Starts on http://localhost:3000
 - **Database**: MongoDB with sample data
 
 ## 📊 Sample Data Included
-- 6 sample hostels with different price ranges
+- 6 premium hostels with modern amenities
 - Admin user for dashboard access
 - All features working with real data
 

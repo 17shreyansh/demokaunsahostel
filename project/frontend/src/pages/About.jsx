@@ -3,20 +3,21 @@ const About = () => {
     <div className="container mx-auto px-6 py-20">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">About KaunsaHostel</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">About StayNest</h1>
           <p className="text-xl text-gray-600">Your trusted partner in finding the perfect accommodation in Greater Noida</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <h3 className="text-2xl font-bold text-yellow-custom mb-4">Our Story</h3>
           <p className="text-gray-700 mb-4">
-            KaunsaHostel was founded with a simple mission: to help students and working professionals 
-            find safe, affordable, and comfortable accommodation in Greater Noida. We understand the 
-            challenges of relocating to a new city and the importance of having a home away from home.
+            StayNest was founded with a vision to revolutionize student living in Greater Noida. We believe 
+            that your accommodation should be more than just a place to sleep - it should be your nest, 
+            where you grow, learn, and build lifelong friendships.
           </p>
           <p className="text-gray-700">
-            With years of experience in the hospitality industry, we have carefully curated a network 
-            of verified hostels and PGs that meet our high standards of quality, safety, and affordability.
+            Our team has carefully curated a network of premium hostels that combine modern amenities 
+            with a vibrant community atmosphere. Every StayNest property is verified for safety, 
+            comfort, and exceptional living standards.
           </p>
         </div>
 

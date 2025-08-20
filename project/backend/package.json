@@ -1,7 +1,7 @@
 {
-  "name": "hostel-enquiry-backend",
+  "name": "staynest-backend",
   "version": "1.0.0",
-  "description": "Backend for Hostel Enquiry Website",
+  "description": "Backend for StayNest - Premium Student Hostels Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

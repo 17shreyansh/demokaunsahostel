@@ -10,21 +10,21 @@ const TestimonialsSection = () => {
     { 
       name: 'Priya Sharma', 
       role: 'Student, Galgotias University', 
-      text: 'Finding KaunsaHostel was a lifesaver. The location is perfect for my college, and the facilities are top-notch. It truly feels like a second home. The hostel provider staff is incredibly helpful and friendly.', 
+      text: 'Finding StayNest was a lifesaver. The location is perfect for my college, and the facilities are top-notch. It truly feels like a second home. The staff is incredibly helpful and friendly.', 
       rating: 5,
       image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
     },
     { 
       name: 'Rohan Mehra', 
       role: 'Software Engineer, Wipro', 
-      text: 'As a working professional, I needed a quiet and clean place. Professional Hub by KaunsaHostel exceeded my expectations. The Wi-Fi is reliable, and the food is great. Best hostel provider!', 
+      text: 'As a working professional, I needed a quiet and clean place. StayNest exceeded my expectations. The Wi-Fi is reliable, and the food is great. Best accommodation provider!', 
       rating: 5,
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
     },
     { 
       name: 'Anjali Singh', 
       role: 'Student, Sharda University', 
-      text: 'My parents were worried about my safety, but the security at Secure Haven is excellent. I feel completely safe here. It is a great environment to focus on my studies and make new friends.', 
+      text: 'My parents were worried about my safety, but the security at StayNest is excellent. I feel completely safe here. It is a great environment to focus on my studies and make new friends.', 
       rating: 5,
       image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
     },

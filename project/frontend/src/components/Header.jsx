@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import logo from '../assets/logo.png'
+
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -10,7 +10,9 @@ const Header = () => {
     <header id="home" className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50">
       <nav className="container mx-auto px-6 py-3 flex justify-between items-center">
         <Link to="/" className="flex items-center group">
-          <img src={logo} alt="KaunsaHostel Logo" className="h-11 transition-transform duration-300 group-hover:scale-105" />
+          <div className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent transition-transform duration-300 group-hover:scale-105">
+            StayNest
+          </div>
         </Link>
         
         <div className="hidden md:flex items-center space-x-1">
