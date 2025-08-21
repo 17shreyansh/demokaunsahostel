@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import logo from '../assets/logo.png'
+
 
 
 
@@ -9,9 +11,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="md:col-span-1">
             <Link to="/" className="flex items-center mb-4">
-              <div className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-                StayNest
-              </div>
+              <img src={logo} alt="KaunsaHostel Logo" className="h-10 mr-2 bg-white rounded-md p-1" />
             </Link>
             <p className="text-gray-400">Your perfect nest awaits! Find premium hostels in Greater Noida. We create comfortable, safe, and vibrant communities for students and professionals.</p>
           </div>
