@@ -242,7 +242,9 @@ router.post('/', auth, upload.array('images', 10), async (req, res) => {
       }
     }
     
-    if (req.files) hostelData.images = req.files.map(file => file.filename);
+    if (req.files && req.files.length > 0) {
+      hostelData.images = req.files.map(file => file.filename);
+    }
     
     const hostel = new Hostel(hostelData);
     await hostel.save();
@@ -268,31 +270,70 @@ router.put('/:id', auth, upload.array('images', 10), async (req, res) => {
       }
     });
     
-    // Handle nearby places
+    // Handle nearby places properly
+    const nearbyPlaces = {};
+    
     if (updateData.nearbyEducational && typeof updateData.nearbyEducational === 'string') {
       try {
-        const educational = JSON.parse(updateData.nearbyEducational);
-        updateData.nearbyPlaces = { ...updateData.nearbyPlaces, educational };
+        nearbyPlaces.educational = JSON.parse(updateData.nearbyEducational);
         delete updateData.nearbyEducational;
       } catch (e) {
         console.log('Error parsing nearbyEducational:', e);
+        nearbyPlaces.educational = [];
       }
+    } else {
+      nearbyPlaces.educational = [];
     }
     
     if (updateData.nearbyOffices && typeof updateData.nearbyOffices === 'string') {
       try {
-        const offices = JSON.parse(updateData.nearbyOffices);
-        updateData.nearbyPlaces = { ...updateData.nearbyPlaces, offices };
+        nearbyPlaces.offices = JSON.parse(updateData.nearbyOffices);
         delete updateData.nearbyOffices;
       } catch (e) {
         console.log('Error parsing nearbyOffices:', e);
+        nearbyPlaces.offices = [];
+      }
+    } else {
+      nearbyPlaces.offices = [];
+    }
+    
+    updateData.nearbyPlaces = nearbyPlaces;
+    
+    // Smart image handling
+    let finalImages = [];
+    
+    if (updateData.finalImages) {
+      try {
+        const imageList = JSON.parse(updateData.finalImages);
+        const existingHostel = await Hostel.findById(req.params.id);
+        const currentImages = existingHostel?.images || [];
+        
+        // Keep existing images that are still in the list
+        const keepExisting = imageList.filter(img => currentImages.includes(img));
+        
+        // Add new uploaded images
+        const newImages = req.files ? req.files.map(file => file.filename) : [];
+        
+        finalImages = [...keepExisting, ...newImages];
+        delete updateData.finalImages;
+      } catch (e) {
+        // Fallback: keep all existing + add new
+        const existingHostel = await Hostel.findById(req.params.id);
+        finalImages = existingHostel?.images || [];
+        if (req.files) {
+          finalImages = [...finalImages, ...req.files.map(file => file.filename)];
+        }
+      }
+    } else {
+      // No image changes, keep existing
+      const existingHostel = await Hostel.findById(req.params.id);
+      finalImages = existingHostel?.images || [];
+      if (req.files) {
+        finalImages = [...finalImages, ...req.files.map(file => file.filename)];
       }
     }
     
-    // Handle images - only update if new files are uploaded
-    if (req.files?.length) {
-      updateData.images = req.files.map(file => file.filename);
-    }
+    updateData.images = finalImages;
     
     const hostel = await Hostel.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(hostel);

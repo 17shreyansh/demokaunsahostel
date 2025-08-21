@@ -30,6 +30,7 @@ const AdminLayoutContent = () => {
   const menuItems = [
     { key: 'dashboard', label: 'Dashboard', icon: FiHome },
     { key: 'hostels', label: 'My Properties', icon: FiGrid },
+    { key: 'nearbyplaces', label: 'Nearby Places', icon: FiUsers },
     { key: 'leads', label: 'Bookings', icon: FiUsers },
     { key: 'settings', label: 'Settings', icon: FiSettings }
   ]
@@ -45,6 +46,7 @@ const AdminLayoutContent = () => {
   const getSelectedKey = () => {
     const path = location.pathname
     if (path.includes('/hostels')) return ['hostels']
+    if (path.includes('/nearbyplaces')) return ['nearbyplaces']
     if (path.includes('/leads')) return ['leads']
     if (path.includes('/settings')) return ['settings']
     return ['dashboard']
@@ -55,6 +57,7 @@ const AdminLayoutContent = () => {
     if (path.includes('/hostels/new')) return 'Add New Property'
     if (path.includes('/hostels/') && path.split('/').length > 3) return 'Edit Property'
     if (path.includes('/hostels')) return 'My Properties'
+    if (path.includes('/nearbyplaces')) return 'Nearby Places'
     if (path.includes('/leads')) return 'Booking Management'
     if (path.includes('/settings')) return 'Account Settings'
     return 'Provider Dashboard'

@@ -199,27 +199,33 @@ const InteractiveMap = ({ coordinates, onCoordinatesChange, address }) => {
         <div>
           <Text strong>Map Preview:</Text>
           <div className="mt-2 border rounded-lg overflow-hidden">
-            <iframe
-              width="100%"
-              height="300"
-              frameBorder="0"
-              scrolling="no"
-              marginHeight="0"
-              marginWidth="0"
-              src={`https://www.openstreetmap.org/export/embed.html?bbox=${currentCoords.lng-0.01},${currentCoords.lat-0.01},${currentCoords.lng+0.01},${currentCoords.lat+0.01}&layer=mapnik&marker=${currentCoords.lat},${currentCoords.lng}`}
-              style={{ border: 0 }}
-            />
+            {currentCoords.lat && currentCoords.lng ? (
+              <iframe
+                width="100%"
+                height="300"
+                frameBorder="0"
+                style={{ border: 0 }}
+                src={`https://maps.google.com/maps?q=${currentCoords.lat},${currentCoords.lng}&hl=en&z=15&output=embed`}
+                allowFullScreen
+              />
+            ) : (
+              <div className="h-[300px] bg-gray-100 flex items-center justify-center">
+                <Text type="secondary">Set coordinates to see map preview</Text>
+              </div>
+            )}
           </div>
-          <div className="mt-2 text-center">
-            <a 
-              href={`https://www.openstreetmap.org/?mlat=${currentCoords.lat}&mlon=${currentCoords.lng}#map=15/${currentCoords.lat}/${currentCoords.lng}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800"
-            >
-              View Larger Map
-            </a>
-          </div>
+          {currentCoords.lat && currentCoords.lng && (
+            <div className="mt-2 text-center">
+              <a 
+                href={`https://www.google.com/maps/search/?api=1&query=${currentCoords.lat},${currentCoords.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800"
+              >
+                View in Google Maps
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Current Coordinates Display */}

@@ -29,11 +29,9 @@ const HostelMap = ({ coordinates, hostelName, address }) => {
           width="100%"
           height="300"
           frameBorder="0"
-          scrolling="no"
-          marginHeight="0"
-          marginWidth="0"
-          src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&layer=mapnik&marker=${lat},${lng}`}
           style={{ border: 0, borderRadius: '8px' }}
+          src={`https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=15&output=embed`}
+          allowFullScreen
         />
       </div>
 

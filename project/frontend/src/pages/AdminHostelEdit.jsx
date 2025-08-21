@@ -4,12 +4,15 @@ import {
   Card, Form, Input, Select, Upload, Button, Space, message, 
   Row, Col, Divider, Typography, InputNumber, Tag, DatePicker
 } from 'antd'
+import dayjs from 'dayjs'
 import {
   SaveOutlined, ArrowLeftOutlined, UploadOutlined, PlusOutlined, 
   DeleteOutlined, EnvironmentOutlined
 } from '@ant-design/icons'
 import { hostelAPI } from '../services/api'
 import InteractiveMap from '../components/InteractiveMap'
+import { nearbyPlacesAPI } from '../services/nearbyPlacesAPI'
+import NearbyPlacesSelector from '../components/NearbyPlacesSelector.jsx'
 
 const { Title, Text } = Typography
 const { TextArea } = Input
@@ -36,18 +39,34 @@ const AdminHostelEdit = () => {
       const hostelData = response.data
       setHostel(hostelData)
       
-      // Set form values
-      form.setFieldsValue({
-        ...hostelData,
+      // Set form values properly
+      const formValues = {
+        name: hostelData.name || '',
+        location: hostelData.location || '',
+        description: hostelData.description || '',
+        price: hostelData.price || 0,
+        availability: hostelData.availability || 'Available',
+        rating: hostelData.rating || 0,
+        type: hostelData.type || 'PG',
+        gender: hostelData.gender || 'Co-ed',
+        availableRooms: hostelData.availableRooms || 0,
+        securityDeposit: hostelData.securityDeposit || 0,
+        capacity: hostelData.capacity || '',
+        checkIn: hostelData.checkIn || '',
         amenities: hostelData.amenities || [],
         rules: hostelData.rules || [],
-        info: hostelData.info || [{ title: '', value: '' }],
-        nearbyEducational: hostelData.nearbyPlaces?.educational || [{ name: '', distance: '' }],
-        nearbyOffices: hostelData.nearbyPlaces?.offices || [{ name: '', distance: '' }],
-        roomTypes: hostelData.roomTypes || [{ name: '', description: '' }],
-        reviews: hostelData.reviews || [],
-        address: hostelData.contactInfo?.address || ''
-      })
+        info: hostelData.info && hostelData.info.length > 0 ? hostelData.info : [{ title: '', value: '' }],
+        nearbyPlaces: hostelData.nearbyPlaces || { educational: [], offices: [] },
+        roomTypes: hostelData.roomTypes && hostelData.roomTypes.length > 0 ? hostelData.roomTypes : [{ name: '', description: '' }],
+        reviews: hostelData.reviews?.map(review => ({
+          ...review,
+          reviewDate: review.date ? dayjs(review.date) : null
+        })) || [],
+        address: hostelData.contactInfo?.address || '',
+        coordinates: hostelData.mapCoordinates ? `${hostelData.mapCoordinates.lat}, ${hostelData.mapCoordinates.lng}` : ''
+      }
+      
+      form.setFieldsValue(formValues)
 
       // Set map data
       if (hostelData.mapCoordinates) {
@@ -57,10 +76,11 @@ const AdminHostelEdit = () => {
       // Set existing images
       if (hostelData.images) {
         const existingFiles = hostelData.images.map((img, index) => ({
-          uid: index,
+          uid: `existing-${index}`,
           name: img,
           status: 'done',
-          url: `http://localhost:5000/uploads/${img}`
+          url: `http://localhost:5000/uploads/${img}`,
+          isExisting: true
         }))
         setFileList(existingFiles)
       }
@@ -83,62 +103,71 @@ const AdminHostelEdit = () => {
         } else if (key === 'info') {
           const validInfo = values[key]?.filter(item => item.title && item.value) || []
           formData.append(key, JSON.stringify(validInfo))
-        } else if (key === 'nearbyEducational') {
-          const validPlaces = values[key]?.filter(item => item.name && item.distance) || []
-          formData.append('nearbyEducational', JSON.stringify(validPlaces))
-        } else if (key === 'nearbyOffices') {
-          const validPlaces = values[key]?.filter(item => item.name && item.distance) || []
-          formData.append('nearbyOffices', JSON.stringify(validPlaces))
+        } else if (key === 'nearbyPlaces') {
+          const nearbyData = values[key] || { educational: [], offices: [] }
+          formData.append('nearbyEducational', JSON.stringify(nearbyData.educational || []))
+          formData.append('nearbyOffices', JSON.stringify(nearbyData.offices || []))
+        } else if (key === 'coordinates') {
+          // Skip coordinates field as it's handled separately
+          return
         } else if (key === 'roomTypes') {
           const validRoomTypes = values[key]?.filter(item => item.name) || []
           formData.append(key, JSON.stringify(validRoomTypes))
         } else if (key === 'reviews') {
-          const validReviews = values[key]?.filter(item => item.name && item.comment).map(review => {
-            if (review.reviewDate) {
-              const now = new Date()
-              const reviewDate = new Date(review.reviewDate)
-              const diffTime = Math.abs(now - reviewDate)
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-              
-              let dateText
-              if (diffDays === 1) dateText = '1 day ago'
-              else if (diffDays < 7) dateText = `${diffDays} days ago`
-              else if (diffDays < 30) dateText = `${Math.ceil(diffDays / 7)} week${Math.ceil(diffDays / 7) > 1 ? 's' : ''} ago`
-              else dateText = `${Math.ceil(diffDays / 30)} month${Math.ceil(diffDays / 30) > 1 ? 's' : ''} ago`
-              
-              return { ...review, date: dateText }
-            }
-            return review
-          }) || []
+          const validReviews = values[key]?.filter(item => item.name && item.comment)?.map(review => ({
+            ...review,
+            date: review.reviewDate ? review.reviewDate.format('YYYY-MM-DD') : review.date
+          })) || []
           formData.append(key, JSON.stringify(validReviews))
         } else if (values[key] !== undefined && values[key] !== null) {
           formData.append(key, values[key])
         }
       })
 
-      // Handle map data
-      if (mapCoordinates && mapCoordinates.lat && mapCoordinates.lng) {
+      // Handle map data from coordinates field
+      if (values.coordinates) {
+        const coords = values.coordinates.split(',').map(c => c.trim())
+        if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+          const mapCoords = { lat: parseFloat(coords[0]), lng: parseFloat(coords[1]) }
+          formData.append('mapCoordinates', JSON.stringify(mapCoords))
+        }
+      } else if (mapCoordinates && mapCoordinates.lat && mapCoordinates.lng) {
         formData.append('mapCoordinates', JSON.stringify(mapCoordinates))
       }
 
-      // Handle images
-      fileList.forEach(file => {
-        if (file.originFileObj) {
-          formData.append('images', file.originFileObj)
-        }
+      // Handle images smartly
+      const newImages = fileList.filter(file => file.originFileObj)
+      const keepImages = fileList.filter(file => file.isExisting && file.status === 'done')
+      
+      // Add new image files
+      newImages.forEach(file => {
+        formData.append('images', file.originFileObj)
       })
+      
+      // Send final image list (existing + new)
+      const finalImageNames = [
+        ...keepImages.map(file => file.name),
+        ...newImages.map(file => file.name || `new-${Date.now()}`)
+      ]
+      formData.append('finalImages', JSON.stringify(finalImageNames))
 
+      console.log('Submitting form data...')
+      
       if (id && id !== 'new') {
-        await hostelAPI.update(id, formData)
+        const response = await hostelAPI.update(id, formData)
+        console.log('Update response:', response)
         message.success('Hostel updated successfully')
       } else {
-        await hostelAPI.create(formData)
+        const response = await hostelAPI.create(formData)
+        console.log('Create response:', response)
         message.success('Hostel created successfully')
       }
       
       navigate('/admin/hostels')
     } catch (error) {
-      message.error('Failed to save hostel')
+      console.error('Form submission error:', error)
+      console.error('Error response:', error.response?.data)
+      message.error(`Failed to save hostel: ${error.response?.data?.message || error.message}`)
     } finally {
       setLoading(false)
     }
@@ -149,27 +178,69 @@ const AdminHostelEdit = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-6">
-        <Button 
-          icon={<ArrowLeftOutlined />} 
-          onClick={() => navigate('/admin/hostels')}
-          className="mb-4"
-        >
-          Back to Hostels
-        </Button>
-        <Title level={2}>
-          {id === 'new' ? 'Add New Hostel' : 'Edit Hostel'}
-        </Title>
+    <div className="min-h-screen bg-white">
+      {/* Modern Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button 
+                icon={<ArrowLeftOutlined />} 
+                onClick={() => navigate('/admin/hostels')}
+                type="text"
+                className="hover:bg-gray-100"
+              >
+                Back
+              </Button>
+              <div>
+                <Title level={2} className="mb-0">
+                  {id === 'new' ? '🏠 Add New Hostel' : '✏️ Edit Hostel'}
+                </Title>
+                <Text type="secondary">Fill in the details to create an amazing hostel listing</Text>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button size="large" onClick={() => navigate('/admin/hostels')}>
+                Cancel
+              </Button>
+              <Button 
+                type="primary" 
+                size="large" 
+                htmlType="submit" 
+                loading={loading}
+                icon={<SaveOutlined />}
+                form="hostel-form"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 border-0"
+              >
+                {id === 'new' ? 'Create Hostel' : 'Save Changes'}
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        className="space-y-6"
-      >
-        <Card title="Basic Information" className="mb-6">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+
+        <Form
+          id="hostel-form"
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          className="space-y-8"
+        >
+        {/* Basic Information */}
+        <Card 
+          title={
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <span className="text-blue-600 font-bold">1</span>
+              </div>
+              <span className="text-lg font-semibold">Basic Information</span>
+            </div>
+          }
+          className="shadow-lg border-0 rounded-xl overflow-hidden"
+        >
           <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item name="name" label="Hostel Name" rules={[{ required: true }]}>
@@ -191,20 +262,32 @@ const AdminHostelEdit = () => {
             </Col>
           </Row>
 
-          {/* Interactive Map Section */}
+          {/* Map Coordinates */}
           <Row gutter={16}>
             <Col xs={24}>
-              <div className="mb-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <EnvironmentOutlined className="text-lg text-blue-600" />
-                  <span className="font-medium">Interactive Map Location</span>
-                </div>
-                <InteractiveMap
-                  coordinates={mapCoordinates}
-                  onCoordinatesChange={setMapCoordinates}
-                  address={form.getFieldValue('address')}
+              <Form.Item name="coordinates" label="Map Coordinates (Latitude, Longitude)">
+                <Input 
+                  placeholder="28.464385338386865, 77.49939996773989"
+                  onChange={(e) => {
+                    const coords = e.target.value.split(',').map(c => c.trim())
+                    if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+                      setMapCoordinates({ lat: parseFloat(coords[0]), lng: parseFloat(coords[1]) })
+                    }
+                  }}
                 />
-              </div>
+              </Form.Item>
+              {mapCoordinates.lat && mapCoordinates.lng && (
+                <div className="mb-4">
+                  <iframe
+                    width="100%"
+                    height="200"
+                    frameBorder="0"
+                    style={{ border: 0, borderRadius: '8px' }}
+                    src={`https://maps.google.com/maps?q=${mapCoordinates.lat},${mapCoordinates.lng}&hl=en&z=15&output=embed`}
+                    allowFullScreen
+                  />
+                </div>
+              )}
             </Col>
           </Row>
           
@@ -246,7 +329,18 @@ const AdminHostelEdit = () => {
           </Row>
         </Card>
 
-        <Card title="Hostel Details" className="mb-6">
+        {/* Hostel Details */}
+        <Card 
+          title={
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <span className="text-green-600 font-bold">2</span>
+              </div>
+              <span className="text-lg font-semibold">Hostel Details</span>
+            </div>
+          }
+          className="shadow-lg border-0 rounded-xl overflow-hidden"
+        >
           <Row gutter={16}>
             <Col xs={24} md={8}>
               <Form.Item name="type" label="Hostel Type">
@@ -297,7 +391,18 @@ const AdminHostelEdit = () => {
           </Row>
         </Card>
 
-        <Card title="Amenities & Rules" className="mb-6">
+        {/* Amenities & Rules */}
+        <Card 
+          title={
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 font-bold">3</span>
+              </div>
+              <span className="text-lg font-semibold">Amenities & Rules</span>
+            </div>
+          }
+          className="shadow-lg border-0 rounded-xl overflow-hidden"
+        >
           <Form.Item name="amenities" label="Amenities">
             <Select
               mode="tags"
@@ -362,93 +467,9 @@ const AdminHostelEdit = () => {
         </Card>
 
         <Card title="Nearby Places" className="mb-6">
-          <Title level={5}>Educational Institutions</Title>
-          <Form.List name="nearbyEducational">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Row key={key} gutter={16} align="middle">
-                    <Col xs={24} md={10}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'name']}
-                        label={key === 0 ? 'Institution Name' : ''}
-                      >
-                        <Input placeholder="e.g., Galgotias University" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={10}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'distance']}
-                        label={key === 0 ? 'Distance' : ''}
-                      >
-                        <Input placeholder="e.g., 2 km" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={4}>
-                      {fields.length > 1 && (
-                        <Button 
-                          type="text" 
-                          danger 
-                          icon={<DeleteOutlined />} 
-                          onClick={() => remove(name)}
-                        />
-                      )}
-                    </Col>
-                  </Row>
-                ))}
-                <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />}>
-                  Add Educational Institution
-                </Button>
-              </>
-            )}
-          </Form.List>
-
-          <Divider />
-
-          <Title level={5}>Offices & IT Parks</Title>
-          <Form.List name="nearbyOffices">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Row key={key} gutter={16} align="middle">
-                    <Col xs={24} md={10}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'name']}
-                        label={key === 0 ? 'Office Name' : ''}
-                      >
-                        <Input placeholder="e.g., Wipro" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={10}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'distance']}
-                        label={key === 0 ? 'Distance' : ''}
-                      >
-                        <Input placeholder="e.g., 4 km" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={4}>
-                      {fields.length > 1 && (
-                        <Button 
-                          type="text" 
-                          danger 
-                          icon={<DeleteOutlined />} 
-                          onClick={() => remove(name)}
-                        />
-                      )}
-                    </Col>
-                  </Row>
-                ))}
-                <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />}>
-                  Add Office/IT Park
-                </Button>
-              </>
-            )}
-          </Form.List>
+          <Form.Item name="nearbyPlaces">
+            <NearbyPlacesSelector coordinates={mapCoordinates} />
+          </Form.Item>
         </Card>
 
         <Card title="Room Types" className="mb-6">
@@ -600,14 +621,23 @@ const AdminHostelEdit = () => {
               onChange={handleUploadChange}
               beforeUpload={() => false}
               multiple
+              accept="image/*"
+              showUploadList={{
+                showPreviewIcon: true,
+                showRemoveIcon: true,
+                showDownloadIcon: false
+              }}
             >
-              {fileList.length >= 8 ? null : (
+              {fileList.length >= 10 ? null : (
                 <div>
                   <UploadOutlined />
                   <div style={{ marginTop: 8 }}>Upload</div>
                 </div>
               )}
             </Upload>
+            <div className="text-sm text-gray-500 mt-2">
+              Upload up to 10 images. Supported formats: JPG, PNG, WebP
+            </div>
           </Form.Item>
         </Card>
 
@@ -630,7 +660,8 @@ const AdminHostelEdit = () => {
             </Button>
           </Space>
         </Card>
-      </Form>
+        </Form>
+      </div>
     </div>
   )
 }

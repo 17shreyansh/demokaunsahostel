@@ -24,6 +24,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/hostels', require('./routes/hostels'));
 app.use('/api/enquiries', require('./routes/enquiries'));
 app.use('/api/leads', require('./routes/leads'));
+app.use('/api/nearbyplaces', require('./routes/nearbyplaces'));
 
 // Health check
 app.get('/api/health', (req, res) => {

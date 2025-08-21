@@ -14,6 +14,7 @@ import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminHostels from './pages/AdminHostels'
 import AdminHostelEdit from './pages/AdminHostelEdit'
+import AdminNearbyPlaces from './pages/AdminNearbyPlaces'
 import AdminLeads from './pages/AdminLeads'
 import AdminSettings from './pages/AdminSettings'
 
@@ -79,6 +80,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="hostels" element={<AdminHostels />} />
             <Route path="hostels/:id" element={<AdminHostelEdit />} />
+            <Route path="nearbyplaces" element={<AdminNearbyPlaces />} />
             <Route path="leads" element={<AdminLeads />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
