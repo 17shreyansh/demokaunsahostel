@@ -1,6 +1,7 @@
 const express = require('express');
 const NearbyPlaces = require('../models/NearbyPlaces');
 const auth = require('../middleware/auth');
+const axios = require('axios');
 const router = express.Router();
 
 // Get all places by category
@@ -17,7 +18,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get places with distances from a point
+// Get places with road distances from a point
 router.get('/distances', async (req, res) => {
   try {
     const { lat, lng, category } = req.query;
@@ -32,7 +33,19 @@ router.get('/distances', async (req, res) => {
 
     for (const place of places) {
       try {
-        // Calculate straight-line distance (more reliable than API)
+        const roadDistance = await calculateRoadDistance(
+          parseFloat(lat), 
+          parseFloat(lng), 
+          place.mapCoordinates.lat, 
+          place.mapCoordinates.lng
+        );
+        
+        placesWithDistances.push({
+          ...place.toObject(),
+          distance: roadDistance
+        });
+      } catch (error) {
+        // Fallback to straight-line distance
         const straightDistance = calculateStraightDistance(
           parseFloat(lat), 
           parseFloat(lng), 
@@ -42,12 +55,7 @@ router.get('/distances', async (req, res) => {
         
         placesWithDistances.push({
           ...place.toObject(),
-          distance: `${straightDistance.toFixed(1)} km`
-        });
-      } catch (error) {
-        placesWithDistances.push({
-          ...place.toObject(),
-          distance: 'N/A'
+          distance: `~${straightDistance.toFixed(1)} km`
         });
       }
     }
@@ -65,9 +73,56 @@ router.get('/distances', async (req, res) => {
   }
 });
 
+// Calculate road distance using OpenRouteService API
+async function calculateRoadDistance(lat1, lng1, lat2, lng2) {
+  try {
+    // Get API key directly from database
+    const Settings = require('../models/Settings');
+    const setting = await Settings.findOne({ key: 'openroute_api_key' });
+    const apiKey = setting ? setting.value : null;
+    
+    console.log('API Key found:', !!apiKey, 'Key length:', apiKey ? apiKey.length : 0);
+    
+    if (!apiKey || apiKey.length < 10) {
+      console.log('No valid API key, using fallback');
+      throw new Error('OpenRoute API key not configured');
+    }
+    
+    console.log('Making API request to OpenRoute...');
+    const response = await axios.get(
+      'https://api.openrouteservice.org/v2/directions/driving-car',
+      {
+        params: {
+          api_key: apiKey,
+          start: `${lng1},${lat1}`,
+          end: `${lng2},${lat2}`
+        },
+        timeout: 10000
+      }
+    );
+    
+    console.log('OpenRoute API response status:', response.status);
+    
+    if (response.data.features && response.data.features[0]) {
+      const distance = response.data.features[0].properties.segments[0].distance / 1000;
+      console.log('Road distance calculated:', distance, 'km');
+      return `${distance.toFixed(1)} km`;
+    }
+    
+    throw new Error('Invalid response from routing service');
+  } catch (error) {
+    console.error('Road distance calculation failed:', error.message);
+    if (error.response) {
+      console.error('API response status:', error.response.status);
+      console.error('API response data:', error.response.data);
+    }
+    throw error;
+  }
+}
+
 // Calculate straight-line distance (Haversine formula)
 function calculateStraightDistance(lat1, lng1, lat2, lng2) {
-  const R = 6371; // Earth's radius in km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLng = (lng2 - lng1) * Math.PI / 180;
   const a = Math.sin(dLat/2) * Math.sin(dLat/2) +

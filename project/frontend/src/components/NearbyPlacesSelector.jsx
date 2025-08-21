@@ -4,18 +4,6 @@ import { DeleteOutlined } from '@ant-design/icons'
 
 const { Title, Text } = Typography
 
-// Calculate distance using Haversine formula (always works)
-const calculateDistance = (lat1, lng1, lat2, lng2) => {
-  const R = 6371 // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLng = (lng2 - lng1) * Math.PI / 180
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLng/2) * Math.sin(dLng/2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-  return `${(R * c).toFixed(1)} km`
-}
-
 const NearbyPlacesSelector = ({ coordinates, value = { educational: [], offices: [] }, onChange }) => {
   const [availablePlaces, setAvailablePlaces] = useState({ educational: [], office: [] })
   const [loading, setLoading] = useState(false)
@@ -49,41 +37,38 @@ const NearbyPlacesSelector = ({ coordinates, value = { educational: [], offices:
     }
   }
 
-  const calculateDistances = () => {
+  const calculateDistances = async () => {
     if (!coordinates?.lat || !coordinates?.lng) return
+    setLoading(true)
 
-    const updatedEducational = selectedEducational.map((place) => {
-      if (place.mapCoordinates && !place.distance) {
-        const distance = calculateDistance(
-          coordinates.lat, coordinates.lng,
-          place.mapCoordinates.lat, place.mapCoordinates.lng
-        )
-        return { ...place, distance }
-      }
-      return place
-    })
-
-    const updatedOffices = selectedOffices.map((place) => {
-      if (place.mapCoordinates && !place.distance) {
-        const distance = calculateDistance(
-          coordinates.lat, coordinates.lng,
-          place.mapCoordinates.lat, place.mapCoordinates.lng
-        )
-        return { ...place, distance }
-      }
-      return place
-    })
-
-    // Only update if distances were actually calculated
-    const hasNewDistances = updatedEducational.some(p => p.distance && !selectedEducational.find(sp => sp._id === p._id && sp.distance)) ||
-                           updatedOffices.some(p => p.distance && !selectedOffices.find(sp => sp._id === p._id && sp.distance))
-    
-    if (hasNewDistances) {
+    try {
+      const [educationalRes, officeRes] = await Promise.all([
+        fetch(`http://localhost:5000/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=educational`),
+        fetch(`http://localhost:5000/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=office`)
+      ])
+      
+      const educationalWithDistances = await educationalRes.json()
+      const officeWithDistances = await officeRes.json()
+      
+      const updatedEducational = selectedEducational.map(place => {
+        const withDistance = educationalWithDistances.find(p => p._id === place._id)
+        return withDistance ? { ...place, distance: withDistance.distance } : place
+      })
+      
+      const updatedOffices = selectedOffices.map(place => {
+        const withDistance = officeWithDistances.find(p => p._id === place._id)
+        return withDistance ? { ...place, distance: withDistance.distance } : place
+      })
+      
       onChange({ educational: updatedEducational, offices: updatedOffices })
+    } catch (error) {
+      message.error('Failed to calculate distances')
     }
+    
+    setLoading(false)
   }
 
-  const addEducational = (placeId) => {
+  const addEducational = async (placeId) => {
     const place = availablePlaces.educational.find(p => p._id === placeId)
     if (place && !selectedEducational.find(p => (p._id || p.name) === placeId)) {
       let updatedPlace = { 
@@ -94,11 +79,18 @@ const NearbyPlacesSelector = ({ coordinates, value = { educational: [], offices:
       }
       
       if (coordinates?.lat && coordinates?.lng && place.mapCoordinates) {
-        const distance = calculateDistance(
-          coordinates.lat, coordinates.lng,
-          place.mapCoordinates.lat, place.mapCoordinates.lng
-        )
-        updatedPlace.distance = distance
+        setLoading(true)
+        try {
+          const response = await fetch(`http://localhost:5000/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=educational`)
+          const placesWithDistances = await response.json()
+          const placeWithDistance = placesWithDistances.find(p => p._id === placeId)
+          if (placeWithDistance) {
+            updatedPlace.distance = placeWithDistance.distance
+          }
+        } catch (error) {
+          message.error('Failed to calculate distance')
+        }
+        setLoading(false)
       }
       
       const newEducational = [...selectedEducational, updatedPlace]
@@ -106,7 +98,7 @@ const NearbyPlacesSelector = ({ coordinates, value = { educational: [], offices:
     }
   }
 
-  const addOffice = (placeId) => {
+  const addOffice = async (placeId) => {
     const place = availablePlaces.office.find(p => p._id === placeId)
     if (place && !selectedOffices.find(p => (p._id || p.name) === placeId)) {
       let updatedPlace = { 
@@ -117,11 +109,18 @@ const NearbyPlacesSelector = ({ coordinates, value = { educational: [], offices:
       }
       
       if (coordinates?.lat && coordinates?.lng && place.mapCoordinates) {
-        const distance = calculateDistance(
-          coordinates.lat, coordinates.lng,
-          place.mapCoordinates.lat, place.mapCoordinates.lng
-        )
-        updatedPlace.distance = distance
+        setLoading(true)
+        try {
+          const response = await fetch(`http://localhost:5000/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=office`)
+          const placesWithDistances = await response.json()
+          const placeWithDistance = placesWithDistances.find(p => p._id === placeId)
+          if (placeWithDistance) {
+            updatedPlace.distance = placeWithDistance.distance
+          }
+        } catch (error) {
+          message.error('Failed to calculate distance')
+        }
+        setLoading(false)
       }
       
       const newOffices = [...selectedOffices, updatedPlace]

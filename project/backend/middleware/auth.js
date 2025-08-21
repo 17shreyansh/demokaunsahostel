@@ -1,25 +1,26 @@
 const jwt = require('jsonwebtoken');
-const Admin = require('../models/Admin');
 
 const auth = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const authHeader = req.headers.authorization;
     
-    if (!token) {
-      return res.status(401).json({ message: 'No token, authorization denied' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Access denied. No valid token provided.' });
     }
-
+    
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const admin = await Admin.findById(decoded.id);
     
-    if (!admin) {
-      return res.status(401).json({ message: 'Token is not valid' });
-    }
-
-    req.admin = admin;
+    req.admin = { id: decoded.id };
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Token is not valid' });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expired. Please login again.' });
+    }
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Invalid token. Please login again.' });
+    }
+    res.status(401).json({ message: 'Authentication failed.' });
   }
 };
 

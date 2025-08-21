@@ -1,211 +1,203 @@
-import { useState } from 'react'
-import { useTheme } from '../contexts/ThemeContext'
+import { useState, useEffect } from 'react'
+import { Card, Form, Input, Button, message, Row, Col, Typography, Divider } from 'antd'
+import { KeyOutlined, UserOutlined, SaveOutlined } from '@ant-design/icons'
+
+const { Title, Text } = Typography
 
 const AdminSettings = () => {
-  const { isDark } = useTheme()
-  const [loading, setLoading] = useState(false)
-  const [profileData, setProfileData] = useState({
-    fullName: 'John Doe',
-    email: 'john@example.com',
-    phone: '+91 98765 43210',
-    businessName: 'Comfort Hostels',
-    address: 'Greater Noida, UP'
-  })
+  const [apiLoading, setApiLoading] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [currentUser, setCurrentUser] = useState('')
+  const [apiSaved, setApiSaved] = useState(false)
+  const [apiForm] = Form.useForm()
+  const [profileForm] = Form.useForm()
 
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken')
+    console.log('Token from localStorage:', token)
+    if (token) {
+      fetchProfile()
+      checkApiKey()
+    }
+  }, [])
+
+  const fetchProfile = async () => {
     try {
-      // API call would go here
-      alert('Profile updated successfully')
+      const token = localStorage.getItem('adminToken')
+      console.log('Fetching profile with token:', token)
+      
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+
+      console.log('Profile response status:', response.status)
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Profile data:', data)
+        setCurrentUser(data.admin.username)
+        profileForm.setFieldsValue({ username: data.admin.username })
+      }
     } catch (error) {
-      alert('Failed to update profile')
-    } finally {
-      setLoading(false)
+      console.error('Profile fetch error:', error)
     }
   }
 
-  const handlePasswordChange = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+  const checkApiKey = async () => {
     try {
-      // API call would go here
-      alert('Password changed successfully')
+      const response = await fetch('http://localhost:5000/api/settings/status/api-key')
+      if (response.ok) {
+        const data = await response.json()
+        setApiSaved(data.configured)
+      } else {
+        setApiSaved(false)
+      }
     } catch (error) {
-      alert('Failed to change password')
+      setApiSaved(false)
+    }
+  }
+
+  const handleApiSubmit = async (values) => {
+    setApiLoading(true)
+    try {
+      const token = localStorage.getItem('adminToken')
+      console.log('API submit with token:', token)
+      
+      const response = await fetch('http://localhost:5000/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          key: 'openroute_api_key',
+          value: values.apiKey,
+          encrypted: true,
+          description: 'OpenRouteService API Key for distance calculations',
+          category: 'api'
+        })
+      })
+
+      console.log('Settings response status:', response.status)
+      const result = await response.json()
+      console.log('Settings response:', result)
+      
+      if (response.ok) {
+        message.success('API Key saved successfully')
+        apiForm.resetFields()
+        setApiSaved(true)
+      } else {
+        message.error(result.message || 'Failed to save')
+      }
+    } catch (error) {
+      console.error('API submit error:', error)
+      message.error('Failed to save API key')
     } finally {
-      setLoading(false)
+      setApiLoading(false)
+    }
+  }
+
+  const handleProfileSubmit = async (values) => {
+    setProfileLoading(true)
+    try {
+      const token = localStorage.getItem('adminToken')
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(values)
+      })
+
+      const result = await response.json()
+      
+      if (response.ok) {
+        message.success('Profile updated successfully')
+        profileForm.setFieldsValue({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+        setCurrentUser(values.username || currentUser)
+      } else {
+        message.error(result.message || 'Failed to update')
+      }
+    } catch (error) {
+      message.error('Failed to update profile')
+    } finally {
+      setProfileLoading(false)
     }
   }
 
   return (
-    <div className={`transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
-      <div className="mb-8">
-        <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Account Settings</h1>
-        <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage your provider account and preferences</p>
-      </div>
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <Title level={2} style={{ marginBottom: '32px' }}>
+        Admin Settings
+      </Title>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Profile Settings */}
-        <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-          <div className="flex items-center space-x-3 mb-6">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
-              <svg className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+      <Row gutter={[24, 24]}>
+        <Col xs={24} lg={12}>
+          <Card title={<><KeyOutlined /> API Configuration</>}>
+            <div style={{ marginBottom: 16 }}>
+              <Text>Status: </Text>
+              <Text strong style={{ color: apiSaved ? '#52c41a' : '#ff4d4f' }}>
+                {apiSaved ? '✓ API Key Saved' : '✗ API Key Not Configured'}
+              </Text>
             </div>
-            <h2 className={`text-xl font-semibold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Profile Settings</h2>
-          </div>
+            <Form form={apiForm} onFinish={handleApiSubmit} layout="vertical">
+              <Form.Item
+                name="apiKey"
+                label="OpenRouteService API Key"
+                rules={[{ required: true, message: 'Please enter your API key' }]}
+              >
+                <Input.Password placeholder="Enter your API key" size="large" />
+              </Form.Item>
+              <Button type="primary" htmlType="submit" loading={apiLoading} size="large" block>
+                Save API Key
+              </Button>
+            </Form>
+          </Card>
+        </Col>
 
-          <div className="text-center mb-6">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-3 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
-              <svg className={`w-10 h-10 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <button className={`px-4 py-2 rounded-lg border transition-colors ${isDark ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
-              Change Photo
-            </button>
-          </div>
-
-          <form onSubmit={handleProfileUpdate} className="space-y-4">
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Full Name</label>
-              <input
-                type="text"
-                defaultValue={profileData.fullName}
-                className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Email</label>
-              <input
-                type="email"
-                defaultValue={profileData.email}
-                className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Phone</label>
-              <input
-                type="tel"
-                defaultValue={profileData.phone}
-                className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Business Name</label>
-              <input
-                type="text"
-                defaultValue={profileData.businessName}
-                className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Updating...' : 'Update Profile'}
-            </button>
-          </form>
-        </div>
-
-        {/* Password Settings */}
-        <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-          <div className="flex items-center space-x-3 mb-6">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-red-900/50' : 'bg-red-100'}`}>
-              <svg className={`w-5 h-5 ${isDark ? 'text-red-400' : 'text-red-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h2 className={`text-xl font-semibold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Change Password</h2>
-          </div>
-
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Current Password</label>
-              <input
-                type="password"
-                required
-                className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>New Password</label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Confirm New Password</label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Changing...' : 'Change Password'}
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* Notification Preferences */}
-      <div className={`mt-8 transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-        <div className="flex items-center space-x-3 mb-6">
-          <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-100'}`}>
-            <svg className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM10.07 2.82a3 3 0 00-4.24 0L2.82 5.83a3 3 0 000 4.24l2.01 2.01a3 3 0 004.24 0l2.01-2.01a3 3 0 000-4.24L10.07 2.82z" />
-            </svg>
-          </div>
-          <h2 className={`text-xl font-semibold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Notification Preferences</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={`font-medium transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Email Notifications</p>
-              <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Get notified about new bookings</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={`font-medium transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>SMS Notifications</p>
-              <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Get SMS for urgent updates</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={`font-medium transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Marketing Emails</p>
-              <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Tips and platform updates</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-        </div>
-      </div>
+        <Col xs={24} lg={12}>
+          <Card title={<><UserOutlined /> Profile Management</>}>
+            <Text>Current user: <Text strong>{currentUser}</Text></Text>
+            <Form form={profileForm} onFinish={handleProfileSubmit} layout="vertical" style={{ marginTop: 16 }}>
+              <Form.Item name="username" label="Username" rules={[{ required: true }]}>
+                <Input placeholder="Enter username" size="large" />
+              </Form.Item>
+              <Form.Item name="currentPassword" label="Current Password" rules={[{ required: true }]}>
+                <Input.Password placeholder="Current password" size="large" />
+              </Form.Item>
+              <Form.Item name="newPassword" label="New Password" rules={[{ required: true }]}>
+                <Input.Password placeholder="New password" size="large" />
+              </Form.Item>
+              <Form.Item
+                name="confirmPassword"
+                label="Confirm Password"
+                dependencies={['newPassword']}
+                rules={[
+                  { required: true },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue('newPassword') === value) {
+                        return Promise.resolve()
+                      }
+                      return Promise.reject(new Error('Passwords do not match'))
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password placeholder="Confirm password" size="large" />
+              </Form.Item>
+              <Button type="primary" htmlType="submit" loading={profileLoading} size="large" block>
+                Update Profile
+              </Button>
+            </Form>
+          </Card>
+        </Col>
+      </Row>
     </div>
   )
 }
