@@ -211,7 +211,7 @@ router.post('/', auth, upload.array('images', 10), async (req, res) => {
     const hostelData = { ...req.body };
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'reviews'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'reviews', 'mapCoordinates'].forEach(field => {
       if (hostelData[field] && typeof hostelData[field] === 'string') {
         try {
           hostelData[field] = JSON.parse(hostelData[field]);
@@ -258,7 +258,7 @@ router.put('/:id', auth, upload.array('images', 10), async (req, res) => {
     const updateData = { ...req.body };
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'reviews'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'reviews', 'mapCoordinates'].forEach(field => {
       if (updateData[field] && typeof updateData[field] === 'string') {
         try {
           updateData[field] = JSON.parse(updateData[field]);

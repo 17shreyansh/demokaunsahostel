@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { hostelAPI, enquiryAPI, leadAPI } from '../services/api'
 import { useTheme } from '../contexts/ThemeContext'
+import MapStatsWidget from '../components/MapStatsWidget'
 
 const AdminDashboard = () => {
   const { isDark } = useTheme()
@@ -237,6 +238,49 @@ const AdminDashboard = () => {
             <span className={`text-sm px-3 py-1 rounded-full ${isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-600'}`}>6 Months</span>
           </div>
           <SimpleChart data={analytics.enquiryTrend.slice(0, 6)} color={isDark ? '#34d399' : '#10b981'} />
+        </div>
+      </div>
+
+      {/* Map Stats Widget */}
+      <div className="mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <MapStatsWidget />
+          </div>
+          <div className="lg:col-span-3">
+            <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm hover:shadow-lg h-full`}>
+              <h3 className={`text-lg font-semibold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>Interactive Maps Benefits</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+                <div className="text-center">
+                  <div className={`p-3 rounded-full w-12 h-12 mx-auto mb-3 ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
+                    <svg className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                  </div>
+                  <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Easy Location</h4>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Help customers find your hostel easily with interactive maps</p>
+                </div>
+                <div className="text-center">
+                  <div className={`p-3 rounded-full w-12 h-12 mx-auto mb-3 ${isDark ? 'bg-green-900/50' : 'bg-green-100'}`}>
+                    <svg className={`w-6 h-6 ${isDark ? 'text-green-400' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                  <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Higher Bookings</h4>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Properties with maps get 40% more enquiries</p>
+                </div>
+                <div className="text-center">
+                  <div className={`p-3 rounded-full w-12 h-12 mx-auto mb-3 ${isDark ? 'bg-purple-900/50' : 'bg-purple-100'}`}>
+                    <svg className={`w-6 h-6 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Better Trust</h4>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Build customer confidence with accurate location data</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

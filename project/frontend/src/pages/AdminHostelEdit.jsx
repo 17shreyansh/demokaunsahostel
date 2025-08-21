@@ -6,9 +6,10 @@ import {
 } from 'antd'
 import {
   SaveOutlined, ArrowLeftOutlined, UploadOutlined, PlusOutlined, 
-  DeleteOutlined
+  DeleteOutlined, EnvironmentOutlined
 } from '@ant-design/icons'
 import { hostelAPI } from '../services/api'
+import InteractiveMap from '../components/InteractiveMap'
 
 const { Title, Text } = Typography
 const { TextArea } = Input
@@ -20,6 +21,7 @@ const AdminHostelEdit = () => {
   const [loading, setLoading] = useState(false)
   const [hostel, setHostel] = useState(null)
   const [fileList, setFileList] = useState([])
+  const [mapCoordinates, setMapCoordinates] = useState({ lat: 28.6139, lng: 77.2090 })
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -46,6 +48,11 @@ const AdminHostelEdit = () => {
         reviews: hostelData.reviews || [],
         address: hostelData.contactInfo?.address || ''
       })
+
+      // Set map data
+      if (hostelData.mapCoordinates) {
+        setMapCoordinates(hostelData.mapCoordinates)
+      }
 
       // Set existing images
       if (hostelData.images) {
@@ -108,6 +115,11 @@ const AdminHostelEdit = () => {
           formData.append(key, values[key])
         }
       })
+
+      // Handle map data
+      if (mapCoordinates && mapCoordinates.lat && mapCoordinates.lng) {
+        formData.append('mapCoordinates', JSON.stringify(mapCoordinates))
+      }
 
       // Handle images
       fileList.forEach(file => {
@@ -176,6 +188,23 @@ const AdminHostelEdit = () => {
               <Form.Item name="address" label="Full Address">
                 <TextArea rows={2} placeholder="Complete address with landmarks" />
               </Form.Item>
+            </Col>
+          </Row>
+
+          {/* Interactive Map Section */}
+          <Row gutter={16}>
+            <Col xs={24}>
+              <div className="mb-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <EnvironmentOutlined className="text-lg text-blue-600" />
+                  <span className="font-medium">Interactive Map Location</span>
+                </div>
+                <InteractiveMap
+                  coordinates={mapCoordinates}
+                  onCoordinatesChange={setMapCoordinates}
+                  address={form.getFieldValue('address')}
+                />
+              </div>
             </Col>
           </Row>
           

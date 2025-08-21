@@ -116,6 +116,16 @@ const hostelSchema = new mongoose.Schema({
   checkIn: {
     type: String,
     default: 'Flexible timing'
+  },
+  mapCoordinates: {
+    lat: {
+      type: Number,
+      default: null
+    },
+    lng: {
+      type: Number,
+      default: null
+    }
   }
 }, {
   timestamps: true

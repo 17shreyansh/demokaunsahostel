@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { hostelAPI } from '../services/api'
 import EnquiryForm from '../components/EnquiryForm'
+import HostelMap from '../components/HostelMap'
 
 const HostelDetails = () => {
   const { slug } = useParams()
@@ -290,7 +291,18 @@ const HostelDetails = () => {
               <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-2 sm:mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
               </svg>
-              <span className="truncate">{hostel.location}</span>
+              {hostel.mapCoordinates ? (
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${hostel.mapCoordinates.lat},${hostel.mapCoordinates.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="truncate hover:underline"
+                >
+                  {hostel.location}
+                </a>
+              ) : (
+                <span className="truncate">{hostel.location}</span>
+              )}
             </div>
             <div className="flex items-center">
               <div className="flex text-yellow-custom mr-2 sm:mr-3">
@@ -595,14 +607,25 @@ const HostelDetails = () => {
                     </svg>
                     Location & Nearby
                   </h3>
-                  <div className="bg-gradient-to-br from-blue-100 to-purple-100 h-64 rounded-xl flex items-center justify-center mb-6 border border-blue-200">
-                    <div className="text-center">
-                      <svg className="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                      </svg>
-                      <span className="text-blue-600 font-semibold text-lg">Interactive Map Coming Soon</span>
+                  
+                  {/* Interactive Map */}
+                  {hostel.mapCoordinates && hostel.mapCoordinates.lat && hostel.mapCoordinates.lng ? (
+                    <HostelMap 
+                      coordinates={hostel.mapCoordinates}
+                      hostelName={hostel.name}
+                      address={hostel.contactInfo?.address || hostel.location}
+                    />
+                  ) : (
+                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 h-64 rounded-xl flex items-center justify-center mb-6 border border-blue-200">
+                      <div className="text-center">
+                        <svg className="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                        <span className="text-blue-600 font-semibold text-lg">Map not available for this hostel</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
+                  {/* Nearby Places */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200">
                       <div className="flex items-center mb-4">
