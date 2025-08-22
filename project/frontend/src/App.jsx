@@ -17,6 +17,7 @@ import AdminHostelEdit from './pages/AdminHostelEdit'
 import AdminNearbyPlaces from './pages/AdminNearbyPlaces'
 import AdminLeads from './pages/AdminLeads'
 import AdminSettings from './pages/AdminSettings'
+import AdminPageContent from './pages/AdminPageContent'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -83,6 +84,7 @@ function App() {
             <Route path="nearbyplaces" element={<AdminNearbyPlaces />} />
             <Route path="leads" element={<AdminLeads />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="page-content" element={<AdminPageContent />} />
           </Route>
         </Routes>
         <ScrollToTop />

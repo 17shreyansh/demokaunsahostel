@@ -29,13 +29,19 @@ const storage = multer.diskStorage({
   destination: 'uploads/',
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    // Accept all fields
+    cb(null, true);
+  }
+});
 
 router.get('/', async (req, res) => {
   try {
     const { 
       search, location, minPrice, maxPrice, gender, type,
-      amenities, availability, sortBy, page = 1, limit = 12 
+      amenities, availability, sortBy, nearbyPlace, page = 1, limit = 12 
     } = req.query;
     
     // Check cache first
@@ -46,15 +52,38 @@ router.get('/', async (req, res) => {
     }
     
     let query = {};
+    let searchQuery = null;
+    let nearbyQuery = null;
     
     // Text search
     if (search && search.trim()) {
-      query.$or = [
-        { name: { $regex: search.trim(), $options: 'i' } },
-        { location: { $regex: search.trim(), $options: 'i' } },
-        { description: { $regex: search.trim(), $options: 'i' } },
-        { 'nearbyPlaces.educational.name': { $regex: search.trim(), $options: 'i' } }
-      ];
+      searchQuery = {
+        $or: [
+          { name: { $regex: search.trim(), $options: 'i' } },
+          { location: { $regex: search.trim(), $options: 'i' } },
+          { description: { $regex: search.trim(), $options: 'i' } },
+          { 'nearbyPlaces.educational.name': { $regex: search.trim(), $options: 'i' } }
+        ]
+      };
+    }
+    
+    // Nearby Place filter
+    if (nearbyPlace && nearbyPlace.trim() && nearbyPlace !== '') {
+      nearbyQuery = {
+        $or: [
+          { 'nearbyPlaces.educational': { $elemMatch: { name: nearbyPlace.trim() } } },
+          { 'nearbyPlaces.offices': { $elemMatch: { name: nearbyPlace.trim() } } }
+        ]
+      };
+    }
+    
+    // Combine search and nearby queries
+    if (searchQuery && nearbyQuery) {
+      query.$and = [searchQuery, nearbyQuery];
+    } else if (searchQuery) {
+      query = { ...query, ...searchQuery };
+    } else if (nearbyQuery) {
+      query = { ...query, ...nearbyQuery };
     }
     
     // Location filter
@@ -83,7 +112,7 @@ router.get('/', async (req, res) => {
     if (amenities && amenities.trim() && amenities !== '') {
       const amenityList = amenities.split(',').map(a => a.trim()).filter(a => a);
       if (amenityList.length > 0) {
-        query.amenities = { $in: amenityList };
+        query.amenities = { $all: amenityList };
       }
     }
     
@@ -92,28 +121,114 @@ router.get('/', async (req, res) => {
       query.availability = availability.trim();
     }
     
-    // Sorting
-    let sort = {};
-    switch (sortBy) {
-      case 'price_low': sort = { price: 1 }; break;
-      case 'price_high': sort = { price: -1 }; break;
-      case 'rating': sort = { rating: -1 }; break;
-      case 'newest': sort = { createdAt: -1 }; break;
-      default: sort = { createdAt: -1 };
-    }
-    
     const skip = (page - 1) * limit;
     
-    // Use lean() for better performance and select only needed fields
-    const [hostels, total] = await Promise.all([
-      Hostel.find(query)
-        .select('name slug description location price images amenities availability rating featured gender type')
-        .sort(sort)
-        .skip(skip)
-        .limit(parseInt(limit))
-        .lean(),
-      Hostel.countDocuments(query)
-    ]);
+    // Sorting
+    let sort = {};
+    let useAggregation = false;
+    let aggregationPipeline = [];
+    
+    if (nearbyPlace && nearbyPlace.trim()) {
+      // Sort by distance to specific nearby place using aggregation
+      useAggregation = true;
+      aggregationPipeline = [
+        { $match: query },
+        {
+          $addFields: {
+            distanceToPlace: {
+              $let: {
+                vars: {
+                  allPlaces: {
+                    $concatArrays: [
+                      { $ifNull: ["$nearbyPlaces.educational", []] },
+                      { $ifNull: ["$nearbyPlaces.offices", []] }
+                    ]
+                  }
+                },
+                in: {
+                  $min: {
+                    $map: {
+                      input: "$$allPlaces",
+                      as: "place",
+                      in: {
+                        $cond: {
+                          if: { $eq: ["$$place.name", nearbyPlace.trim()] },
+                          then: {
+                            $let: {
+                              vars: {
+                                distanceStr: { $ifNull: ["$$place.distance", "999 km"] },
+                                distanceParts: { $split: [{ $ifNull: ["$$place.distance", "999 km"] }, " "] }
+                              },
+                              in: {
+                                $toDouble: { $arrayElemAt: ["$$distanceParts", 0] }
+                              }
+                            }
+                          },
+                          else: 999999
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        { $match: { distanceToPlace: { $lt: 999999 } } },
+        { $sort: { distanceToPlace: 1 } },
+        { $skip: skip },
+        { $limit: parseInt(limit) },
+        {
+          $project: {
+            name: 1, slug: 1, description: 1, location: 1, price: 1,
+            images: 1, amenities: 1, availability: 1, rating: 1,
+            featured: 1, gender: 1, type: 1
+          }
+        }
+      ];
+    } else {
+      switch (sortBy) {
+        case 'price_low': sort = { price: 1 }; break;
+        case 'price_high': sort = { price: -1 }; break;
+        case 'rating': sort = { rating: -1 }; break;
+        case 'newest': sort = { createdAt: -1 }; break;
+        default: sort = { createdAt: -1 };
+      }
+    }
+    
+    // Execute query
+    let hostels, total;
+    
+    if (useAggregation && aggregationPipeline.length > 0) {
+      try {
+        [hostels, total] = await Promise.all([
+          Hostel.aggregate(aggregationPipeline),
+          Hostel.countDocuments(query)
+        ]);
+      } catch (aggError) {
+        console.error('Aggregation error:', aggError);
+        // Fallback to regular query
+        [hostels, total] = await Promise.all([
+          Hostel.find(query)
+            .select('name slug description location price images amenities availability rating featured gender type')
+            .sort(sort)
+            .skip(skip)
+            .limit(parseInt(limit))
+            .lean(),
+          Hostel.countDocuments(query)
+        ]);
+      }
+    } else {
+      [hostels, total] = await Promise.all([
+        Hostel.find(query)
+          .select('name slug description location price images amenities availability rating featured gender type')
+          .sort(sort)
+          .skip(skip)
+          .limit(parseInt(limit))
+          .lean(),
+        Hostel.countDocuments(query)
+      ]);
+    }
     
     const result = {
       hostels,
@@ -129,7 +244,8 @@ router.get('/', async (req, res) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Route error:', error);
+    res.status(500).json({ message: error.message, stack: process.env.NODE_ENV === 'development' ? error.stack : undefined });
   }
 });
 
@@ -167,11 +283,29 @@ router.get('/filters/options', async (req, res) => {
     const types = await Hostel.distinct('type');
     const amenities = await Hostel.distinct('amenities');
     
+    // Get all nearby places from hostels
+    const hostels = await Hostel.find({}, 'nearbyPlaces').lean();
+    const nearbyPlaces = new Set();
+    
+    hostels.forEach(hostel => {
+      if (hostel.nearbyPlaces?.educational) {
+        hostel.nearbyPlaces.educational.forEach(place => {
+          if (place.name) nearbyPlaces.add(place.name);
+        });
+      }
+      if (hostel.nearbyPlaces?.offices) {
+        hostel.nearbyPlaces.offices.forEach(place => {
+          if (place.name) nearbyPlaces.add(place.name);
+        });
+      }
+    });
+    
     res.json({
       locations: locations.filter(Boolean).sort(),
       genders: genders.filter(Boolean).sort(),
       types: types.filter(Boolean).sort(),
-      amenities: amenities.filter(Boolean).sort()
+      amenities: amenities.filter(Boolean).sort(),
+      nearbyPlaces: Array.from(nearbyPlaces).sort()
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -200,13 +334,35 @@ router.get('/slug/:slug', async (req, res) => {
       return res.status(404).json({ message: 'Hostel not found' });
     }
     
+    // Track view with IP to prevent duplicate counting
+    const clientIP = req.ip || req.connection.remoteAddress;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Check if this IP already viewed today
+    const alreadyViewed = hostel.viewHistory.some(view => 
+      view.ip === clientIP && view.date >= today
+    );
+    
+    if (!alreadyViewed) {
+      hostel.views = (hostel.views || 0) + 1;
+      hostel.viewHistory.push({ date: new Date(), ip: clientIP });
+      
+      // Keep only last 30 days of view history
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      hostel.viewHistory = hostel.viewHistory.filter(view => view.date >= thirtyDaysAgo);
+      
+      await hostel.save();
+    }
+    
     res.json(hostel);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.post('/', auth, upload.array('images', 10), async (req, res) => {
+router.post('/', auth, upload.any(), async (req, res) => {
   try {
     const hostelData = { ...req.body };
     
@@ -255,7 +411,32 @@ router.post('/', auth, upload.array('images', 10), async (req, res) => {
   }
 });
 
-router.put('/:id', auth, upload.array('images', 10), async (req, res) => {
+// Update featured status
+router.patch('/:id/featured', auth, async (req, res) => {
+  try {
+    const { featured } = req.body;
+    
+    if (featured) {
+      // Check if we already have 6 featured hostels
+      const featuredCount = await Hostel.countDocuments({ featured: true });
+      if (featuredCount >= 6) {
+        return res.status(400).json({ message: 'Maximum 6 hostels can be featured' });
+      }
+    }
+    
+    const hostel = await Hostel.findByIdAndUpdate(
+      req.params.id, 
+      { featured }, 
+      { new: true }
+    );
+    
+    res.json(hostel);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.put('/:id', auth, upload.any(), async (req, res) => {
   try {
     const updateData = { ...req.body };
     
@@ -340,6 +521,20 @@ router.put('/:id', auth, upload.array('images', 10), async (req, res) => {
   } catch (error) {
     console.error('Update hostel error:', error);
     res.status(400).json({ message: error.message });
+  }
+});
+
+// Get featured hostels for homepage
+router.get('/featured/homepage', async (req, res) => {
+  try {
+    const featuredHostels = await Hostel.find({ featured: true })
+      .select('name slug description location price images amenities availability rating')
+      .limit(6)
+      .lean();
+    
+    res.json(featuredHostels);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

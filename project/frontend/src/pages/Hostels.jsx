@@ -32,7 +32,7 @@ const Hostels = () => {
   const [hostels, setHostels] = useState([])
   const [loading, setLoading] = useState(true)
   const [pagination, setPagination] = useState({ current: 1, pages: 1, total: 0 })
-  const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [] })
+  const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [] })
   const [showFilters, setShowFilters] = useState(false)
   const [searchTimeout, setSearchTimeout] = useState(null)
   
@@ -45,6 +45,7 @@ const Hostels = () => {
     type: searchParams.get('type') || '',
     amenities: searchParams.get('amenities') || '',
     availability: searchParams.get('availability') || '',
+    nearbyPlace: searchParams.get('nearbyPlace') || '',
     sortBy: searchParams.get('sortBy') || 'newest'
   })
 
@@ -111,7 +112,7 @@ const Hostels = () => {
   const clearFilters = () => {
     setFilters({
       search: '', location: '', minPrice: '', maxPrice: '',
-      gender: '', type: '', amenities: '', availability: '', sortBy: 'newest'
+      gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', sortBy: 'newest'
     })
     setSearchParams({})
   }
@@ -205,7 +206,7 @@ const Hostels = () => {
           {/* Advanced Filters */}
           {showFilters && (
             <div className="p-6 bg-gray-50 border-t border-gray-100" style={{position: 'relative', zIndex: 1}}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 {/* Location */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
@@ -368,6 +369,46 @@ const Hostels = () => {
                     }}
                   />
                 </div>
+
+                {/* Nearby Place */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Near To</label>
+                  <Select
+                    value={filters.nearbyPlace ? { value: filters.nearbyPlace, label: filters.nearbyPlace } : null}
+                    onChange={(option) => {
+                      const value = option?.value || ''
+                      if (value !== filters.nearbyPlace) {
+                        updateFilters({ nearbyPlace: value })
+                      }
+                    }}
+                    options={[
+                      { value: '', label: 'All Places' },
+                      ...filterOptions.nearbyPlaces.map(place => ({ value: place, label: place }))
+                    ]}
+                    placeholder="Select Place"
+                    isClearable
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        borderRadius: '12px',
+                        border: '2px solid #d1d5db',
+                        boxShadow: state.isFocused ? '0 0 0 3px rgba(245, 158, 11, 0.1)' : '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                        borderColor: state.isFocused ? '#f59e0b' : '#d1d5db',
+                        padding: '4px',
+                        background: 'linear-gradient(to right, #ffffff, #f9fafb)',
+                        '&:hover': { borderColor: '#fbbf24', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isSelected ? '#f59e0b' : state.isFocused ? '#fef3c7' : '#ffffff',
+                        color: state.isSelected ? '#1f2937' : '#374151',
+                        fontWeight: state.isSelected ? '600' : '500',
+                        padding: '12px 16px'
+                      }),
+                      menu: (base) => ({ ...base, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' })
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Amenities Multi-Select */}
@@ -387,7 +428,8 @@ const Hostels = () => {
                           } else {
                             newAmenities = [...selectedAmenities, amenity]
                           }
-                          updateFilters({ amenities: newAmenities.join(',') })
+                          const amenitiesString = newAmenities.length > 0 ? newAmenities.join(',') : ''
+                          updateFilters({ amenities: amenitiesString })
                         }}
                         className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
                           isSelected
@@ -484,6 +526,7 @@ const Hostels = () => {
             <div className="flex justify-between items-center mb-6">
               <p className="text-gray-600">
                 Showing {hostels.length} of {pagination.total} hostels
+                {filters.nearbyPlace && ` near ${filters.nearbyPlace}`}
               </p>
               <p className="text-sm text-gray-500">
                 Page {pagination.current} of {pagination.pages}

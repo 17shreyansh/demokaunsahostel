@@ -32,6 +32,7 @@ const AdminLayoutContent = () => {
     { key: 'hostels', label: 'My Properties', icon: FiGrid },
     { key: 'nearbyplaces', label: 'Nearby Places', icon: FiUsers },
     { key: 'leads', label: 'Bookings', icon: FiUsers },
+    { key: 'page-content', label: 'Page Content', icon: FiSettings },
     { key: 'settings', label: 'Settings', icon: FiSettings }
   ]
 
@@ -48,6 +49,7 @@ const AdminLayoutContent = () => {
     if (path.includes('/hostels')) return ['hostels']
     if (path.includes('/nearbyplaces')) return ['nearbyplaces']
     if (path.includes('/leads')) return ['leads']
+    if (path.includes('/page-content')) return ['page-content']
     if (path.includes('/settings')) return ['settings']
     return ['dashboard']
   }
@@ -59,6 +61,7 @@ const AdminLayoutContent = () => {
     if (path.includes('/hostels')) return 'My Properties'
     if (path.includes('/nearbyplaces')) return 'Nearby Places'
     if (path.includes('/leads')) return 'Booking Management'
+    if (path.includes('/page-content')) return 'Page Content Editor'
     if (path.includes('/settings')) return 'Account Settings'
     return 'Provider Dashboard'
   }

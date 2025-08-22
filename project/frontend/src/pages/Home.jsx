@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { hostelAPI } from '../services/api'
+import { hostelAPI, pageAPI } from '../services/api'
 import HeroSection from '../components/home/HeroSection'
 import SearchSection from '../components/home/SearchSection'
 import FeaturedHostels from '../components/home/FeaturedHostels'
@@ -9,16 +9,21 @@ import TestimonialsSection from '../components/home/TestimonialsSection'
 
 const Home = () => {
   const [hostels, setHostels] = useState([])
+  const [pageContent, setPageContent] = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchHostels()
+    fetchData()
   }, [])
 
-  const fetchHostels = async () => {
+  const fetchData = async () => {
     try {
-      const response = await hostelAPI.getAll()
-      setHostels(response.data.hostels.slice(0, 6))
+      const [hostelsResponse, contentResponse] = await Promise.all([
+        hostelAPI.getAll(),
+        pageAPI.getPageContent('home')
+      ])
+      setHostels(hostelsResponse.data.hostels.slice(0, 6))
+      setPageContent(contentResponse.data.content || {})
     } catch (error) {
       console.error('Error:', error)
     } finally {
@@ -66,11 +71,11 @@ const Home = () => {
         ))}
       </div>
       
-      <HeroSection hostels={hostels} loading={loading} />
-        <SearchSection />
+      <HeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
+        <SearchSection content={pageContent.search} />
         <FeaturedHostels hostels={hostels} loading={loading} />
-        <ServicesSection />
-        <TestimonialsSection />
+        <ServicesSection content={pageContent.services} />
+        <TestimonialsSection content={pageContent.testimonials} />
     </main>
   )
 }

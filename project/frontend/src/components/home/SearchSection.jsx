@@ -2,20 +2,22 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { hostelAPI } from '../../services/api'
 
-const SearchSection = () => {
+const SearchSection = ({ content }) => {
   const navigate = useNavigate()
   const [filters, setFilters] = useState({
     location: '',
+    nearbyPlace: '',
     minPrice: '',
     maxPrice: '',
     gender: ''
   })
   const [dropdownOpen, setDropdownOpen] = useState({
     location: false,
+    nearby: false,
     budget: false,
     gender: false
   })
-  const [filterOptions, setFilterOptions] = useState({ locations: [] })
+  const [filterOptions, setFilterOptions] = useState({ locations: [], nearbyPlaces: [] })
   const dropdownRef = useRef(null)
 
   // Fetch filter options
@@ -35,7 +37,7 @@ const SearchSection = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen({ location: false, budget: false, gender: false })
+        setDropdownOpen({ location: false, nearby: false, budget: false, gender: false })
       }
     }
 
@@ -43,14 +45,14 @@ const SearchSection = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const budgets = [
-    { value: { min: '', max: '8000' }, label: 'Under ₹8,000' },
-    { value: { min: '8000', max: '12000' }, label: '₹8,000 - ₹12,000' },
-    { value: { min: '12000', max: '20000' }, label: '₹12,000 - ₹20,000' },
-    { value: { min: '20000', max: '' }, label: 'Above ₹20,000' }
+  const budgets = content?.budgetOptions || [
+    { value: { min: '', max: '7000' }, label: 'Budget Friendly (Under ₹7K)' },
+    { value: { min: '7000', max: '10000' }, label: 'Affordable (₹7K - ₹10K)' },
+    { value: { min: '10000', max: '15000' }, label: 'Premium (₹10K - ₹15K)' },
+    { value: { min: '15000', max: '' }, label: 'Luxury (Above ₹15K)' }
   ]
 
-  const genders = [
+  const genders = content?.genderOptions || [
     { value: 'Boys', label: 'Boys Only' },
     { value: 'Girls', label: 'Girls Only' },
     { value: 'Co-ed', label: 'Co-ed' }
@@ -64,8 +66,10 @@ const SearchSection = () => {
         maxPrice: value.max,
         budgetLabel: label 
       }))
+    } else if (type === 'nearby') {
+      setFilters(prev => ({ ...prev, nearbyPlace: value, nearbyLabel: label }))
     } else {
-      setFilters(prev => ({ ...prev, [type]: type === 'location' ? value : value, [`${type}Label`]: label }))
+      setFilters(prev => ({ ...prev, [type]: value, [`${type}Label`]: label }))
     }
     setDropdownOpen(prev => ({ ...prev, [type]: false }))
   }
@@ -73,6 +77,7 @@ const SearchSection = () => {
   const toggleDropdown = (type) => {
     setDropdownOpen(prev => ({
       location: false,
+      nearby: false,
       budget: false,
       gender: false,
       [type]: !prev[type]
@@ -82,6 +87,7 @@ const SearchSection = () => {
   const handleSearch = () => {
     const searchParams = new URLSearchParams()
     if (filters.location) searchParams.set('location', filters.location)
+    if (filters.nearbyPlace) searchParams.set('nearbyPlace', filters.nearbyPlace)
     if (filters.minPrice) searchParams.set('minPrice', filters.minPrice)
     if (filters.maxPrice) searchParams.set('maxPrice', filters.maxPrice)
     if (filters.gender) searchParams.set('gender', filters.gender)
@@ -115,7 +121,7 @@ const SearchSection = () => {
           <div className="max-h-60 overflow-y-auto">
             {options.map((option, index) => (
               <button
-                key={option.value}
+                key={typeof option.value === 'object' ? JSON.stringify(option.value) : option.value}
                 onClick={() => handleFilterChange(type, option.value, option.label)}
                 className="w-full px-4 py-3 text-left hover:bg-yellow-50 hover:text-yellow-custom transition-all duration-200 border-b border-gray-50 last:border-b-0 font-medium group"
                 style={{ animationDelay: `${index * 50}ms` }}
@@ -138,21 +144,28 @@ const SearchSection = () => {
           <div className="max-w-5xl mx-auto text-center">
             <div className="mb-8">
               <h2 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Search Your Ideal Hostel
+                {content?.title || 'Search Your Ideal Hostel'}
               </h2>
               <p className="text-gray-600 text-lg font-medium">
-                Filter by location, budget, amenities, and more to find your perfect stay
+                {content?.subtitle || 'Filter by location, budget, amenities, and more to find your perfect stay'}
               </p>
             </div>
           
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-inner p-8 border border-yellow-100">
-              <div ref={dropdownRef} className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+              <div ref={dropdownRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
                 <CustomDropdown 
                   type="location" 
                   placeholder="Select Location" 
                   options={filterOptions.locations.map(loc => ({ value: loc, label: loc }))}
                   value={filters.location}
                   displayValue={filters.locationLabel}
+                />
+                <CustomDropdown 
+                  type="nearby" 
+                  placeholder="Near College/Office" 
+                  options={filterOptions.nearbyPlaces.map(place => ({ value: place, label: place }))}
+                  value={filters.nearbyPlace}
+                  displayValue={filters.nearbyLabel}
                 />
                 <CustomDropdown 
                   type="budget" 
@@ -164,7 +177,7 @@ const SearchSection = () => {
                 <CustomDropdown 
                   type="gender" 
                   placeholder="Gender Preference" 
-                  options={genders} 
+                  options={genders}
                   value={filters.gender}
                   displayValue={filters.genderLabel}
                 />
@@ -184,12 +197,12 @@ const SearchSection = () => {
             <div className="mt-16">
               <p className="text-gray-500 text-sm mb-8 font-medium">Trusted by students from top universities</p>
               <div className="flex flex-wrap justify-center items-center gap-6 lg:gap-8">
-                {[
+                {(content?.universityLogos || [
                   'Galgotias University',
                   'Sharda University', 
                   'Bennett University',
                   'GL Bajaj Institute'
-                ].map((university) => (
+                ]).map((university) => (
                   <div key={university} className="group">
                     <span className="university-badge text-gray-500 font-semibold px-6 py-3 rounded-xl shadow-md border border-gray-100 hover:border-yellow-200 hover:shadow-lg hover:text-yellow-custom transition-all duration-300 group-hover:scale-105">
                       {university}

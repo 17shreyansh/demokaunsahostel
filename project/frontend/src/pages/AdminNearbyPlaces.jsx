@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, Select, Space, message, Tag, Popconfirm } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, EnvironmentOutlined } from '@ant-design/icons'
+import { useTheme } from '../contexts/ThemeContext'
 import InteractiveMap from '../components/InteractiveMap'
 
-const { Option } = Select
-
 const AdminNearbyPlaces = () => {
+  const { isDark } = useTheme()
   const [places, setPlaces] = useState([])
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [editingPlace, setEditingPlace] = useState(null)
-  const [form] = Form.useForm()
   const [mapCoordinates, setMapCoordinates] = useState({ lat: 28.6139, lng: 77.2090 })
 
   useEffect(() => {
@@ -24,7 +21,7 @@ const AdminNearbyPlaces = () => {
       const data = await response.json()
       setPlaces(data)
     } catch (error) {
-      message.error('Failed to fetch places')
+      alert('Failed to fetch places')
     } finally {
       setLoading(false)
     }
@@ -33,21 +30,23 @@ const AdminNearbyPlaces = () => {
   const handleAdd = () => {
     setEditingPlace(null)
     setMapCoordinates({ lat: 28.6139, lng: 77.2090 })
-    form.resetFields()
     setModalVisible(true)
   }
 
   const handleEdit = (place) => {
     setEditingPlace(place)
     setMapCoordinates(place.mapCoordinates)
-    form.setFieldsValue(place)
     setModalVisible(true)
   }
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     try {
+      const formData = new FormData(e.target)
       const data = {
-        ...values,
+        name: formData.get('name'),
+        category: formData.get('category'),
+        type: formData.get('type'),
         mapCoordinates
       }
 
@@ -67,18 +66,20 @@ const AdminNearbyPlaces = () => {
       })
 
       if (response.ok) {
-        message.success(`Place ${editingPlace ? 'updated' : 'created'} successfully`)
+        alert(`Place ${editingPlace ? 'updated' : 'created'} successfully`)
         setModalVisible(false)
         fetchPlaces()
       } else {
-        message.error('Failed to save place')
+        alert('Failed to save place')
       }
     } catch (error) {
-      message.error('Failed to save place')
+      alert('Failed to save place')
     }
   }
 
   const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this place?')) return
+    
     try {
       const response = await fetch(`http://localhost:5000/api/nearbyplaces/${id}`, {
         method: 'DELETE',
@@ -88,158 +89,199 @@ const AdminNearbyPlaces = () => {
       })
 
       if (response.ok) {
-        message.success('Place deleted successfully')
+        alert('Place deleted successfully')
         fetchPlaces()
       } else {
-        message.error('Failed to delete place')
+        alert('Failed to delete place')
       }
     } catch (error) {
-      message.error('Failed to delete place')
+      alert('Failed to delete place')
     }
   }
-
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Category',
-      dataIndex: 'category',
-      key: 'category',
-      render: (category) => (
-        <Tag color={category === 'office' ? 'blue' : 'green'}>
-          {category === 'office' ? 'IT Parks & Offices' : 'Educational'}
-        </Tag>
-      )
-    },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button 
-            type="primary" 
-            size="small" 
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            Edit
-          </Button>
-          <Popconfirm
-            title="Are you sure you want to delete this place?"
-            onConfirm={() => handleDelete(record._id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button 
-              danger 
-              size="small" 
-              icon={<DeleteOutlined />}
-            >
-              Delete
-            </Button>
-          </Popconfirm>
-        </Space>
-      )
-    }
-  ]
 
   const officeTypes = ['IT Park', 'Office Complex', 'Tech Hub', 'Business Center', 'Corporate Office']
   const educationalTypes = ['University', 'College', 'Institute', 'School', 'Training Center']
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Nearby Places Management</h1>
-          <p className="text-gray-600">Manage IT Parks, Offices & Educational Institutions</p>
+    <div className={`transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Nearby Places Management</h1>
+            <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage IT Parks, Offices & Educational Institutions</p>
+          </div>
+          <button 
+            onClick={handleAdd}
+            className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+              isDark 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            } shadow-lg hover:shadow-xl`}
+          >
+            <span className="mr-2">+</span>
+            Add New Place
+          </button>
         </div>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-        >
-          Add New Place
-        </Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={places}
-        rowKey="_id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
-
-      <Modal
-        title={editingPlace ? 'Edit Place' : 'Add New Place'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={800}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
-            <Input placeholder="Enter place name" />
-          </Form.Item>
-
-          <Form.Item name="category" label="Category" rules={[{ required: true }]}>
-            <Select placeholder="Select category">
-              <Option value="office">IT Parks & Offices</Option>
-              <Option value="educational">Educational Institutions</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item 
-            noStyle 
-            shouldUpdate={(prevValues, currentValues) => 
-              prevValues.category !== currentValues.category
-            }
-          >
-            {({ getFieldValue }) => {
-              const category = getFieldValue('category')
-              const types = category === 'office' ? officeTypes : educationalTypes
-              
-              return (
-                <Form.Item name="type" label="Type" rules={[{ required: true }]}>
-                  <Select placeholder="Select type">
-                    {types.map(type => (
-                      <Option key={type} value={type}>{type}</Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              )
-            }}
-          </Form.Item>
-
-          <Form.Item label="Map Location" required>
-            <InteractiveMap
-              coordinates={mapCoordinates}
-              onCoordinatesChange={setMapCoordinates}
-            />
-          </Form.Item>
-
-          <div className="flex justify-end gap-2">
-            <Button onClick={() => setModalVisible(false)}>
-              Cancel
-            </Button>
-            <Button type="primary" htmlType="submit">
-              {editingPlace ? 'Update' : 'Create'}
-            </Button>
+      {/* Places Table */}
+      <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl border shadow-sm overflow-hidden`}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+              <tr>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Name</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Category</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Type</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Actions</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
+              {places.map((place) => (
+                <tr key={place._id} className={`transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {place.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                      place.category === 'office' 
+                        ? isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-800'
+                        : isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-800'
+                    }`}>
+                      {place.category === 'office' ? 'IT Parks & Offices' : 'Educational'}
+                    </span>
+                  </td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
+                    {place.type}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <button
+                      onClick={() => handleEdit(place)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(place._id)}
+                      className="px-3 py-1 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-700 text-white transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {places.length === 0 && !loading && (
+          <div className={`text-center py-12 transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            </svg>
+            <p>No places found</p>
           </div>
-        </Form>
-      </Modal>
+        )}
+      </div>
+
+      {/* Modal */}
+      {modalVisible && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {editingPlace ? 'Edit Place' : 'Add New Place'}
+              </h2>
+              <button
+                onClick={() => setModalVisible(false)}
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              >
+                <svg className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  defaultValue={editingPlace?.name || ''}
+                  placeholder="Enter place name"
+                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                />
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                  Category
+                </label>
+                <select
+                  name="category"
+                  required
+                  defaultValue={editingPlace?.category || ''}
+                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                >
+                  <option value="">Select category</option>
+                  <option value="office">IT Parks & Offices</option>
+                  <option value="educational">Educational Institutions</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                  Type
+                </label>
+                <select
+                  name="type"
+                  required
+                  defaultValue={editingPlace?.type || ''}
+                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                >
+                  <option value="">Select type</option>
+                  {officeTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                  {educationalTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                  Map Location
+                </label>
+                <InteractiveMap
+                  coordinates={mapCoordinates}
+                  onCoordinatesChange={setMapCoordinates}
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setModalVisible(false)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'}`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  {editingPlace ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

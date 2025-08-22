@@ -126,7 +126,18 @@ const hostelSchema = new mongoose.Schema({
       type: Number,
       default: null
     }
-  }
+  },
+  views: {
+    type: Number,
+    default: 0
+  },
+  viewHistory: [{
+    date: {
+      type: Date,
+      default: Date.now
+    },
+    ip: String
+  }]
 }, {
   timestamps: true
 });

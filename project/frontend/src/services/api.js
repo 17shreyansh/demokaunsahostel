@@ -133,6 +133,8 @@ export const hostelAPI = {
   },
   create: (data) => api.post('/hostels', data),
   update: (id, data) => api.put(`/hostels/${id}`, data),
+  updateFeatured: (id, featured) => api.patch(`/hostels/${id}/featured`, { featured }),
+  getFeatured: () => api.get('/hostels/featured/homepage'),
   delete: (id) => api.delete(`/hostels/${id}`)
 }
 
@@ -188,6 +190,12 @@ export const leadAPI = {
   updateStatus: (id, status) => api.put(`/leads/${id}/status`, { status }),
   addNote: (id, text) => api.post(`/leads/${id}/notes`, { text }),
   delete: (id) => api.delete(`/leads/${id}`)
+}
+
+export const pageAPI = {
+  getPageContent: (page) => api.get(`/page-content/${page}`),
+  updatePageContent: (page, data) => api.put(`/page-content/${page}`, data),
+  getAllPageContent: () => api.get('/page-content')
 }
 
 export default api

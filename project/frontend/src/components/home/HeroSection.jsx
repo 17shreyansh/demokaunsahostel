@@ -34,9 +34,9 @@ const useTypewriter = (texts, speed = 100, deleteSpeed = 50, pauseTime = 2000) =
   return displayText
 }
 
-const HeroSection = ({ hostels, loading }) => {
+const HeroSection = ({ hostels, loading, content }) => {
   const navigate = useNavigate()
-  const typewriterTexts = [
+  const typewriterTexts = content?.typewriterTexts || [
     'Premium Hostels',
     'Safe Accommodations', 
     'Budget-Friendly PGs',
@@ -131,37 +131,37 @@ const HeroSection = ({ hostels, loading }) => {
               <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              Trusted by 1200+ Students
+              {content?.trustBadge || 'Trusted by 1200+ Students'}
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-              Find Your Perfect
+              {content?.mainTitle || 'Find Your Perfect'}
               <span className="block bg-gradient-to-r from-yellow-500 via-yellow-400 to-orange-400 bg-clip-text text-transparent min-h-[1.2em]">
                 {animatedText}
                 <span className="typewriter-cursor text-yellow-custom">|</span>
               </span>
               <span className="block text-gray-700 text-2xl md:text-3xl lg:text-4xl font-medium mt-2">
-                in Greater Noida
+                {content?.location || 'in Greater Noida'}
               </span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-xl">
-              Find your perfect nest! Premium hostels with modern amenities and vibrant communities. Where comfort meets convenience in Greater Noida.
+              {content?.description || 'Find your perfect nest! Premium hostels with modern amenities and vibrant communities. Where comfort meets convenience in Greater Noida.'}
             </p>
             
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Link to="/hostels" className="group bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-semibold px-8 py-4 rounded-2xl hover:shadow-2xl hover:shadow-yellow-200 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
+              <Link to={content?.primaryButton?.link || '/hostels'} className="group bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-semibold px-8 py-4 rounded-2xl hover:shadow-2xl hover:shadow-yellow-200 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
                 <svg className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Explore Hostels
+                {content?.primaryButton?.text || 'Explore Hostels'}
               </Link>
-              <a href="tel:+919876543210" className="group bg-white text-gray-700 font-semibold px-8 py-4 rounded-2xl border-2 border-gray-200 hover:border-yellow-300 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
+              <a href={content?.secondaryButton?.link || 'tel:+919876543210'} className="group bg-white text-gray-700 font-semibold px-8 py-4 rounded-2xl border-2 border-gray-200 hover:border-yellow-300 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
                 <svg className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                Call Now
+                {content?.secondaryButton?.text || 'Call Now'}
               </a>
             </div>
           </div>
@@ -212,7 +212,7 @@ const HeroSection = ({ hostels, loading }) => {
                     </svg>
                     <input 
                       type="text" 
-                      placeholder="Search hostels, locations, colleges..."
+                      placeholder={content?.searchPlaceholder || 'Search hostels, locations, colleges...'}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
