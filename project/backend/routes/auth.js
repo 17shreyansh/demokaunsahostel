@@ -35,7 +35,11 @@ router.post('/login', async (req, res) => {
 
 // Admin logout
 router.post('/logout', (req, res) => {
-  res.clearCookie('authToken');
+  res.clearCookie('authToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  });
   res.json({ message: 'Logged out successfully', success: true });
 });
 
