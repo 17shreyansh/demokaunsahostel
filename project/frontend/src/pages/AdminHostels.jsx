@@ -44,10 +44,9 @@ const AdminHostels = () => {
   const handleDelete = async (id) => {
     try {
       await hostelAPI.delete(id)
-      alert('Property deleted successfully')
       fetchHostels()
     } catch (error) {
-      alert('Failed to delete property')
+      console.error('Failed to delete property:', error)
     }
   }
 
@@ -134,7 +133,7 @@ const AdminHostels = () => {
             <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-t-xl overflow-hidden">
               {hostel.images?.[0] ? (
                 <img 
-                  src={`http://localhost:5000/uploads/${hostel.images[0]}`} 
+                  src={`/uploads/${hostel.images[0]}`} 
                   alt={hostel.name}
                   className="w-full h-full object-cover"
                 />
@@ -184,11 +183,7 @@ const AdminHostels = () => {
                     </svg>
                   </button>
                   <button
-                    onClick={() => {
-                      if (window.confirm('Are you sure you want to delete this property?')) {
-                        handleDelete(hostel._id)
-                      }
-                    }}
+                    onClick={() => handleDelete(hostel._id)}
                     className={`p-2 rounded-lg transition-colors hover:bg-red-100 dark:hover:bg-red-900/50`}
                     title="Delete"
                   >

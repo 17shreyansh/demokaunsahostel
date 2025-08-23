@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { authAPI } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 import { useTheme, ThemeProvider } from '../contexts/ThemeContext'
 
 const AdminLoginContent = () => {
@@ -9,15 +9,23 @@ const AdminLoginContent = () => {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
+  const { login, isAuthenticated, loading: authLoading } = useAuth()
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate('/admin/dashboard', { replace: true })
+    }
+  }, [isAuthenticated, authLoading, navigate])
+
   const handleSubmit = async (values) => {
     setLoading(true)
     setError('')
 
     try {
-      const response = await authAPI.login(values)
-      localStorage.setItem('adminToken', response.data.token)
-      localStorage.setItem('adminUser', JSON.stringify(response.data.admin))
-      navigate('/admin/dashboard')
+      const response = await login(values)
+      if (response?.data?.admin) {
+        navigate('/admin/dashboard', { replace: true })
+      }
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed')
     } finally {

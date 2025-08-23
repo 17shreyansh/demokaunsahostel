@@ -32,7 +32,7 @@ const AdminLeads = () => {
       alert('Status updated successfully')
       fetchLeads()
     } catch (error) {
-      alert('Failed to update status')
+      console.error('Failed to update status:', error)
     }
   }
 

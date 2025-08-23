@@ -2,15 +2,21 @@ const jwt = require('jsonwebtoken');
 
 const auth = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    // Try to get token from cookies first, then fallback to Authorization header
+    let token = req.cookies.authToken;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+    
+    if (!token) {
       return res.status(401).json({ message: 'Access denied. No valid token provided.' });
     }
     
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
     req.admin = { id: decoded.id };
     next();
   } catch (error) {

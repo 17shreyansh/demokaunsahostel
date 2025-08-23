@@ -175,7 +175,7 @@ const HostelDetails = () => {
                 {hostel.images.map((image, index) => (
                   <div key={index} className="w-full h-full flex-shrink-0 relative">
                     <img
-                      src={`${__UPLOADS_BASE_URL__}/${image}`}
+                      src={`/uploads/${image}`}
                       alt={`${hostel.name} ${index + 1}`}
                       className="w-full h-full object-cover cursor-pointer"
                       onClick={() => openFullscreen(index)}
@@ -363,7 +363,7 @@ const HostelDetails = () => {
                       }`}
                     >
                       <img 
-                        src={`${__UPLOADS_BASE_URL__}/${image}`} 
+                        src={`/uploads/${image}`} 
                         alt={`${hostel.name} ${index + 1}`}
                         className="w-full h-16 sm:h-20 md:h-24 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
@@ -845,7 +845,7 @@ const HostelDetails = () => {
             
             {/* Image */}
             <img
-              src={`${__UPLOADS_BASE_URL__}/${hostel.images[currentImageIndex]}`}
+              src={`/uploads/${hostel.images[currentImageIndex]}`}
               alt={`${hostel.name} ${currentImageIndex + 1}`}
               className="max-w-full max-h-full object-contain"
             />
@@ -892,7 +892,7 @@ const HostelDetails = () => {
                   }`}
                 >
                   <img
-                    src={`${__UPLOADS_BASE_URL__}/${image}`}
+                    src={`/uploads/${image}`}
                     alt={`Thumbnail ${index + 1}`}
                     className="w-full h-full object-cover"
                   />

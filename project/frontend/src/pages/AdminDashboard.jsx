@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react'
+import { Navigate } from 'react-router-dom'
 import { hostelAPI, enquiryAPI, leadAPI } from '../services/api'
 import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../contexts/AuthContext'
 import MapStatsWidget from '../components/MapStatsWidget'
 
 const AdminDashboard = () => {
   const { isDark } = useTheme()
+  const { isAuthenticated, loading } = useAuth()
   const [hostels, setHostels] = useState([])
   const [enquiries, setEnquiries] = useState([])
   const [leads, setLeads] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [featuredHostels, setFeaturedHostels] = useState([])
   const [analytics, setAnalytics] = useState({
     totalRevenue: 0,
@@ -20,41 +23,58 @@ const AdminDashboard = () => {
   })
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (!loading && isAuthenticated) {
+      fetchData()
+    }
+  }, [isAuthenticated, loading])
 
   const fetchData = async () => {
-    setLoading(true)
+    setIsLoading(true)
     try {
-      console.log('Fetching dashboard data...')
+      console.log('Fetching dashboard data')
       
       const [hostelsRes, enquiriesRes, leadsRes] = await Promise.all([
-        hostelAPI.getAll().catch(err => ({ data: { hostels: [] } })),
-        enquiryAPI.getAll().catch(err => ({ data: [] })),
-        leadAPI.getAll().catch(err => ({ data: [] }))
+        hostelAPI.getAll().catch(err => {
+          console.error('Failed to fetch hostels:', err)
+          return { data: { hostels: [] } }
+        }),
+        enquiryAPI.getAll().catch(err => {
+          console.error('Failed to fetch enquiries:', err)
+          return { data: [] }
+        }),
+        leadAPI.getAll().catch(err => {
+          console.error('Failed to fetch leads:', err)
+          return { data: [] }
+        })
       ])
       
-      const hostelsData = hostelsRes.data.hostels || hostelsRes.data || []
-      const enquiriesData = enquiriesRes.data || []
-      const leadsData = leadsRes.data || []
+      const hostelsData = Array.isArray(hostelsRes?.data?.hostels) ? hostelsRes.data.hostels : 
+                         Array.isArray(hostelsRes?.data) ? hostelsRes.data : []
+      const enquiriesData = Array.isArray(enquiriesRes?.data) ? enquiriesRes.data : []
+      const leadsData = Array.isArray(leadsRes?.data) ? leadsRes.data : []
       
-      console.log('Dashboard data:', { hostelsData, enquiriesData, leadsData })
+      console.log('Dashboard data loaded:', { 
+        hostels: hostelsData.length, 
+        enquiries: enquiriesData.length, 
+        leads: leadsData.length 
+      })
       
       setHostels(hostelsData)
       setEnquiries(enquiriesData)
       setLeads(leadsData)
       
-      // Calculate real analytics
+      // Calculate real analytics with cached dates
+      const now = new Date()
+      const lastMonthDate = new Date()
+      lastMonthDate.setMonth(lastMonthDate.getMonth() - 1)
+      
       const thisMonth = enquiriesData.filter(e => {
         const eDate = new Date(e.createdAt)
-        const now = new Date()
         return eDate.getMonth() === now.getMonth() && eDate.getFullYear() === now.getFullYear()
       }).length
       
       const lastMonth = enquiriesData.filter(e => {
         const eDate = new Date(e.createdAt)
-        const lastMonthDate = new Date()
-        lastMonthDate.setMonth(lastMonthDate.getMonth() - 1)
         return eDate.getMonth() === lastMonthDate.getMonth() && eDate.getFullYear() === lastMonthDate.getFullYear()
       }).length
       
@@ -84,9 +104,9 @@ const AdminDashboard = () => {
       
       console.log('Analytics calculated:', {
         monthlyGrowth,
-        topViewedHostels,
-        trafficData,
-        featuredHostels: realFeaturedHostels
+        topViewedCount: topViewedHostels.length,
+        trafficDataPoints: trafficData.length,
+        featuredCount: realFeaturedHostels.length
       })
       
     } catch (error) {
@@ -104,11 +124,12 @@ const AdminDashboard = () => {
         trafficData: Array.from({ length: 7 }, (_, i) => ({ day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i], visitors: 0 }))
       })
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   const generateTrendData = (enquiriesData) => {
+    if (!isAuthenticated) return []
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date()
       date.setDate(date.getDate() - (6 - i))
@@ -124,6 +145,7 @@ const AdminDashboard = () => {
   }
 
   const generateEnquiryTrend = (enquiriesData) => {
+    if (!isAuthenticated) return []
     const last6Months = Array.from({ length: 6 }, (_, i) => {
       const date = new Date()
       date.setMonth(date.getMonth() - (5 - i))
@@ -139,6 +161,10 @@ const AdminDashboard = () => {
   }
 
   const generateRealTrafficData = (allData) => {
+    if (!isAuthenticated) {
+      console.warn('Unauthorized access attempt to traffic data')
+      return Array.from({ length: 7 }, (_, i) => ({ day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i], visitors: 0, pageViews: 0 }))
+    }
     const safeData = Array.isArray(allData) ? allData : []
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date()
@@ -157,8 +183,17 @@ const AdminDashboard = () => {
   }
 
   const toggleFeaturedHostel = async (hostelId) => {
+    if (!isAuthenticated) {
+      console.warn('Unauthorized featured hostel toggle attempt')
+      return
+    }
+    
     try {
       const hostel = hostels.find(h => h._id === hostelId)
+      if (!hostel) {
+        console.error('Hostel not found for ID:', hostelId)
+        return
+      }
       const newFeaturedStatus = !hostel.featured
       
       await hostelAPI.updateFeatured(hostelId, newFeaturedStatus)
@@ -176,19 +211,23 @@ const AdminDashboard = () => {
         setFeaturedHostels(prev => prev.filter(h => h._id !== hostelId))
       }
       
-      alert(`Hostel ${newFeaturedStatus ? 'added to' : 'removed from'} featured list`)
+      // Success - state already updated
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to update featured status')
+      console.error('Failed to update featured status:', error)
     }
   }
 
+  const getChartValue = (item) => {
+    return item.value || item.occupancy || item.enquiries || item.visitors || item.pageViews || 0
+  }
+
   const SimpleChart = ({ data, color = '#3b82f6' }) => {
-    const maxValue = Math.max(...data.map(d => d.value || d.occupancy || d.enquiries || d.visitors || d.pageViews), 1)
+    const maxValue = Math.max(...data.map(getChartValue), 1)
     
     return (
       <div className="flex items-end justify-between h-32 px-2">
         {data.map((item, index) => {
-          const value = item.value || item.occupancy || item.enquiries || item.visitors || item.pageViews || 0
+          const value = getChartValue(item)
           const height = maxValue > 0 ? Math.max((value / maxValue) * 100, 2) : 2
           
           return (
@@ -223,6 +262,14 @@ const AdminDashboard = () => {
     avgRating: Array.isArray(hostels) && hostels.length > 0 ? (hostels.reduce((sum, h) => sum + (h.rating || 0), 0) / hostels.length).toFixed(1) : '0.0',
     responseRate: Array.isArray(enquiries) && enquiries.length > 0 ? Math.round((enquiries.filter(e => e.status !== 'Pending').length / enquiries.length) * 100) : 0,
     monthlyGrowth: analytics.monthlyGrowth
+  }
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+  }
+  
+  if (!loading && !isAuthenticated) {
+    return <Navigate to="/admin/login" replace />
   }
 
   return (

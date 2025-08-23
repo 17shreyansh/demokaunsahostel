@@ -1,19 +1,13 @@
-import axios from 'axios'
+// Legacy API - Use apiClient.js for new implementations
+import apiClient from './apiClient'
 import { fallbackHostels, fallbackFilterOptions, fallbackSearchSuggestions } from '../data/fallbackData'
 
-const API_BASE_URL = __API_BASE_URL__
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 5000
-})
-
-// Check if backend is available
+// Fallback handling for when backend is unavailable
 let isBackendAvailable = true
 
 const checkBackendStatus = async () => {
   try {
-    await api.get('/health')
+    await apiClient.health()
     isBackendAvailable = true
   } catch (error) {
     isBackendAvailable = false
@@ -23,19 +17,10 @@ const checkBackendStatus = async () => {
 // Check backend status on app load
 checkBackendStatus()
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('adminToken')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
 export const hostelAPI = {
   getAll: async (params = {}) => {
     try {
-      const queryString = new URLSearchParams(params).toString()
-      return await api.get(`/hostels${queryString ? `?${queryString}` : ''}`)
+      return await apiClient.hostels.getAll(params)
     } catch (error) {
       console.warn('Backend unavailable, using fallback data')
       return {
@@ -48,37 +33,52 @@ export const hostelAPI = {
   },
   search: async (params) => {
     try {
-      const queryString = new URLSearchParams(params).toString()
-      return await api.get(`/hostels?${queryString}`)
+      return await apiClient.hostels.getAll(params)
     } catch (error) {
       console.warn('Backend unavailable, using fallback data')
       let filteredHostels = [...fallbackHostels]
       
-      // Apply basic filtering
-      if (params.search) {
-        filteredHostels = filteredHostels.filter(h => 
-          h.name.toLowerCase().includes(params.search.toLowerCase()) ||
-          h.location.toLowerCase().includes(params.search.toLowerCase())
-        )
-      }
-      if (params.location) {
-        filteredHostels = filteredHostels.filter(h => h.location.includes(params.location))
-      }
-      if (params.gender) {
-        filteredHostels = filteredHostels.filter(h => h.gender === params.gender || h.gender === 'Co-ed')
-      }
-      if (params.type) {
-        filteredHostels = filteredHostels.filter(h => h.type === params.type)
-      }
-      if (params.availability) {
-        filteredHostels = filteredHostels.filter(h => h.availability === params.availability)
-      }
-      if (params.minPrice) {
-        filteredHostels = filteredHostels.filter(h => h.price >= parseInt(params.minPrice))
-      }
-      if (params.maxPrice) {
-        filteredHostels = filteredHostels.filter(h => h.price <= parseInt(params.maxPrice))
-      }
+      // Apply all filters in a single pass for better performance
+      filteredHostels = filteredHostels.filter(h => {
+        // Search filter
+        if (params.search) {
+          const searchLower = params.search.toLowerCase()
+          const matchesSearch = h.name.toLowerCase().includes(searchLower) ||
+                              h.location.toLowerCase().includes(searchLower)
+          if (!matchesSearch) return false
+        }
+        
+        // Location filter
+        if (params.location && !h.location.includes(params.location)) {
+          return false
+        }
+        
+        // Gender filter
+        if (params.gender && !(h.gender === params.gender || h.gender === 'Co-ed')) {
+          return false
+        }
+        
+        // Type filter
+        if (params.type && h.type !== params.type) {
+          return false
+        }
+        
+        // Availability filter
+        if (params.availability && h.availability !== params.availability) {
+          return false
+        }
+        
+        // Price range filters
+        if (params.minPrice && h.price < parseInt(params.minPrice)) {
+          return false
+        }
+        
+        if (params.maxPrice && h.price > parseInt(params.maxPrice)) {
+          return false
+        }
+        
+        return true
+      })
       
       return {
         data: {
@@ -90,7 +90,7 @@ export const hostelAPI = {
   },
   getSuggestions: async (query) => {
     try {
-      return await api.get(`/hostels/search/suggestions?q=${query}`)
+      return await apiClient.hostels.getSuggestions(query)
     } catch (error) {
       console.warn('Backend unavailable, using fallback suggestions')
       const filtered = fallbackSearchSuggestions.filter(s => 
@@ -101,7 +101,7 @@ export const hostelAPI = {
   },
   getFilterOptions: async () => {
     try {
-      return await api.get('/hostels/filters/options')
+      return await apiClient.hostels.getFilterOptions()
     } catch (error) {
       console.warn('Backend unavailable, using fallback filter options')
       return { data: fallbackFilterOptions }
@@ -109,7 +109,7 @@ export const hostelAPI = {
   },
   getById: async (id) => {
     try {
-      return await api.get(`/hostels/${id}`)
+      return await apiClient.hostels.getById(id)
     } catch (error) {
       console.warn('Backend unavailable, using fallback data')
       const hostel = fallbackHostels.find(h => h._id === id)
@@ -121,7 +121,7 @@ export const hostelAPI = {
   },
   getBySlug: async (slug) => {
     try {
-      return await api.get(`/hostels/slug/${slug}`)
+      return await apiClient.hostels.getBySlug(slug)
     } catch (error) {
       console.warn('Backend unavailable, using fallback data')
       const hostel = fallbackHostels.find(h => h.slug === slug)
@@ -131,39 +131,38 @@ export const hostelAPI = {
       throw new Error('Hostel not found')
     }
   },
-  create: (data) => api.post('/hostels', data),
-  update: (id, data) => api.put(`/hostels/${id}`, data),
-  updateFeatured: (id, featured) => api.patch(`/hostels/${id}/featured`, { featured }),
-  getFeatured: () => api.get('/hostels/featured/homepage'),
-  delete: (id) => api.delete(`/hostels/${id}`)
+  create: (data) => apiClient.hostels.create(data),
+  update: (id, data) => apiClient.hostels.update(id, data),
+  updateFeatured: (id, featured) => apiClient.hostels.updateFeatured(id, featured),
+  getFeatured: () => apiClient.hostels.getFeatured(),
+  delete: (id) => apiClient.hostels.delete(id)
 }
 
 export const enquiryAPI = {
   create: async (data) => {
     try {
-      return await api.post('/enquiries', data)
+      return await apiClient.enquiries.create(data)
     } catch (error) {
       console.warn('Backend unavailable, enquiry stored locally')
-      // Store in localStorage for when backend comes back online
       const enquiries = JSON.parse(localStorage.getItem('pendingEnquiries') || '[]')
       enquiries.push({ ...data, timestamp: new Date().toISOString() })
       localStorage.setItem('pendingEnquiries', JSON.stringify(enquiries))
       return { data: { message: 'Enquiry saved. Will be sent when connection is restored.' } }
     }
   },
-  getAll: () => api.get('/enquiries'),
-  updateStatus: (id, status) => api.put(`/enquiries/${id}/status`, { status })
+  getAll: () => apiClient.enquiries.getAll(),
+  updateStatus: (id, status) => apiClient.enquiries.updateStatus(id, status)
 }
 
 export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (data) => api.post('/auth/register', data)
+  login: (credentials) => apiClient.auth.login(credentials),
+  register: (data) => apiClient.auth.register(data)
 }
 
 export const leadAPI = {
   createEnquiry: async (data) => {
     try {
-      return await api.post('/leads/enquiry', data)
+      return await apiClient.leads.createEnquiry(data)
     } catch (error) {
       console.warn('Backend unavailable, enquiry stored locally')
       const enquiries = JSON.parse(localStorage.getItem('pendingEnquiries') || '[]')
@@ -174,7 +173,7 @@ export const leadAPI = {
   },
   createContact: async (data) => {
     try {
-      return await api.post('/leads/contact', data)
+      return await apiClient.leads.createContact(data)
     } catch (error) {
       console.warn('Backend unavailable, contact stored locally')
       const contacts = JSON.parse(localStorage.getItem('pendingContacts') || '[]')
@@ -183,19 +182,16 @@ export const leadAPI = {
       return { data: { message: 'Message saved. Will be sent when connection is restored.' } }
     }
   },
-  getAll: (params = {}) => {
-    const queryString = new URLSearchParams(params).toString()
-    return api.get(`/leads${queryString ? `?${queryString}` : ''}`)
-  },
-  updateStatus: (id, status) => api.put(`/leads/${id}/status`, { status }),
-  addNote: (id, text) => api.post(`/leads/${id}/notes`, { text }),
-  delete: (id) => api.delete(`/leads/${id}`)
+  getAll: (params = {}) => apiClient.leads.getAll(params),
+  updateStatus: (id, status) => apiClient.leads.updateStatus(id, status),
+  addNote: (id, text) => apiClient.leads.addNote(id, text),
+  delete: (id) => apiClient.leads.delete(id)
 }
 
 export const pageAPI = {
-  getPageContent: (page) => api.get(`/page-content/${page}`),
-  updatePageContent: (page, data) => api.put(`/page-content/${page}`, data),
-  getAllPageContent: () => api.get('/page-content')
+  getPageContent: (page) => apiClient.pages.getContent(page),
+  updatePageContent: (page, data) => apiClient.pages.updateContent(page, data),
+  getAllPageContent: () => apiClient.pages.getAllContent()
 }
 
-export default api
+export default apiClient

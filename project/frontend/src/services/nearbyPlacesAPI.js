@@ -1,15 +1,29 @@
-import axios from 'axios'
-
-const API_BASE_URL = 'http://localhost:5000/api'
+import apiClient from './apiClient'
 
 export const nearbyPlacesAPI = {
-  getAll: (category) => {
-    const url = category ? `${API_BASE_URL}/nearbyplaces?category=${category}` : `${API_BASE_URL}/nearbyplaces`
-    return axios.get(url)
+  getAll: async (category) => {
+    try {
+      const params = new URLSearchParams()
+      if (category) params.append('category', category)
+      const queryString = params.toString()
+      return await apiClient.get(`/nearbyplaces${queryString ? `?${queryString}` : ''}`)
+    } catch (error) {
+      console.error('Error fetching nearby places:', error)
+      throw error
+    }
   },
   
-  getWithDistances: (lat, lng, category) => {
-    const url = `${API_BASE_URL}/nearbyplaces/distances?lat=${lat}&lng=${lng}${category ? `&category=${category}` : ''}`
-    return axios.get(url)
+  getWithDistances: async (lat, lng, category) => {
+    try {
+      const params = new URLSearchParams({
+        lat: lat.toString(),
+        lng: lng.toString()
+      })
+      if (category) params.append('category', category)
+      return await apiClient.get(`/nearbyplaces/distances?${params.toString()}`)
+    } catch (error) {
+      console.error('Error fetching nearby places with distances:', error)
+      throw error
+    }
   }
 }

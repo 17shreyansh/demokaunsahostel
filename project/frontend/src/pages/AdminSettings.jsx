@@ -1,46 +1,29 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
+import apiClient from '../services/apiClient'
 
 const AdminSettings = () => {
   const { isDark } = useTheme()
   const [apiLoading, setApiLoading] = useState(false)
   const [profileLoading, setProfileLoading] = useState(false)
+  const { user } = useAuth()
   const [currentUser, setCurrentUser] = useState('')
   const [apiSaved, setApiSaved] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken')
-    if (token) {
-      fetchProfile()
+    if (user) {
+      setCurrentUser(user.username)
       checkApiKey()
     }
-  }, [])
+  }, [user])
 
-  const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem('adminToken')
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setCurrentUser(data.admin.username)
-      }
-    } catch (error) {
-      console.error('Profile fetch error:', error)
-    }
-  }
+
 
   const checkApiKey = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/settings/status/api-key')
-      if (response.ok) {
-        const data = await response.json()
-        setApiSaved(data.configured)
-      } else {
-        setApiSaved(false)
-      }
+      const response = await apiClient.get('/settings/status/api-key')
+      setApiSaved(response.data.configured)
     } catch (error) {
       setApiSaved(false)
     }
@@ -51,34 +34,19 @@ const AdminSettings = () => {
     setApiLoading(true)
     try {
       const formData = new FormData(e.target)
-      const token = localStorage.getItem('adminToken')
-      
-      const response = await fetch('http://localhost:5000/api/settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          key: 'openroute_api_key',
-          value: formData.get('apiKey'),
-          encrypted: true,
-          description: 'OpenRouteService API Key for distance calculations',
-          category: 'api'
-        })
+      await apiClient.settings.update({
+        key: 'openroute_api_key',
+        value: formData.get('apiKey'),
+        encrypted: true,
+        description: 'OpenRouteService API Key for distance calculations',
+        category: 'api'
       })
       
-      const result = await response.json()
-      
-      if (response.ok) {
-        alert('API Key saved successfully')
-        e.target.reset()
-        setApiSaved(true)
-      } else {
-        alert(result.message || 'Failed to save')
-      }
+      console.log('API Key saved successfully')
+      e.target.reset()
+      setApiSaved(true)
     } catch (error) {
-      alert('Failed to save API key')
+      console.error('Failed to save API key:', error)
     } finally {
       setApiLoading(false)
     }
@@ -97,32 +65,16 @@ const AdminSettings = () => {
       }
       
       if (values.newPassword !== values.confirmPassword) {
-        alert('Passwords do not match')
+        console.error('Passwords do not match')
         setProfileLoading(false)
         return
       }
       
-      const token = localStorage.getItem('adminToken')
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(values)
-      })
-
-      const result = await response.json()
-      
-      if (response.ok) {
-        alert('Profile updated successfully')
-        e.target.reset()
-        setCurrentUser(values.username || currentUser)
-      } else {
-        alert(result.message || 'Failed to update')
-      }
+      await apiClient.put('/auth/profile', values)
+      e.target.reset()
+      setCurrentUser(values.username || currentUser)
     } catch (error) {
-      alert('Failed to update profile')
+      console.error('Failed to update profile:', error)
     } finally {
       setProfileLoading(false)
     }

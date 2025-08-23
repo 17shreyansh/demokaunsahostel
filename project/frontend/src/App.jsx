@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -31,8 +32,9 @@ function ScrollToTop() {
 
 function App() {
   return (
-    <Router>
-      <div className="App">
+    <AuthProvider>
+      <Router>
+        <div className="App">
         <Routes>
           {/* Public Routes with Header/Footer */}
           <Route path="/" element={
@@ -87,9 +89,10 @@ function App() {
             <Route path="page-content" element={<AdminPageContent />} />
           </Route>
         </Routes>
-        <ScrollToTop />
-      </div>
-    </Router>
+          <ScrollToTop />
+        </div>
+      </Router>
+    </AuthProvider>
   )
 }
 

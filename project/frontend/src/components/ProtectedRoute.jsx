@@ -1,16 +1,9 @@
-import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Spin } from 'antd'
+import { useAuth } from '../contexts/AuthContext'
 
 const ProtectedRoute = ({ children }) => {
-  const [loading, setLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken')
-    setIsAuthenticated(!!token)
-    setLoading(false)
-  }, [])
+  const { isAuthenticated, loading } = useAuth()
 
   if (loading) {
     return (

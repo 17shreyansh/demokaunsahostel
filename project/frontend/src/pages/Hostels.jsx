@@ -99,15 +99,16 @@ const Hostels = () => {
   }, [searchParams])
 
   const updateFilters = useCallback((newFilters) => {
-    const updatedFilters = { ...filters, ...newFilters }
-    setFilters(updatedFilters)
-    
-    const params = new URLSearchParams()
-    Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value && value !== '') params.set(key, value)
+    setFilters(prev => {
+      const updatedFilters = { ...prev, ...newFilters }
+      const params = new URLSearchParams()
+      Object.entries(updatedFilters).forEach(([key, value]) => {
+        if (value && value !== '') params.set(key, value)
+      })
+      setSearchParams(params)
+      return updatedFilters
     })
-    setSearchParams(params)
-  }, [filters, setSearchParams])
+  }, [setSearchParams])
 
   const clearFilters = () => {
     setFilters({
@@ -539,7 +540,7 @@ const Hostels = () => {
                   key={hostel._id} 
                   hostel={{
                     ...hostel,
-                    image: hostel.images?.[0] ? `http://localhost:5000/uploads/${hostel.images[0]}` : null
+                    image: hostel.images?.[0] ? `/uploads/${hostel.images[0]}` : null
                   }} 
                   variant="compact" 
                 />

@@ -15,14 +15,28 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    
+    // Set HTTP-only cookie
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+    
     res.json({ 
-      token, 
       admin: { id: admin._id, username: admin.username },
       success: true 
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
+// Admin logout
+router.post('/logout', (req, res) => {
+  res.clearCookie('authToken');
+  res.json({ message: 'Logged out successfully', success: true });
 });
 
 // Create admin (for initial setup)

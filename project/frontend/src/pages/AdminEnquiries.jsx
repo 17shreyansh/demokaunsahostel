@@ -27,10 +27,9 @@ const AdminEnquiries = () => {
   const updateStatus = async (id, status) => {
     try {
       await enquiryAPI.updateStatus(id, status)
-      alert('Status updated successfully')
-      fetchEnquiries()
+      setEnquiries(prev => prev.map(e => e._id === id ? { ...e, status } : e))
     } catch (error) {
-      alert('Failed to update status')
+      console.error('Failed to update status:', error)
     }
   }
 
@@ -89,7 +88,10 @@ const AdminEnquiries = () => {
                 )}
                 
                 <p className={`text-xs transition-colors ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                  {new Date(enquiry.createdAt).toLocaleDateString()} at {new Date(enquiry.createdAt).toLocaleTimeString()}
+                  {(() => {
+                    const date = new Date(enquiry.createdAt)
+                    return `${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                  })()} 
                 </p>
               </div>
               

@@ -17,11 +17,11 @@ const AdminNearbyPlaces = () => {
   const fetchPlaces = async () => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:5000/api/nearbyplaces')
+      const response = await fetch('/api/nearbyplaces')
       const data = await response.json()
       setPlaces(data)
     } catch (error) {
-      alert('Failed to fetch places')
+      console.error('Failed to fetch places:', error)
     } finally {
       setLoading(false)
     }
@@ -51,8 +51,8 @@ const AdminNearbyPlaces = () => {
       }
 
       const url = editingPlace 
-        ? `http://localhost:5000/api/nearbyplaces/${editingPlace._id}`
-        : 'http://localhost:5000/api/nearbyplaces'
+        ? `/api/nearbyplaces/${editingPlace._id}`
+        : '/api/nearbyplaces'
       
       const method = editingPlace ? 'PUT' : 'POST'
       
@@ -66,14 +66,13 @@ const AdminNearbyPlaces = () => {
       })
 
       if (response.ok) {
-        alert(`Place ${editingPlace ? 'updated' : 'created'} successfully`)
         setModalVisible(false)
         fetchPlaces()
       } else {
-        alert('Failed to save place')
+        console.error('Failed to save place')
       }
     } catch (error) {
-      alert('Failed to save place')
+      console.error('Failed to save place:', error)
     }
   }
 
@@ -81,7 +80,7 @@ const AdminNearbyPlaces = () => {
     if (!window.confirm('Are you sure you want to delete this place?')) return
     
     try {
-      const response = await fetch(`http://localhost:5000/api/nearbyplaces/${id}`, {
+      const response = await fetch(`/api/nearbyplaces/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -89,13 +88,12 @@ const AdminNearbyPlaces = () => {
       })
 
       if (response.ok) {
-        alert('Place deleted successfully')
         fetchPlaces()
       } else {
-        alert('Failed to delete place')
+        console.error('Failed to delete place')
       }
     } catch (error) {
-      alert('Failed to delete place')
+      console.error('Failed to delete place:', error)
     }
   }
 

@@ -32,7 +32,7 @@ const AdminHostelEdit = () => {
       const response = await hostelAPI.getById(id)
       setHostel(response.data)
     } catch (error) {
-      alert('Failed to fetch hostel details')
+      console.error('Failed to fetch hostel details:', error)
     } finally {
       setLoading(false)
     }
@@ -44,14 +44,14 @@ const AdminHostelEdit = () => {
     try {
       if (id && id !== 'new') {
         await hostelAPI.update(id, hostel)
-        alert('Property updated successfully')
+        // Property updated successfully
       } else {
         await hostelAPI.create(hostel)
-        alert('Property created successfully')
+        // Property created successfully
       }
       navigate('/admin/hostels')
     } catch (error) {
-      alert('Failed to save property')
+      console.error('Failed to save property:', error)
     } finally {
       setLoading(false)
     }

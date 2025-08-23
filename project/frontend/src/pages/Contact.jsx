@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { leadAPI, pageAPI } from '../services/api'
+import { sanitizeFormData } from '../utils/sanitize'
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -30,12 +31,13 @@ const Contact = () => {
     setLoading(true)
     
     try {
-      await leadAPI.createContact(formData)
+      const sanitizedData = sanitizeFormData(formData)
+      await leadAPI.createContact(sanitizedData)
       setSuccess(true)
       setFormData({ name: '', email: '', phone: '', subject: '', message: '', company: '' })
       setTimeout(() => setSuccess(false), 5000)
     } catch (error) {
-      alert('Failed to send message. Please try again.')
+      console.error('Failed to send message:', error)
     } finally {
       setLoading(false)
     }

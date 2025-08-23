@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Outlet, useLocation } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 import { useTheme, ThemeProvider } from '../contexts/ThemeContext'
 import { FiHome, FiGrid, FiUsers, FiSettings } from 'react-icons/fi'
 
@@ -21,9 +22,10 @@ const AdminLayoutContent = () => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken')
-    localStorage.removeItem('adminUser')
+  const { logout, user } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
     navigate('/admin')
   }
 
@@ -178,7 +180,7 @@ const AdminLayoutContent = () => {
                 <span className="text-white text-sm font-medium">A</span>
               </div>
               <div className="hidden md:block">
-                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Admin User</p>
+                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.username || 'Admin User'}</p>
                 <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Super Admin</p>
               </div>
               <button

@@ -1,29 +1,14 @@
-import axios from 'axios';
+import apiClient from './apiClient'
 
-const API_URL = 'http://localhost:5000/api';
-
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('adminToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Use the centralized API client instead of creating a separate instance
 
 export const pageAPI = {
   // Public
-  getPage: (slug) => api.get(`/pages/${slug}`),
+  getPage: (slug) => apiClient.get(`/pages/${slug}`),
   
   // Admin
-  getAllPages: () => api.get('/pages/admin'),
-  createPage: (data) => api.post('/pages', data),
-  updatePage: (id, data) => api.put(`/pages/${id}`, data),
-  deletePage: (id) => api.delete(`/pages/${id}`)
-};
+  getAllPages: () => apiClient.get('/pages/admin'),
+  createPage: (data) => apiClient.post('/pages', data),
+  updatePage: (id, data) => apiClient.put(`/pages/${id}`, data),
+  deletePage: (id) => apiClient.delete(`/pages/${id}`)
+}

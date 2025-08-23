@@ -79,7 +79,7 @@ const AdminHostelEdit = () => {
           uid: `existing-${index}`,
           name: img,
           status: 'done',
-          url: `http://localhost:5000/uploads/${img}`,
+          url: `/uploads/${img}`,
           isExisting: true
         }))
         setFileList(existingFiles)
