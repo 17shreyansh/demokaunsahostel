@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { hostelAPI, pageAPI } from '../services/api'
+import { stateManager } from '../utils/stateManager'
 import HeroSection from '../components/home/HeroSection'
 import SearchSection from '../components/home/SearchSection'
 import FeaturedHostels from '../components/home/FeaturedHostels'
@@ -14,18 +15,26 @@ const Home = () => {
 
   useEffect(() => {
     fetchData()
+    return stateManager.subscribe('homepage', fetchData)
   }, [])
 
   const fetchData = async () => {
     try {
       const [hostelsResponse, contentResponse] = await Promise.all([
-        hostelAPI.getAll(),
+        hostelAPI.getFeatured(),
         pageAPI.getPageContent('home')
       ])
-      setHostels(hostelsResponse.data.hostels.slice(0, 6))
+      setHostels(hostelsResponse.data || [])
       setPageContent(contentResponse.data.content || {})
     } catch (error) {
       console.error('Error:', error)
+      // Fallback to regular hostels if featured endpoint fails
+      try {
+        const fallbackResponse = await hostelAPI.getAll()
+        setHostels(fallbackResponse.data.hostels?.slice(0, 6) || [])
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError)
+      }
     } finally {
       setLoading(false)
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { invalidateData } from '../utils/stateManager'
 import {
   Card, Form, Input, Select, Upload, Button, Space, message, 
   Row, Col, Divider, Typography, InputNumber, Tag, DatePicker
@@ -163,6 +164,8 @@ const AdminHostelEdit = () => {
         message.success('Hostel created successfully')
       }
       
+      // Trigger global refresh and navigate
+      invalidateData()
       navigate('/admin/hostels')
     } catch (error) {
       console.error('Form submission error:', error)

@@ -404,7 +404,11 @@ router.post('/', auth, upload.any(), async (req, res) => {
     
     const hostel = new Hostel(hostelData);
     await hostel.save();
-    res.status(201).json(hostel);
+    
+    // Clear cache to force refresh
+    cache.clear();
+    
+    res.status(201).json({ hostel, success: true, message: 'Hostel created successfully' });
   } catch (error) {
     console.error('Create hostel error:', error);
     res.status(400).json({ message: error.message });
@@ -430,7 +434,10 @@ router.patch('/:id/featured', auth, async (req, res) => {
       { new: true }
     );
     
-    res.json(hostel);
+    // Clear cache to force refresh
+    cache.clear();
+    
+    res.json({ hostel, success: true, message: `Hostel ${featured ? 'featured' : 'unfeatured'} successfully` });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -517,7 +524,11 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
     updateData.images = finalImages;
     
     const hostel = await Hostel.findByIdAndUpdate(req.params.id, updateData, { new: true });
-    res.json(hostel);
+    
+    // Clear cache to force refresh
+    cache.clear();
+    
+    res.json({ hostel, success: true, message: 'Hostel updated successfully' });
   } catch (error) {
     console.error('Update hostel error:', error);
     res.status(400).json({ message: error.message });
@@ -527,11 +538,19 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
 // Get featured hostels for homepage
 router.get('/featured/homepage', async (req, res) => {
   try {
+    const cacheKey = 'featured-homepage';
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+    
     const featuredHostels = await Hostel.find({ featured: true })
-      .select('name slug description location price images amenities availability rating')
+      .select('name slug description location price images amenities availability rating featured')
+      .sort({ updatedAt: -1 })
       .limit(6)
       .lean();
     
+    setCache(cacheKey, featuredHostels);
     res.json(featuredHostels);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -541,7 +560,11 @@ router.get('/featured/homepage', async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   try {
     await Hostel.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Hostel deleted' });
+    
+    // Clear cache to force refresh
+    cache.clear();
+    
+    res.json({ success: true, message: 'Hostel deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

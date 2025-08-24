@@ -14,7 +14,7 @@ const FeaturedHostels = ({ hostels, loading }) => {
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-custom"></div>
           </div>
-        ) : (
+        ) : hostels && hostels.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {hostels.map((hostel) => (
               <HostelCard 
@@ -26,6 +26,10 @@ const FeaturedHostels = ({ hostels, loading }) => {
                 variant="default" 
               />
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No featured hostels available at the moment.</p>
           </div>
         )}
       </div>

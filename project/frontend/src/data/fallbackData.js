@@ -13,6 +13,7 @@ export const fallbackHostels = [
     type: 'PG',
     gender: 'Co-ed',
     rating: 4.8,
+    featured: true,
     capacity: '50+ Students',
     checkIn: 'Flexible timing',
     rules: [
@@ -69,6 +70,7 @@ export const fallbackHostels = [
     type: 'Hostel',
     gender: 'Boys',
     rating: 4.9,
+    featured: true,
     capacity: '40+ Students',
     checkIn: 'Flexible timing',
     rules: [
@@ -118,6 +120,7 @@ export const fallbackHostels = [
     type: 'PG',
     gender: 'Girls',
     rating: 4.6,
+    featured: true,
     capacity: '60+ Students',
     checkIn: 'Flexible timing',
     rules: [
@@ -166,6 +169,7 @@ export const fallbackHostels = [
     type: 'Hostel',
     gender: 'Co-ed',
     rating: 4.7,
+    featured: true,
     capacity: '45+ Students',
     checkIn: 'Flexible timing',
     rules: [
@@ -214,6 +218,7 @@ export const fallbackHostels = [
     type: 'Apartment',
     gender: 'Co-ed',
     rating: 4.9,
+    featured: true,
     capacity: '30+ Professionals',
     checkIn: 'Flexible timing',
     rules: [
@@ -262,6 +267,7 @@ export const fallbackHostels = [
     type: 'PG',
     gender: 'Boys',
     rating: 4.5,
+    featured: true,
     capacity: '70+ Students',
     checkIn: 'Flexible timing',
     rules: [

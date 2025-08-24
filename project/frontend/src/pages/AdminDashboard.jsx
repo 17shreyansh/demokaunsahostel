@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { hostelAPI, enquiryAPI, leadAPI } from '../services/api'
 import { useTheme } from '../contexts/ThemeContext'
+import { stateManager, invalidateData } from '../utils/stateManager'
 import MapStatsWidget from '../components/MapStatsWidget'
 
 const AdminDashboard = () => {
@@ -8,7 +9,6 @@ const AdminDashboard = () => {
   const [hostels, setHostels] = useState([])
   const [enquiries, setEnquiries] = useState([])
   const [leads, setLeads] = useState([])
-  const [loading, setLoading] = useState(false)
   const [featuredHostels, setFeaturedHostels] = useState([])
   const [analytics, setAnalytics] = useState({
     totalRevenue: 0,
@@ -19,15 +19,11 @@ const AdminDashboard = () => {
     trafficData: []
   })
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  const [loading, setLoading] = useState(true)
 
   const fetchData = async () => {
-    setLoading(true)
     try {
-      console.log('Fetching dashboard data...')
-      
+      setLoading(true)
       const [hostelsRes, enquiriesRes, leadsRes] = await Promise.all([
         hostelAPI.getAll().catch(err => ({ data: { hostels: [] } })),
         enquiryAPI.getAll().catch(err => ({ data: [] })),
@@ -38,11 +34,30 @@ const AdminDashboard = () => {
       const enquiriesData = enquiriesRes.data || []
       const leadsData = leadsRes.data || []
       
-      console.log('Dashboard data:', { hostelsData, enquiriesData, leadsData })
-      
       setHostels(hostelsData)
       setEnquiries(enquiriesData)
       setLeads(leadsData)
+      
+      const realFeaturedHostels = hostelsData.filter(h => h.featured === true).slice(0, 6)
+      setFeaturedHostels(realFeaturedHostels)
+      
+      calculateAnalytics(hostelsData, enquiriesData, leadsData)
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+    return stateManager.subscribe('dashboard', fetchData)
+  }, [])
+
+
+
+  const calculateAnalytics = (hostelsData = [], enquiriesData = [], leadsData = []) => {
+    try {
       
       // Calculate real analytics
       const thisMonth = enquiriesData.filter(e => {
@@ -78,33 +93,16 @@ const AdminDashboard = () => {
         trafficData
       })
       
-      // Set real featured hostels from database
-      const realFeaturedHostels = hostelsData.filter(h => h.featured === true).slice(0, 6)
-      setFeaturedHostels(realFeaturedHostels)
+
       
       console.log('Analytics calculated:', {
         monthlyGrowth,
         topViewedHostels,
-        trafficData,
-        featuredHostels: realFeaturedHostels
+        trafficData
       })
       
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error)
-      // Set empty data on error
-      setHostels([])
-      setEnquiries([])
-      setLeads([])
-      setFeaturedHostels([])
-      setAnalytics({
-        monthlyGrowth: 0,
-        occupancyTrend: Array.from({ length: 7 }, (_, i) => ({ day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i], enquiries: 0 })),
-        enquiryTrend: Array.from({ length: 6 }, (_, i) => ({ month: ['Jan','Feb','Mar','Apr','May','Jun'][i], enquiries: 0 })),
-        topViewedHostels: [],
-        trafficData: Array.from({ length: 7 }, (_, i) => ({ day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i], visitors: 0 }))
-      })
-    } finally {
-      setLoading(false)
+      console.error('Failed to calculate analytics:', error)
     }
   }
 
@@ -159,25 +157,58 @@ const AdminDashboard = () => {
   const toggleFeaturedHostel = async (hostelId) => {
     try {
       const hostel = hostels.find(h => h._id === hostelId)
+      if (!hostel) return
+      
       const newFeaturedStatus = !hostel.featured
       
-      await hostelAPI.updateFeatured(hostelId, newFeaturedStatus)
-      
+      // Optimistic update
       setHostels(prev => prev.map(h => 
         h._id === hostelId ? { ...h, featured: newFeaturedStatus } : h
       ))
       
-      // Update featured hostels list
-      if (newFeaturedStatus) {
-        if (featuredHostels.length < 6) {
-          setFeaturedHostels(prev => [...prev, hostel])
+      setFeaturedHostels(prev => {
+        if (newFeaturedStatus) {
+          return [...prev, { ...hostel, featured: true }]
+        } else {
+          return prev.filter(h => h._id !== hostelId)
         }
-      } else {
-        setFeaturedHostels(prev => prev.filter(h => h._id !== hostelId))
-      }
+      })
       
-      alert(`Hostel ${newFeaturedStatus ? 'added to' : 'removed from'} featured list`)
+      const response = await hostelAPI.updateFeatured(hostelId, newFeaturedStatus)
+      
+      if (response.data.success) {
+        // Trigger global refresh for other components
+        invalidateData('homepage')
+        invalidateData('dashboard')
+        alert(response.data.message)
+      } else {
+        // Revert on failure
+        setHostels(prev => prev.map(h => 
+          h._id === hostelId ? { ...h, featured: !newFeaturedStatus } : h
+        ))
+        setFeaturedHostels(prev => {
+          if (!newFeaturedStatus) {
+            return [...prev, hostel]
+          } else {
+            return prev.filter(h => h._id !== hostelId)
+          }
+        })
+      }
     } catch (error) {
+      // Revert on error
+      const hostel = hostels.find(h => h._id === hostelId)
+      if (hostel) {
+        setHostels(prev => prev.map(h => 
+          h._id === hostelId ? { ...h, featured: hostel.featured } : h
+        ))
+        setFeaturedHostels(prev => {
+          if (hostel.featured) {
+            return [...prev, hostel]
+          } else {
+            return prev.filter(h => h._id !== hostelId)
+          }
+        })
+      }
       alert(error.response?.data?.message || 'Failed to update featured status')
     }
   }
@@ -215,13 +246,13 @@ const AdminDashboard = () => {
   }
 
   const stats = {
-    totalProperties: Array.isArray(hostels) ? hostels.length : 0,
-    totalEnquiries: Array.isArray(enquiries) ? enquiries.length : 0,
-    totalViews: Array.isArray(hostels) ? hostels.reduce((sum, h) => sum + (h.views || 0), 0) : 0,
-    pendingRequests: Array.isArray(enquiries) ? enquiries.filter(e => e.status === 'Pending').length : 0,
-    occupancyRate: Array.isArray(hostels) && hostels.length > 0 ? Math.round(((hostels.filter(h => h.availability === 'Full').length) / hostels.length) * 100) : 0,
-    avgRating: Array.isArray(hostels) && hostels.length > 0 ? (hostels.reduce((sum, h) => sum + (h.rating || 0), 0) / hostels.length).toFixed(1) : '0.0',
-    responseRate: Array.isArray(enquiries) && enquiries.length > 0 ? Math.round((enquiries.filter(e => e.status !== 'Pending').length / enquiries.length) * 100) : 0,
+    totalProperties: hostels?.length || 0,
+    totalEnquiries: enquiries?.length || 0,
+    totalViews: hostels?.reduce((sum, h) => sum + (h.views || 0), 0) || 0,
+    pendingRequests: enquiries?.filter(e => e.status === 'Pending').length || 0,
+    occupancyRate: hostels?.length > 0 ? Math.round(((hostels.filter(h => h.availability === 'Full').length) / hostels.length) * 100) : 0,
+    avgRating: hostels?.length > 0 ? (hostels.reduce((sum, h) => sum + (h.rating || 0), 0) / hostels.length).toFixed(1) : '0.0',
+    responseRate: enquiries?.length > 0 ? Math.round((enquiries.filter(e => e.status !== 'Pending').length / enquiries.length) * 100) : 0,
     monthlyGrowth: analytics.monthlyGrowth
   }
 
@@ -229,12 +260,26 @@ const AdminDashboard = () => {
     <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
       <div className="mb-8">
-        <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>
-          Hostel Provider Dashboard
-        </h1>
-        <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Manage your properties, bookings, and grow your hostel business.
-        </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>
+              Hostel Provider Dashboard
+            </h1>
+            <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              Manage your properties, bookings, and grow your hostel business.
+            </p>
+          </div>
+          <button 
+            onClick={() => invalidateData()}
+            className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+              isDark 
+                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+            } shadow-lg hover:shadow-xl`}
+          >
+            🔄 Refresh Data
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -407,7 +452,7 @@ const AdminDashboard = () => {
             <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-100 text-yellow-600'}`}>{featuredHostels.length}/6</span>
           </div>
           <div className="space-y-2 max-h-64 overflow-y-auto">
-            {hostels.length > 0 ? (
+            {hostels?.length > 0 ? (
               hostels.slice(0, 10).map((hostel) => (
                 <div key={hostel._id} className={`flex items-center justify-between p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
                   <div className="flex items-center space-x-2">
@@ -493,7 +538,7 @@ const AdminDashboard = () => {
             <button className={`text-sm font-medium transition-colors ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>Manage All</button>
           </div>
           <div className="space-y-4">
-            {hostels.slice(0, 5).map((hostel, index) => (
+            {(hostels || []).slice(0, 5).map((hostel, index) => (
               <div key={index} className={`flex items-center justify-between p-4 rounded-lg transition-colors ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
                 <div className="flex items-center space-x-4">
                   <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
@@ -529,7 +574,7 @@ const AdminDashboard = () => {
             <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-orange-900/50 text-orange-400' : 'bg-orange-100 text-orange-600'}`}>{stats.pendingRequests} New</span>
           </div>
           <div className="space-y-4">
-            {enquiries.slice(0, 5).map((enquiry, index) => (
+            {(enquiries || []).slice(0, 5).map((enquiry, index) => (
               <div key={index} className="flex items-start space-x-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-purple-900/50' : 'bg-purple-100'}`}>
                   <svg className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

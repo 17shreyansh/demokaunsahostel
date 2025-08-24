@@ -5,6 +5,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminLayout from './layouts/AdminLayout'
+import { AdminProvider } from './contexts/AdminContext'
 import Home from './pages/Home'
 import Hostels from './pages/Hostels'
 import HostelDetails from './pages/HostelDetails'
@@ -75,11 +76,14 @@ function App() {
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/*" element={
             <ProtectedRoute>
-              <AdminLayout />
+              <AdminProvider>
+                <AdminLayout />
+              </AdminProvider>
             </ProtectedRoute>
           }>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="hostels" element={<AdminHostels />} />
+            <Route path="hostels/new" element={<AdminHostelEdit />} />
             <Route path="hostels/:id" element={<AdminHostelEdit />} />
             <Route path="nearbyplaces" element={<AdminNearbyPlaces />} />
             <Route path="leads" element={<AdminLeads />} />

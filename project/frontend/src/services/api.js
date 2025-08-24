@@ -134,7 +134,16 @@ export const hostelAPI = {
   create: (data) => api.post('/hostels', data),
   update: (id, data) => api.put(`/hostels/${id}`, data),
   updateFeatured: (id, featured) => api.patch(`/hostels/${id}/featured`, { featured }),
-  getFeatured: () => api.get('/hostels/featured/homepage'),
+  getFeatured: async () => {
+    try {
+      return await api.get('/hostels/featured/homepage')
+    } catch (error) {
+      console.warn('Featured hostels unavailable, using fallback')
+      return {
+        data: fallbackHostels.filter(h => h.featured).slice(0, 6)
+      }
+    }
+  },
   delete: (id) => api.delete(`/hostels/${id}`)
 }
 

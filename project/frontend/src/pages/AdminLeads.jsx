@@ -1,36 +1,24 @@
 import { useState, useEffect } from 'react'
 import { leadAPI } from '../services/api'
 import { useTheme } from '../contexts/ThemeContext'
+import { useRefreshableData, invalidateAllData } from '../hooks/useRefreshableData'
 
 const AdminLeads = () => {
   const { isDark } = useTheme()
-  const [leads, setLeads] = useState([])
-  const [loading, setLoading] = useState(false)
   const [selectedLead, setSelectedLead] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
 
-  useEffect(() => {
-    fetchLeads()
+  const { data: leads, loading } = useRefreshableData('leads', async () => {
+    const params = activeTab !== 'all' ? { type: activeTab } : {}
+    const response = await leadAPI.getAll(params)
+    return response.data.leads || []
   }, [activeTab])
-
-  const fetchLeads = async () => {
-    setLoading(true)
-    try {
-      const params = activeTab !== 'all' ? { type: activeTab } : {}
-      const response = await leadAPI.getAll(params)
-      setLeads(response.data.leads || [])
-    } catch (error) {
-      console.error('Failed to fetch leads')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const updateStatus = async (id, status) => {
     try {
       await leadAPI.updateStatus(id, status)
       alert('Status updated successfully')
-      fetchLeads()
+      invalidateAllData()
     } catch (error) {
       alert('Failed to update status')
     }
@@ -39,10 +27,10 @@ const AdminLeads = () => {
 
 
   const stats = {
-    total: leads.length,
-    new: leads.filter(l => l.status === 'New').length,
-    contacted: leads.filter(l => l.status === 'Contacted').length,
-    converted: leads.filter(l => l.status === 'Converted').length
+    total: leads?.length || 0,
+    new: leads?.filter(l => l.status === 'New').length || 0,
+    contacted: leads?.filter(l => l.status === 'Contacted').length || 0,
+    converted: leads?.filter(l => l.status === 'Converted').length || 0
   }
 
   const tabItems = [
@@ -54,8 +42,22 @@ const AdminLeads = () => {
   return (
     <div className={`transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
       <div className="mb-8">
-        <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Booking Requests</h1>
-        <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage student enquiries and booking requests</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Booking Requests</h1>
+            <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage student enquiries and booking requests</p>
+          </div>
+          <button 
+            onClick={() => invalidateAllData()}
+            className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+              isDark 
+                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+            } shadow-lg hover:shadow-xl`}
+          >
+            🔄 Refresh
+          </button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -99,7 +101,7 @@ const AdminLeads = () => {
 
       {/* Leads List */}
       <div className="space-y-4">
-        {leads.map((lead) => (
+        {leads?.map((lead) => (
           <div key={lead._id} className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm hover:shadow-lg`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -186,7 +188,7 @@ const AdminLeads = () => {
         ))}
       </div>
 
-      {leads.length === 0 && !loading && (
+      {(!leads || leads.length === 0) && !loading && (
         <div className={`text-center py-12 transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
