@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { fallbackHostels, fallbackFilterOptions, fallbackSearchSuggestions } from '../data/fallbackData'
 
-const API_BASE_URL = __API_BASE_URL__
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -37,7 +37,6 @@ export const hostelAPI = {
       const queryString = new URLSearchParams(params).toString()
       return await api.get(`/hostels${queryString ? `?${queryString}` : ''}`)
     } catch (error) {
-      console.warn('Backend unavailable, using fallback data')
       return {
         data: {
           hostels: fallbackHostels.slice(0, 6),
@@ -51,7 +50,6 @@ export const hostelAPI = {
       const queryString = new URLSearchParams(params).toString()
       return await api.get(`/hostels?${queryString}`)
     } catch (error) {
-      console.warn('Backend unavailable, using fallback data')
       let filteredHostels = [...fallbackHostels]
       
       // Apply basic filtering
@@ -92,7 +90,6 @@ export const hostelAPI = {
     try {
       return await api.get(`/hostels/search/suggestions?q=${query}`)
     } catch (error) {
-      console.warn('Backend unavailable, using fallback suggestions')
       const filtered = fallbackSearchSuggestions.filter(s => 
         s.name.toLowerCase().includes(query.toLowerCase())
       )
@@ -103,7 +100,6 @@ export const hostelAPI = {
     try {
       return await api.get('/hostels/filters/options')
     } catch (error) {
-      console.warn('Backend unavailable, using fallback filter options')
       return { data: fallbackFilterOptions }
     }
   },
@@ -111,7 +107,6 @@ export const hostelAPI = {
     try {
       return await api.get(`/hostels/${id}`)
     } catch (error) {
-      console.warn('Backend unavailable, using fallback data')
       const hostel = fallbackHostels.find(h => h._id === id)
       if (hostel) {
         return { data: hostel }
@@ -123,7 +118,6 @@ export const hostelAPI = {
     try {
       return await api.get(`/hostels/slug/${slug}`)
     } catch (error) {
-      console.warn('Backend unavailable, using fallback data')
       const hostel = fallbackHostels.find(h => h.slug === slug)
       if (hostel) {
         return { data: hostel }
@@ -138,7 +132,6 @@ export const hostelAPI = {
     try {
       return await api.get('/hostels/featured/homepage')
     } catch (error) {
-      console.warn('Featured hostels unavailable, using fallback')
       return {
         data: fallbackHostels.filter(h => h.featured).slice(0, 6)
       }
@@ -174,7 +167,9 @@ export const leadAPI = {
     try {
       return await api.post('/leads/enquiry', data)
     } catch (error) {
-      console.warn('Backend unavailable, enquiry stored locally')
+      if (error.response?.status === 400) {
+        throw new Error(error.response.data?.message || 'Invalid data provided')
+      }
       const enquiries = JSON.parse(localStorage.getItem('pendingEnquiries') || '[]')
       enquiries.push({ ...data, type: 'enquiry', timestamp: new Date().toISOString() })
       localStorage.setItem('pendingEnquiries', JSON.stringify(enquiries))
@@ -185,7 +180,6 @@ export const leadAPI = {
     try {
       return await api.post('/leads/contact', data)
     } catch (error) {
-      console.warn('Backend unavailable, contact stored locally')
       const contacts = JSON.parse(localStorage.getItem('pendingContacts') || '[]')
       contacts.push({ ...data, type: 'contact', timestamp: new Date().toISOString() })
       localStorage.setItem('pendingContacts', JSON.stringify(contacts))

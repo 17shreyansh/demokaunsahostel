@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { leadAPI } from '../services/api'
 import Select from 'react-select'
+import Toast from './Toast'
 
 const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -38,13 +39,63 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
     }
   }, [])
   const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Validate required fields
+    if (!formData.phone.trim()) {
+      setToast({ message: 'Phone number is required', type: 'error' })
+      return
+    }
+    
+    if (!formData.message.trim()) {
+      setToast({ message: 'Message is required', type: 'error' })
+      return
+    }
+    
+    // Validate phone number format
+    const phoneRegex = /^[6-9]\d{9}$/
+    if (!phoneRegex.test(formData.phone.trim())) {
+      setToast({ message: 'Please enter a valid 10-digit phone number', type: 'error' })
+      return
+    }
+    
+    // Validate email format if provided
+    if (formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email.trim())) {
+        setToast({ message: 'Please enter a valid email address', type: 'error' })
+        return
+      }
+    }
+    
+    // Validate name if provided
+    if (formData.name.trim() && formData.name.trim().length < 2) {
+      setToast({ message: 'Name must be at least 2 characters long', type: 'error' })
+      return
+    }
+    
     setLoading(true)
     
     try {
-      await leadAPI.createEnquiry({ ...formData, hostelId })
+      const enquiryData = {
+        name: formData.name?.trim() || '',
+        phone: formData.phone?.trim() || '',
+        email: formData.email?.trim() || '',
+        userType: formData.userType || '',
+        institution: formData.institution?.trim() || '',
+        course: formData.course?.trim() || '',
+        checkInDate: formData.checkInDate || '',
+        budget: formData.budget || '',
+        message: formData.message?.trim() || '',
+        source: formData.source || 'hostel-details',
+        hostelName: formData.hostelName || '',
+        hostelId: hostelId || ''
+      }
+
+      await leadAPI.createEnquiry(enquiryData)
       
       // Save user data for future auto-population
       const userData = {
@@ -58,6 +109,7 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
       }
       localStorage.setItem('userEnquiryData', JSON.stringify(userData))
       
+      setToast({ message: 'Enquiry submitted successfully!', type: 'success' })
       onSuccess?.()
       setFormData({
         name: formData.name,
@@ -73,7 +125,20 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
         hostelName: hostelName
       })
     } catch (error) {
-      alert('Failed to submit enquiry. Please try again.')
+      let errorMessage = 'Failed to submit enquiry'
+      
+      if (error.response?.data?.message) {
+        const msg = error.response.data.message
+        if (msg.includes('message: Path `message` is required')) {
+          errorMessage = 'Please add a message to your enquiry'
+        } else if (msg.includes('validation failed')) {
+          errorMessage = 'Please fill all required fields'
+        } else {
+          errorMessage = 'Something went wrong'
+        }
+      }
+      
+      setToast({ message: errorMessage, type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -250,10 +315,11 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
         <textarea
           name="message"
           rows="2"
+          required
           value={formData.message}
           onChange={handleChange}
           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent resize-none"
-          placeholder="Additional requirements..."
+          placeholder="Message *"
         />
       </div>
       
@@ -264,6 +330,14 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
       >
         {loading ? 'Sending...' : 'Send Enquiry'}
       </button>
+      
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
     </form>
   )
 }

@@ -71,7 +71,7 @@ const Home = () => {
         />
         {[...Array(6)].map((_, i) => (
           <motion.div
-            key={i}
+            key={`floating-dot-${i}`}
             className="absolute w-2 h-2 bg-yellow-400 rounded-full opacity-30"
             style={{ left: `${20 + i * 15}%`, top: `${30 + (i % 3) * 20}%` }}
             animate={{ y: [0, -10, 0], opacity: [0.3, 0.7, 0.3], scale: [1, 1.5, 1] }}

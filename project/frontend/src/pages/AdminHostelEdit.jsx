@@ -152,15 +152,15 @@ const AdminHostelEdit = () => {
       ]
       formData.append('finalImages', JSON.stringify(finalImageNames))
 
-      console.log('Submitting form data...')
+
       
       if (id && id !== 'new') {
         const response = await hostelAPI.update(id, formData)
-        console.log('Update response:', response)
+  
         message.success('Hostel updated successfully')
       } else {
         const response = await hostelAPI.create(formData)
-        console.log('Create response:', response)
+  
         message.success('Hostel created successfully')
       }
       
@@ -168,8 +168,7 @@ const AdminHostelEdit = () => {
       invalidateData()
       navigate('/admin/hostels')
     } catch (error) {
-      console.error('Form submission error:', error)
-      console.error('Error response:', error.response?.data)
+
       message.error(`Failed to save hostel: ${error.response?.data?.message || error.message}`)
     } finally {
       setLoading(false)

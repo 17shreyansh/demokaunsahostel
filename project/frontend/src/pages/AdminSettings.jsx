@@ -28,7 +28,6 @@ const AdminSettings = () => {
         setCurrentUser(data.admin.username)
       }
     } catch (error) {
-      console.error('Profile fetch error:', error)
     }
   }
 

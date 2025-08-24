@@ -9,5 +9,14 @@ export default defineConfig({
   define: {
     __API_BASE_URL__: JSON.stringify(process.env.VITE_API_BASE_URL || 'http://localhost:5000/api'),
     __UPLOADS_BASE_URL__: JSON.stringify(process.env.VITE_UPLOADS_BASE_URL || 'http://localhost:5000/uploads')
+  },
+  build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
   }
 })
