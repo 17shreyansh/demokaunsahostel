@@ -1,12 +1,26 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { pageAPI } from '../services/api'
 import logo from '../assets/logo.png'
-
-
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [phoneNumber, setPhoneNumber] = useState('+91 98765 43210')
   const location = useLocation()
+
+  useEffect(() => {
+    fetchPhoneNumber()
+  }, [])
+
+  const fetchPhoneNumber = async () => {
+    try {
+      const response = await pageAPI.getPageContent('contact')
+      const phone = response.data.content?.contact?.contactInfo?.phone
+      if (phone) setPhoneNumber(phone)
+    } catch (error) {
+      console.error('Error fetching phone number:', error)
+    }
+  }
 
   return (
     <header id="home" className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50">
@@ -39,11 +53,11 @@ const Header = () => {
           }`}>Contact</Link>
         </div>
         
-        <a href="tel:+919876543210" className="hidden md:flex items-center bg-black text-white font-semibold py-2.5 px-6 rounded-xl hover:bg-gray-800 transition-all duration-300">
+        <a href={`tel:${phoneNumber.replace(/\s/g, '')}`} className="hidden md:flex items-center bg-black text-white font-semibold py-2.5 px-6 rounded-xl hover:bg-gray-800 transition-all duration-300">
           <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
             <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
           </svg>
-          +91 98765 43210
+          {phoneNumber}
         </a>
 
         <div className="md:hidden">
@@ -80,11 +94,11 @@ const Header = () => {
               ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
               : 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-custom'
           }`}>Contact</Link>
-          <a href="tel:+919876543210" className="flex items-center justify-center bg-black text-white font-semibold py-3 px-6 rounded-xl hover:bg-gray-800 transition-all duration-300 mt-6">
+          <a href={`tel:${phoneNumber.replace(/\s/g, '')}`} className="flex items-center justify-center bg-black text-white font-semibold py-3 px-6 rounded-xl hover:bg-gray-800 transition-all duration-300 mt-6">
             <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
             </svg>
-            +91 98765 43210
+            {phoneNumber}
           </a>
         </div>
       )}

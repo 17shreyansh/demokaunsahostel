@@ -121,8 +121,103 @@ const About = () => {
         </div>
       </section>
 
-      {/* Mission & Vision */}
+      {/* CEO & Leadership Section */}
       <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <span className="inline-block px-6 py-2 bg-yellow-custom text-gray-900 font-semibold rounded-full text-sm mb-6">
+                CEO & Founder
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Leadership Excellence</h2>
+              <div className="w-20 h-1 bg-yellow-custom mx-auto rounded mb-4"></div>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">Meet the visionary transforming student accommodation in Greater Noida</p>
+            </div>
+            
+            <div className="grid lg:grid-cols-3 gap-16 items-center">
+              {/* Images Section */}
+              <div className="lg:col-span-1 space-y-16">
+                {/* First Image - Left Aligned */}
+                <div className="relative group">
+                  <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-3xl shadow-2xl transform rotate-2 group-hover:rotate-0 transition-all duration-500">
+                    <img 
+                      src="/src/assets/photo 1.jpg" 
+                      alt="CEO Portrait" 
+                      className="w-full aspect-[3/4] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-yellow-custom/20 rounded-full blur-2xl"></div>
+                  <div className="absolute -top-3 -left-3 w-12 h-12 bg-yellow-custom rounded-full opacity-80"></div>
+                </div>
+                
+                {/* Second Image - Right Aligned */}
+                <div className="relative group flex justify-end">
+                  <div className="bg-gradient-to-br from-yellow-50 to-white p-6 rounded-3xl shadow-2xl transform -rotate-2 group-hover:rotate-0 transition-all duration-500">
+                    <img 
+                      src="/src/assets/photo 2.jpg" 
+                      alt="CEO Professional" 
+                      className="w-full aspect-[3/4] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="absolute -top-6 -left-6 w-20 h-20 bg-yellow-custom/25 rounded-full blur-xl"></div>
+                  <div className="absolute -bottom-3 -right-3 w-10 h-10 bg-yellow-custom rounded-full opacity-70"></div>
+                </div>
+              </div>
+              
+              {/* Content Section */}
+              <div className="lg:col-span-2 space-y-8">
+                <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10">
+                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                    Pioneering Student-Centric Solutions
+                  </h3>
+                  <p className="text-lg text-gray-700 leading-relaxed mb-8">
+                    Our CEO brings years of experience in understanding student needs and creating innovative accommodation solutions. With a passion for excellence and community building, the leadership at Kaunsa Hostel ensures every student finds not just a place to stay, but a home to thrive.
+                  </p>
+                  
+                  <div className="bg-gray-50 border-l-4 border-yellow-custom p-6 rounded-r-xl mb-8">
+                    <blockquote className="text-lg italic text-gray-800 mb-3">
+                      "We believe in creating spaces where students don't just live, but flourish. Every decision we make is centered around building communities that support academic success and personal growth."
+                    </blockquote>
+                    <cite className="text-gray-600 font-medium text-sm">— Founder & CEO</cite>
+                  </div>
+                  
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="text-center p-6 bg-yellow-custom rounded-xl shadow-lg">
+                      <div className="text-2xl font-bold text-gray-900 mb-1">5+</div>
+                      <div className="text-gray-800 text-sm font-medium">Years Experience</div>
+                    </div>
+                    <div className="text-center p-6 bg-white border-2 border-yellow-custom rounded-xl shadow-lg">
+                      <div className="text-2xl font-bold text-gray-900 mb-1">2000+</div>
+                      <div className="text-gray-700 text-sm font-medium">Students Served</div>
+                    </div>
+                    <div className="text-center p-6 bg-gray-100 rounded-xl shadow-lg">
+                      <div className="text-2xl font-bold text-gray-900 mb-1">50+</div>
+                      <div className="text-gray-700 text-sm font-medium">Properties</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Vision Card */}
+                <div className="bg-white rounded-2xl shadow-xl p-8">
+                  <h4 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <div className="w-8 h-8 bg-yellow-custom rounded-lg flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    Our Vision
+                  </h4>
+                  <p className="text-gray-700">To revolutionize student accommodation by creating safe, comfortable, and inspiring living spaces that foster academic excellence and lifelong friendships across India.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission & Vision */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
             <div className="grid md:grid-cols-2 gap-8">
@@ -165,17 +260,11 @@ const About = () => {
             {content.about?.cta?.subtitle || 'Join thousands of students who have made StayNest their home away from home. Experience the difference.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href={content.about?.cta?.primaryButton?.link || '/hostels'} className="bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors inline-flex items-center justify-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              {content.about?.cta?.primaryButton?.text || 'Explore Hostels'}
+            <a href="/hostels" className="bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+              Explore Hostels
             </a>
-            <a href={content.about?.cta?.secondaryButton?.link || 'tel:+919876543210'} className="bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center justify-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              {content.about?.cta?.secondaryButton?.text || 'Call Now'}
+            <a href="/contact" className="bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold border-2 border-gray-900 hover:bg-gray-100 transition-colors">
+              Contact Us
             </a>
           </div>
         </div>
