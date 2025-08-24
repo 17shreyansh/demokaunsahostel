@@ -17,7 +17,7 @@ const AdminNearbyPlaces = () => {
   const fetchPlaces = async () => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:5000/api/nearbyplaces')
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces`)
       const data = await response.json()
       setPlaces(data)
     } catch (error) {
@@ -51,8 +51,8 @@ const AdminNearbyPlaces = () => {
       }
 
       const url = editingPlace 
-        ? `http://localhost:5000/api/nearbyplaces/${editingPlace._id}`
-        : 'http://localhost:5000/api/nearbyplaces'
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces/${editingPlace._id}`
+        : `${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces`
       
       const method = editingPlace ? 'PUT' : 'POST'
       
@@ -81,7 +81,7 @@ const AdminNearbyPlaces = () => {
     if (!window.confirm('Are you sure you want to delete this place?')) return
     
     try {
-      const response = await fetch(`http://localhost:5000/api/nearbyplaces/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`

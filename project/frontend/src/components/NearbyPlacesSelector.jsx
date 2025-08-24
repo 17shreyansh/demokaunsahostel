@@ -24,8 +24,8 @@ const NearbyPlacesSelector = ({ coordinates, value = { educational: [], offices:
   const fetchAvailablePlaces = async () => {
     try {
       const [educationalRes, officeRes] = await Promise.all([
-        fetch('http://localhost:5000/api/nearbyplaces?category=educational'),
-        fetch('http://localhost:5000/api/nearbyplaces?category=office')
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces?category=educational`),
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces?category=office`)
       ])
       
       const educational = await educationalRes.json()
@@ -43,8 +43,8 @@ const NearbyPlacesSelector = ({ coordinates, value = { educational: [], offices:
 
     try {
       const [educationalRes, officeRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=educational`),
-        fetch(`http://localhost:5000/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=office`)
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=educational`),
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=office`)
       ])
       
       const educationalWithDistances = await educationalRes.json()
@@ -81,7 +81,7 @@ const NearbyPlacesSelector = ({ coordinates, value = { educational: [], offices:
       if (coordinates?.lat && coordinates?.lng && place.mapCoordinates) {
         setLoading(true)
         try {
-          const response = await fetch(`http://localhost:5000/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=educational`)
+          const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=educational`)
           const placesWithDistances = await response.json()
           const placeWithDistance = placesWithDistances.find(p => p._id === placeId)
           if (placeWithDistance) {
@@ -111,7 +111,7 @@ const NearbyPlacesSelector = ({ coordinates, value = { educational: [], offices:
       if (coordinates?.lat && coordinates?.lng && place.mapCoordinates) {
         setLoading(true)
         try {
-          const response = await fetch(`http://localhost:5000/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=office`)
+          const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}&category=office`)
           const placesWithDistances = await response.json()
           const placeWithDistance = placesWithDistances.find(p => p._id === placeId)
           if (placeWithDistance) {

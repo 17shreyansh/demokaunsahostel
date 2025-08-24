@@ -19,7 +19,7 @@ const AdminSettings = () => {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('adminToken')
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       
@@ -34,7 +34,7 @@ const AdminSettings = () => {
 
   const checkApiKey = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/settings/status/api-key')
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/settings/status/api-key`)
       if (response.ok) {
         const data = await response.json()
         setApiSaved(data.configured)
@@ -53,7 +53,7 @@ const AdminSettings = () => {
       const formData = new FormData(e.target)
       const token = localStorage.getItem('adminToken')
       
-      const response = await fetch('http://localhost:5000/api/settings', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ const AdminSettings = () => {
       }
       
       const token = localStorage.getItem('adminToken')
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

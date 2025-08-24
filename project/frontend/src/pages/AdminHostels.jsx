@@ -134,7 +134,7 @@ const AdminHostels = () => {
             <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-t-xl overflow-hidden">
               {hostel.images?.[0] ? (
                 <img 
-                  src={`http://localhost:5000/uploads/${hostel.images[0]}`} 
+                  src={`${import.meta.env.VITE_BACKEND_URL}/uploads/${hostel.images[0]}`} 
                   alt={hostel.name}
                   className="w-full h-full object-cover"
                 />
