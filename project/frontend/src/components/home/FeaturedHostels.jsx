@@ -21,7 +21,7 @@ const FeaturedHostels = ({ hostels, loading }) => {
                 key={hostel._id} 
                 hostel={{
                   ...hostel,
-                  image: hostel.images?.[0] ? `${import.meta.env.VITE_BACKEND_URL}/uploads/${hostel.images[0]}` : null
+                  image: hostel.images?.[0] ? `${import.meta.env.VITE_UPLOADS_BASE_URL}/${hostel.images[0]}` : null
                 }} 
                 variant="default" 
               />

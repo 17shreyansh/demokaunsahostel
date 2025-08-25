@@ -63,38 +63,50 @@ const pageContentSchema = new mongoose.Schema({
     about: {
       title: String,
       subtitle: String,
-      story: {
-        title: String,
-        content: String
-      },
       stats: [{
         number: String,
         label: String
       }],
+      story: {
+        title: String,
+        content: String
+      },
       values: [{
         title: String,
         description: String
-      }],
-      mission: {
-        title: String,
-        content: String
+      }]
+    },
+    leadership: {
+      title: String,
+      subtitle: String,
+      description: String,
+      ceo: {
+        name: String,
+        position: String,
+        bio: String,
+        quote: String,
+        experience: String,
+        education: String,
+        achievements: [String],
+        image1: String,
+        image2: String
       },
-      vision: {
-        title: String,
-        content: String
-      },
-      cta: {
-        title: String,
-        subtitle: String,
-        primaryButton: {
-          text: String,
-          link: String
-        },
-        secondaryButton: {
-          text: String,
-          link: String
-        }
-      }
+      team: [{
+        name: String,
+        position: String,
+        bio: String,
+        image: String,
+        linkedin: String,
+        email: String
+      }]
+    },
+    mission: {
+      title: String,
+      content: String
+    },
+    vision: {
+      title: String,
+      content: String
     },
     // Contact Page
     contact: {

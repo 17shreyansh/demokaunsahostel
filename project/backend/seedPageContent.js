@@ -4,9 +4,13 @@ require('dotenv').config();
 
 const seedPageContent = async () => {
   try {
+    console.log('Connecting to MongoDB...');
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hostel_enquiry');
+    console.log('Connected to MongoDB');
     
+    console.log('Clearing existing page content...');
     await PageContent.deleteMany({});
+    console.log('Existing content cleared');
 
     const pages = [
       {
@@ -14,111 +18,120 @@ const seedPageContent = async () => {
         content: {
           hero: {
             mainTitle: 'Find Your Perfect',
-            typewriterTexts: ['Premium Hostels', 'Safe Accommodations', 'Budget-Friendly PGs', 'Modern Amenities', 'Verified Properties'],
+            typewriterTexts: ['Hostel Room', 'Study Space', 'Home Away From Home', 'Comfort Zone', 'Student Community'],
             location: 'in Greater Noida',
-            description: 'Find your perfect nest! Premium hostels with modern amenities and vibrant communities. Where comfort meets convenience in Greater Noida.',
+            description: 'Find your perfect nest! Premium hostels with modern amenities, 24/7 security, high-speed WiFi, and a vibrant student community at Kaunsa Hostel.',
             primaryButton: {
-              text: 'Explore Hostels',
-              link: '/hostels'
-            },
-            secondaryButton: {
-              text: 'Call Now',
-              link: 'tel:+919876543210'
-            },
-            trustBadge: 'Trusted by 1200+ Students',
-            searchPlaceholder: 'Search hostels, locations, colleges...'
+              text: 'Explore Rooms',
+              link: '/rooms'
+            }
           },
           search: {
-            title: 'Search Your Ideal Hostel',
-            subtitle: 'Filter by location, budget, amenities, and more to find your perfect stay',
-            budgetOptions: [
-              { label: 'Budget Friendly (Under ₹7K)', minPrice: 0, maxPrice: 7000 },
-              { label: 'Affordable (₹7K - ₹10K)', minPrice: 7000, maxPrice: 10000 },
-              { label: 'Premium (₹10K - ₹15K)', minPrice: 10000, maxPrice: 15000 },
-              { label: 'Luxury (Above ₹15K)', minPrice: 15000, maxPrice: 0 }
-            ],
-            genderOptions: [
-              { value: 'Boys', label: 'Boys Only' },
-              { value: 'Girls', label: 'Girls Only' },
-              { value: 'Co-ed', label: 'Co-ed' }
-            ],
-            universityLogos: ['Galgotias University', 'Sharda University', 'Bennett University', 'GL Bajaj Institute']
+            title: 'Find Your Ideal Room',
+            subtitle: 'Search through our premium accommodations'
           },
           services: {
             title: 'Amenities & Services',
-            subtitle: 'Everything you need for a comfortable and hassle-free stay.',
+            subtitle: 'Everything you need for comfort',
             items: [
-              { title: 'High-Speed Wi-Fi', description: 'Stay connected with uninterrupted, high-speed internet for work and entertainment.', icon: 'wifi' },
-              { title: 'Homely Meals', description: 'Enjoy delicious and hygienic home-style food, prepared fresh every day.', icon: 'food' },
-              { title: '24/7 Security', description: 'Your safety is our priority. All our hostels are equipped with CCTV and security personnel.', icon: 'security' },
-              { title: 'Housekeeping', description: 'Regular cleaning and maintenance services to ensure a tidy and pleasant living space.', icon: 'cleaning' },
-              { title: 'Laundry Service', description: 'On-site washing machines and affordable laundry services to take care of your clothes.', icon: 'laundry' },
-              { title: 'Power Backup', description: 'Never worry about power cuts with our reliable 24/7 power backup system.', icon: 'power' },
-              { title: 'AC & Non-AC Rooms', description: 'Choose between air-conditioned and non-AC rooms based on your preference and budget.', icon: 'ac' },
-              { title: 'Vibrant Community', description: 'Live with like-minded individuals and build connections in our friendly community spaces.', icon: 'community' }
+              { title: 'High-Speed WiFi', description: '24/7 unlimited high-speed internet connectivity', icon: 'FaWifi' },
+              { title: '24/7 Security', description: 'Round-the-clock security with CCTV surveillance', icon: 'FaLock' },
+              { title: 'Mess Facility', description: 'Hygienic and nutritious meals prepared fresh daily', icon: 'FaUtensils' },
+              { title: 'Laundry Service', description: 'Professional washing and cleaning services', icon: 'FaTshirt' },
+              { title: 'Air Conditioning', description: 'Climate-controlled rooms for year-round comfort', icon: 'FaSnowflake' },
+              { title: 'Parking Space', description: 'Secure parking for bikes and cars', icon: 'FaCar' },
+              { title: 'Fitness Center', description: 'Well-equipped gym for your fitness needs', icon: 'FaDumbbell' },
+              { title: 'Study Rooms', description: 'Quiet spaces dedicated for focused studying', icon: 'FaBook' },
+              { title: 'Recreation Area', description: 'Gaming zone and entertainment facilities', icon: 'FaGamepad' },
+              { title: 'Common Areas', description: 'Comfortable spaces to relax and socialize', icon: 'FaCoffee' },
+              { title: 'Mini Market', description: 'On-site store for daily essentials', icon: 'FaStore' },
+              { title: 'Transport Service', description: 'Regular shuttle service to colleges and metro', icon: 'FaBus' }
             ]
           },
           testimonials: {
             title: 'What Our Residents Say',
-            subtitle: 'We are proud to be a home away from home.',
+            subtitle: 'We are proud to be a home away from home',
             items: [
               {
-                name: 'Priya Sharma',
-                role: 'Student, Galgotias University',
-                text: 'Finding StayNest was a lifesaver. The location is perfect for my college, and the facilities are top-notch. It truly feels like a second home.',
+                name: 'Rahul Sharma',
+                role: 'Student, AKTU',
+                text: 'Amazing hostel with great facilities. The WiFi is super fast and the mess food is really good. Highly recommended!',
                 rating: 5,
-                image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+                image: ''
               },
               {
-                name: 'Rohan Mehra',
-                role: 'Software Engineer, Wipro',
-                text: 'As a working professional, I needed a quiet and clean place. StayNest exceeded my expectations. The Wi-Fi is reliable, and the food is great.',
+                name: 'Priya Singh',
+                role: 'Student, Amity University',
+                text: 'Safe and secure environment for girls. The staff is very helpful and the rooms are well-maintained.',
                 rating: 5,
-                image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+                image: ''
+              },
+              {
+                name: 'Amit Kumar',
+                role: 'Student, Bennett University',
+                text: 'Great location and excellent amenities. The study rooms are perfect for exam preparation.',
+                rating: 4,
+                image: ''
               }
             ]
           }
-        },
-        seo: {
-          title: 'Premium Hostels in Greater Noida | KaunsaHostel',
-          description: 'Find the best hostels and PGs in Greater Noida. Safe, affordable accommodation near universities and IT parks.',
-          keywords: ['hostels greater noida', 'pg greater noida', 'student accommodation', 'hostel booking']
         }
       },
       {
         page: 'about',
         content: {
           about: {
-            title: 'About StayNest',
-            subtitle: 'Your trusted partner in finding the perfect accommodation in Greater Noida',
-            story: {
-              title: 'Our Story',
-              content: 'StayNest was founded with a vision to revolutionize student living in Greater Noida. We believe that your accommodation should be more than just a place to sleep - it should be your nest, where you grow, learn, and build lifelong friendships. Our team has carefully curated a network of premium hostels that combine modern amenities with a vibrant community atmosphere.'
-            },
-            features: [
-              { title: 'Safety First', description: 'All our partner hostels are verified for safety standards with 24/7 security and CCTV surveillance.', icon: 'shield' },
-              { title: 'Affordable Pricing', description: 'We ensure transparent pricing with no hidden costs, making quality accommodation accessible to all.', icon: 'money' },
-              { title: '24/7 Support', description: 'Our dedicated support team is available round the clock to assist you with any queries or concerns.', icon: 'support' }
-            ],
-            whyChoose: {
-              title: 'Why Choose Us?',
-              items: [
-                'Verified Properties',
-                'Transparent Pricing',
-                'Quality Assurance',
-                'Easy Booking Process',
-                '24/7 Customer Support',
-                'Multiple Location Options',
-                'Flexible Terms',
-                'Community Building'
-              ]
-            }
+            title: 'About Kaunsa Hostel',
+            subtitle: 'Your Home Away From Home in Greater Noida'
+          },
+          story: {
+            title: 'Our Story',
+            content: 'Founded in 2020, Kaunsa Hostel was born from the understanding that students need more than just a place to stay - they need a community, comfort, and care. Located strategically in Greater Noida, we have created a space where students can focus on their studies while enjoying a vibrant social life.'
+          },
+          mission: {
+            title: 'Our Mission',
+            content: 'To provide safe, comfortable, and affordable accommodation that enhances the student experience and fosters personal growth.'
+          },
+          vision: {
+            title: 'Our Vision',
+            content: 'To be the preferred choice for student accommodation in Greater Noida, known for our quality, care, and community spirit.'
+          },
+          values: {
+            title: 'Our Core Values',
+            items: [
+              { title: 'Safety First', description: 'Your security and well-being are our top priorities', icon: 'FaLock' },
+              { title: 'Comfort & Care', description: 'Creating a homely environment with personal attention', icon: 'FaHome' },
+              { title: '24/7 Support', description: 'Always available to address your needs and concerns', icon: 'FaPhone' },
+              { title: 'Cleanliness', description: 'Maintaining highest standards of hygiene and cleanliness', icon: 'FaShower' }
+            ]
+          },
+          stats: {
+            title: 'Our Achievements',
+            items: [
+              { number: '500', suffix: '+', label: 'Happy Students' },
+              { number: '50', suffix: '+', label: 'Rooms Available' },
+              { number: '4', suffix: '.8', label: 'Star Rating' },
+              { number: '24', suffix: '/7', label: 'Support Available' }
+            ]
+          },
+          team: {
+            title: 'Meet Our Team',
+            subtitle: 'Dedicated professionals committed to your comfort',
+            members: [
+              { name: 'Mr. Rajesh Kumar', position: 'Hostel Manager', bio: 'With 10+ years of experience in hospitality management', image: '' },
+              { name: 'Ms. Sunita Devi', position: 'Mess Supervisor', bio: 'Ensures quality and hygiene in our food services', image: '' },
+              { name: 'Mr. Suresh Singh', position: 'Security Head', bio: 'Maintains 24/7 security and safety protocols', image: '' }
+            ]
+          },
+          whyChoose: {
+            title: 'Why Choose Kaunsa Hostel?',
+            reasons: [
+              { title: 'Prime Location', description: 'Located in the heart of Greater Noida with easy access to colleges', icon: 'FaHome' },
+              { title: 'Modern Infrastructure', description: 'Newly constructed building with contemporary design', icon: 'FaBed' },
+              { title: 'Student Community', description: 'Vibrant community of students from various backgrounds', icon: 'FaCoffee' },
+              { title: 'Affordable Pricing', description: 'Competitive rates with flexible payment options', icon: 'FaBolt' }
+            ]
           }
-        },
-        seo: {
-          title: 'About Us - StayNest | Premium Hostel Booking Platform',
-          description: 'Learn about StayNest, your trusted partner for finding premium hostels and PGs in Greater Noida.',
-          keywords: ['about staynest', 'hostel booking platform', 'student accommodation service']
         }
       },
       {
@@ -126,32 +139,24 @@ const seedPageContent = async () => {
         content: {
           contact: {
             title: 'Get In Touch',
-            subtitle: 'Have questions? We\'d love to hear from you. Book a visit today!',
+            subtitle: 'Have questions? We would love to hear from you. Book a visit today!',
             contactInfo: {
-              phone: '+91 98765 43210',
-              email: 'hello@staynest.com',
-              address: 'Main Office, Knowledge Park III, Greater Noida, Uttar Pradesh 201310'
-            },
-            socialLinks: [
-              { platform: 'Facebook', url: '#' },
-              { platform: 'Twitter', url: '#' },
-              { platform: 'Instagram', url: '#' }
-            ]
+              phone: '+91 9876543210',
+              email: 'info@kaunsahostel.com',
+              address: 'Kaunsa Hostel, Sector 10, Greater Noida, Uttar Pradesh - 201310, India'
+            }
           }
-        },
-        seo: {
-          title: 'Contact Us - StayNest | Get in Touch',
-          description: 'Contact StayNest for hostel bookings, queries, and support. We\'re here to help you find your perfect accommodation.',
-          keywords: ['contact staynest', 'hostel booking support', 'customer service']
         }
       }
     ];
 
+    console.log('Inserting page content...');
     await PageContent.insertMany(pages);
-    console.log('✅ Page content seeded successfully');
+    console.log('Page content seeded successfully');
+    console.log('Inserted ' + pages.length + ' pages');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error seeding page content:', error);
+    console.error('Error seeding page content:', error);
     process.exit(1);
   }
 };
