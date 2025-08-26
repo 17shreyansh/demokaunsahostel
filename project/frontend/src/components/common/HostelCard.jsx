@@ -87,11 +87,16 @@ const HostelCard = ({ hostel, variant = 'default' }) => {
               isCompact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'
             }`}>
               ₹{hostel.price}
-              <span className="text-sm text-gray-400 font-normal">/month</span>
+              <span className="text-sm text-gray-400 font-normal">/{hostel.priceType || 'month'}</span>
             </div>
-            {hostel.originalPrice && (
-              <div className="text-sm text-gray-400 line-through">
-                ₹{hostel.originalPrice}
+            {hostel.sessionPrice && hostel.priceType === 'month' && (
+              <div className="text-sm text-gray-500">
+                ₹{hostel.sessionPrice}/session
+              </div>
+            )}
+            {hostel.sessionPrice && hostel.priceType === 'session' && (
+              <div className="text-sm text-gray-500">
+                ₹{hostel.sessionPrice}/month
               </div>
             )}
           </div>

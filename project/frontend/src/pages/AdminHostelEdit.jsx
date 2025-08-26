@@ -46,11 +46,13 @@ const AdminHostelEdit = () => {
         location: hostelData.location || '',
         description: hostelData.description || '',
         price: hostelData.price || 0,
+        priceType: hostelData.priceType || 'month',
+        sessionPrice: hostelData.sessionPrice || 0,
         availability: hostelData.availability || 'Available',
         rating: hostelData.rating || 0,
         type: hostelData.type || 'PG',
         gender: hostelData.gender || 'Co-ed',
-        availableRooms: hostelData.availableRooms || 0,
+        availableBeds: hostelData.availableBeds || hostelData.availableRooms || 0,
         securityDeposit: hostelData.securityDeposit || 0,
         capacity: hostelData.capacity || '',
         checkIn: hostelData.checkIn || '',
@@ -298,14 +300,64 @@ const AdminHostelEdit = () => {
           </Form.Item>
 
           <Row gutter={16}>
-            <Col xs={24} md={8}>
-              <Form.Item name="price" label="Price (per month)" rules={[{ required: true }]}>
-                <InputNumber 
-                  size="large" 
-                  style={{ width: '100%' }} 
-                  formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={value => value.replace(/₹\s?|(,*)/g, '')}
-                />
+            <Col xs={24} md={6}>
+              <Form.Item name="priceType" label="Pricing Type" rules={[{ required: true }]}>
+                <Select size="large" defaultValue="month">
+                  <Select.Option value="month">Per Month</Select.Option>
+                  <Select.Option value="session">Per Session</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={9}>
+              <Form.Item 
+                noStyle 
+                shouldUpdate={(prevValues, currentValues) => prevValues.priceType !== currentValues.priceType}
+              >
+                {({ getFieldValue }) => {
+                  const priceType = getFieldValue('priceType') || 'month'
+                  return (
+                    <Form.Item 
+                      name="price" 
+                      label={`Price (per ${priceType})`} 
+                      rules={[{ required: true }]}
+                    >
+                      <InputNumber 
+                        size="large" 
+                        style={{ width: '100%' }} 
+                        formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      />
+                    </Form.Item>
+                  )
+                }}
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={9}>
+              <Form.Item 
+                noStyle 
+                shouldUpdate={(prevValues, currentValues) => prevValues.priceType !== currentValues.priceType}
+              >
+                {({ getFieldValue }) => {
+                  const priceType = getFieldValue('priceType') || 'month'
+                  return priceType === 'month' ? (
+                    <Form.Item name="sessionPrice" label="Session Price (optional)">
+                      <InputNumber 
+                        size="large" 
+                        style={{ width: '100%' }} 
+                        formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        placeholder="Price per session"
+                      />
+                    </Form.Item>
+                  ) : (
+                    <Form.Item name="sessionPrice" label="Monthly Price (optional)">
+                      <InputNumber 
+                        size="large" 
+                        style={{ width: '100%' }} 
+                        formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        placeholder="Price per month"
+                      />
+                    </Form.Item>
+                  )
+                }}
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
@@ -363,7 +415,7 @@ const AdminHostelEdit = () => {
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
-              <Form.Item name="availableRooms" label="Available Rooms">
+              <Form.Item name="availableBeds" label="Available Beds">
                 <InputNumber size="large" style={{ width: '100%' }} min={0} />
               </Form.Item>
             </Col>
@@ -376,7 +428,6 @@ const AdminHostelEdit = () => {
                   size="large" 
                   style={{ width: '100%' }} 
                   formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={value => value.replace(/₹\s?|(,*)/g, '')}
                 />
               </Form.Item>
             </Col>

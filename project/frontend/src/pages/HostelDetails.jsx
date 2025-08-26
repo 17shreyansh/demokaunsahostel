@@ -400,7 +400,17 @@ const HostelDetails = () => {
                   <div className="text-2xl font-bold mb-1">
                     ₹{hostel.price?.toLocaleString()}
                   </div>
-                  <div className="text-gray-800 text-base font-medium">per month</div>
+                  <div className="text-gray-800 text-base font-medium">per {hostel.priceType || 'month'}</div>
+                  {hostel.sessionPrice && hostel.priceType === 'month' && (
+                    <div className="text-gray-700 text-sm mt-1">
+                      ₹{hostel.sessionPrice?.toLocaleString()}/session
+                    </div>
+                  )}
+                  {hostel.sessionPrice && hostel.priceType === 'session' && (
+                    <div className="text-gray-700 text-sm mt-1">
+                      ₹{hostel.sessionPrice?.toLocaleString()}/month
+                    </div>
+                  )}
                   <div className="flex justify-center mt-2">
                     <div className="flex text-gray-900">
                       {[...Array(5)].map((_, i) => (
@@ -420,6 +430,12 @@ const HostelDetails = () => {
                       <span className="font-bold text-base text-gray-900">{item.value}</span>
                     </div>
                   ))}
+                  {(hostel.availableBeds || hostel.availableRooms) && (
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-gray-600 font-medium text-sm">Available Beds</span>
+                      <span className="font-bold text-base text-gray-900">{hostel.availableBeds || hostel.availableRooms}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center py-2 pt-3 border-t border-gray-200">
                     <span className="text-gray-600 font-medium text-sm">Status</span>
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -742,7 +758,17 @@ const HostelDetails = () => {
                 <div className="text-4xl font-bold mb-2">
                   ₹{hostel.price?.toLocaleString()}
                 </div>
-                <div className="text-gray-800 text-lg font-medium">per month</div>
+                <div className="text-gray-800 text-lg font-medium">per {hostel.priceType || 'month'}</div>
+                {hostel.sessionPrice && hostel.priceType === 'month' && (
+                  <div className="text-gray-700 text-sm mt-1">
+                    ₹{hostel.sessionPrice?.toLocaleString()}/session
+                  </div>
+                )}
+                {hostel.sessionPrice && hostel.priceType === 'session' && (
+                  <div className="text-gray-700 text-sm mt-1">
+                    ₹{hostel.sessionPrice?.toLocaleString()}/month
+                  </div>
+                )}
                 <div className="flex justify-center mt-3">
                   <div className="flex text-gray-900">
                     {[...Array(5)].map((_, i) => (
@@ -762,6 +788,12 @@ const HostelDetails = () => {
                     <span className="font-bold text-lg text-gray-900">{item.value}</span>
                   </div>
                 ))}
+                {(hostel.availableBeds || hostel.availableRooms) && (
+                  <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span className="text-gray-600 font-medium">Available Beds</span>
+                    <span className="font-bold text-lg text-gray-900">{hostel.availableBeds || hostel.availableRooms}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-3 pt-4 border-t border-gray-200">
                   <span className="text-gray-600 font-medium">Status</span>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${

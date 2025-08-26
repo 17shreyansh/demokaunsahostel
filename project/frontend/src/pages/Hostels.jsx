@@ -446,7 +446,7 @@ const Hostels = () => {
 
               {/* Price Range Slider */}
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range (₹/month)</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range (₹)</label>
                 <div className="bg-gradient-to-br from-white to-gray-50 p-6 border-2 border-gray-300 rounded-xl shadow-lg">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>

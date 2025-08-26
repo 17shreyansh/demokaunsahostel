@@ -21,6 +21,14 @@ const hostelSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  priceType: {
+    type: String,
+    enum: ['month', 'session'],
+    default: 'month'
+  },
+  sessionPrice: {
+    type: Number
+  },
   images: [{
     type: String
   }],
@@ -84,7 +92,7 @@ const hostelSchema = new mongoose.Schema({
   securityDeposit: {
     type: Number
   },
-  availableRooms: {
+  availableBeds: {
     type: Number,
     default: 0
   },

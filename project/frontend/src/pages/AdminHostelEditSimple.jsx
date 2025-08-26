@@ -13,6 +13,8 @@ const AdminHostelEdit = () => {
     location: '',
     description: '',
     price: '',
+    priceType: 'month',
+    sessionPrice: '',
     availability: 'Available',
     type: 'PG',
     gender: 'Co-ed',
@@ -116,14 +118,35 @@ const AdminHostelEdit = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
             <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Price (per month) *</label>
+              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Pricing Type</label>
+              <select
+                value={hostel.priceType}
+                onChange={(e) => handleChange('priceType', e.target.value)}
+                className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              >
+                <option value="month">Per Month</option>
+                <option value="session">Per Session</option>
+              </select>
+            </div>
+            <div>
+              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Price (per {hostel.priceType}) *</label>
               <input
                 type="number"
                 required
                 value={hostel.price}
                 onChange={(e) => handleChange('price', e.target.value)}
+                className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              />
+            </div>
+            <div>
+              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1`}>{hostel.priceType === 'month' ? 'Session Price' : 'Monthly Price'}</label>
+              <input
+                type="number"
+                value={hostel.sessionPrice}
+                onChange={(e) => handleChange('sessionPrice', e.target.value)}
+                placeholder={hostel.priceType === 'month' ? 'Price per session' : 'Price per month'}
                 className={`w-full px-3 py-2 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
             </div>
