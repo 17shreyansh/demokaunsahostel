@@ -446,7 +446,7 @@ const Hostels = () => {
 
               {/* Price Range Slider */}
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range (₹)</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range (Rs.)</label>
                 <div className="bg-gradient-to-br from-white to-gray-50 p-6 border-2 border-gray-300 rounded-xl shadow-lg">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
@@ -460,7 +460,7 @@ const Hostels = () => {
                         onChange={(e) => updateFilters({ minPrice: e.target.value })}
                         className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                       />
-                      <div className="text-center mt-2 text-lg font-bold text-yellow-600">₹{filters.minPrice || 0}</div>
+                      <div className="text-center mt-2 text-lg font-bold text-yellow-600">Rs. {filters.minPrice || 0}</div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-2">Maximum Price</label>
@@ -473,7 +473,7 @@ const Hostels = () => {
                         onChange={(e) => updateFilters({ maxPrice: e.target.value })}
                         className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                       />
-                      <div className="text-center mt-2 text-lg font-bold text-yellow-600">₹{filters.maxPrice || 50000}</div>
+                      <div className="text-center mt-2 text-lg font-bold text-yellow-600">Rs. {filters.maxPrice || 50000}</div>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

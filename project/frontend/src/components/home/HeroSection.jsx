@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { hostelAPI } from '../../services/api'
+import PriceDisplay from '../common/PriceDisplay'
 import './HeroSection.css'
 
 const useTypewriter = (texts, speed = 100, deleteSpeed = 50, pauseTime = 2000) => {
@@ -342,13 +343,13 @@ const HeroSection = ({ hostels, loading, content }) => {
                                 {hostel.location}
                               </p>
                               
-                              <div className="flex items-center justify-between">
-                                <div className={`text-yellow-500 font-bold transition-all duration-300 ${
-                                  isCenter ? 'text-2xl' : 'text-xl'
-                                }`}>
-                                  ₹{hostel.price}
-                                  <span className="text-sm text-gray-400 font-normal">/month</span>
-                                </div>
+                              <div className="flex flex-col gap-2">
+                                <PriceDisplay
+                                  price={hostel.price}
+                                  priceType={hostel.priceType || 'month'}
+                                  sessionPrice={hostel.sessionPrice}
+                                  size={isCenter ? 'default' : 'small'}
+                                />
                                 <div className="flex items-center">
                                   <div className="flex text-yellow-400 mr-2">
                                     {[...Array(5)].map((_, i) => (

@@ -312,7 +312,7 @@ const HostelDetails = () => {
                   </svg>
                 ))}
               </div>
-              <span className="text-white text-xs sm:text-sm md:text-lg">({(hostel.rating || 4.8).toFixed(1)}/5 • {hostel.reviews?.length || 0} reviews)</span>
+              <span className="text-white text-xs sm:text-sm md:text-lg">({(hostel.rating || 4.8).toFixed(1)}/5)</span>
             </div>
           </div>
         </div>
@@ -398,19 +398,9 @@ const HostelDetails = () => {
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-gradient-to-r from-yellow-custom to-orange-400 p-4 text-gray-900 text-center">
                   <div className="text-2xl font-bold mb-1">
-                    ₹{hostel.price?.toLocaleString()}
+                    Rs. {Number(hostel.price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    <span className="text-base font-normal ml-1">/{hostel.priceType || 'month'}</span>
                   </div>
-                  <div className="text-gray-800 text-base font-medium">per {hostel.priceType || 'month'}</div>
-                  {hostel.sessionPrice && hostel.priceType === 'month' && (
-                    <div className="text-gray-700 text-sm mt-1">
-                      ₹{hostel.sessionPrice?.toLocaleString()}/session
-                    </div>
-                  )}
-                  {hostel.sessionPrice && hostel.priceType === 'session' && (
-                    <div className="text-gray-700 text-sm mt-1">
-                      ₹{hostel.sessionPrice?.toLocaleString()}/month
-                    </div>
-                  )}
                   <div className="flex justify-center mt-2">
                     <div className="flex text-gray-900">
                       {[...Array(5)].map((_, i) => (
@@ -756,19 +746,9 @@ const HostelDetails = () => {
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
               <div className="bg-gradient-to-r from-yellow-custom to-orange-400 p-6 text-gray-900 text-center">
                 <div className="text-4xl font-bold mb-2">
-                  ₹{hostel.price?.toLocaleString()}
+                  Rs. {Number(hostel.price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  <span className="text-lg font-normal ml-1">/{hostel.priceType || 'month'}</span>
                 </div>
-                <div className="text-gray-800 text-lg font-medium">per {hostel.priceType || 'month'}</div>
-                {hostel.sessionPrice && hostel.priceType === 'month' && (
-                  <div className="text-gray-700 text-sm mt-1">
-                    ₹{hostel.sessionPrice?.toLocaleString()}/session
-                  </div>
-                )}
-                {hostel.sessionPrice && hostel.priceType === 'session' && (
-                  <div className="text-gray-700 text-sm mt-1">
-                    ₹{hostel.sessionPrice?.toLocaleString()}/month
-                  </div>
-                )}
                 <div className="flex justify-center mt-3">
                   <div className="flex text-gray-900">
                     {[...Array(5)].map((_, i) => (

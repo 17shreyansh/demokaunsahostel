@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import PriceDisplay from './PriceDisplay'
 
 const HostelCard = ({ hostel, variant = 'default' }) => {
   const isCompact = variant === 'compact'
@@ -81,31 +82,21 @@ const HostelCard = ({ hostel, variant = 'default' }) => {
         )}
 
         {/* Price and Action */}
-        <div className="flex items-center justify-between">
-          <div>
-            <div className={`text-yellow-500 font-bold ${
-              isCompact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'
-            }`}>
-              ₹{hostel.price}
-              <span className="text-sm text-gray-400 font-normal">/{hostel.priceType || 'month'}</span>
-            </div>
-            {hostel.sessionPrice && hostel.priceType === 'month' && (
-              <div className="text-sm text-gray-500">
-                ₹{hostel.sessionPrice}/session
-              </div>
-            )}
-            {hostel.sessionPrice && hostel.priceType === 'session' && (
-              <div className="text-sm text-gray-500">
-                ₹{hostel.sessionPrice}/month
-              </div>
-            )}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex-1">
+            <PriceDisplay
+              price={hostel.price}
+              priceType={hostel.priceType || 'month'}
+              sessionPrice={hostel.sessionPrice}
+              size={isCompact ? 'small' : 'default'}
+            />
           </div>
           
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0">
             <Link 
               to={`/hostel/${hostel.slug || hostel._id}`}
-              className={`bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl ${
-                isCompact ? 'px-4 py-2 text-sm' : 'px-6 py-3 text-base'
+              className={`bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl whitespace-nowrap ${
+                isCompact ? 'px-3 py-2 text-sm' : 'px-4 py-2 text-sm'
               }`}
             >
               View Details

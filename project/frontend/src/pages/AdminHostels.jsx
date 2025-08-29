@@ -190,17 +190,7 @@ const AdminHostels = () => {
               </div>
               <p className={`text-xs sm:text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2 truncate`}>{hostel.location}</p>
               <div className={`text-base sm:text-lg font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-3 sm:mb-4`}>
-                <div>₹{hostel.price?.toLocaleString()}/{hostel.priceType || 'month'}</div>
-                {hostel.sessionPrice && hostel.priceType === 'month' && (
-                  <div className={`text-xs sm:text-sm font-normal ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    ₹{hostel.sessionPrice?.toLocaleString()}/session
-                  </div>
-                )}
-                {hostel.sessionPrice && hostel.priceType === 'session' && (
-                  <div className={`text-xs sm:text-sm font-normal ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    ₹{hostel.sessionPrice?.toLocaleString()}/month
-                  </div>
-                )}
+                Rs. {Number(hostel.price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/{hostel.priceType || 'month'}
               </div>
               
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
