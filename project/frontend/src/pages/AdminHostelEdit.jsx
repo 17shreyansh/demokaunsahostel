@@ -689,7 +689,7 @@ const AdminHostelEdit = () => {
               )}
             </Upload>
             <div className="text-sm text-gray-500 mt-2">
-              Upload up to 10 images. Supported formats: JPG, PNG, WebP
+              Upload any size images. Supported formats: JPG, PNG, WebP, GIF, BMP
             </div>
           </Form.Item>
         </Card>

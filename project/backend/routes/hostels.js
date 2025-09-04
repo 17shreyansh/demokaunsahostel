@@ -31,6 +31,11 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ 
   storage,
+  limits: {
+    fileSize: Infinity, // Remove file size limit
+    fieldSize: Infinity, // Remove field size limit
+    files: Infinity // Remove file count limit
+  },
   fileFilter: (req, file, cb) => {
     // Accept all fields
     cb(null, true);

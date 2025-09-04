@@ -5,7 +5,15 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 5000
+  timeout: 0 // No timeout limit
+})
+
+// Separate config for file uploads with no timeout
+const uploadAPI = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 0, // No timeout for uploads
+  maxContentLength: Infinity,
+  maxBodyLength: Infinity
 })
 
 // Check if backend is available

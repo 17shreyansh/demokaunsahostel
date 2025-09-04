@@ -263,7 +263,7 @@ const AdminDashboard = () => {
         <div className="flex justify-between items-start">
           <div>
             <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>
-              Hostel Provider Dashboard
+              Kaunsa Hostel Dashboard
             </h1>
             <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               Manage your properties, bookings, and grow your hostel business.
