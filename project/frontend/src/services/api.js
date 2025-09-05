@@ -1,11 +1,36 @@
 import axios from 'axios'
-import { fallbackHostels, fallbackFilterOptions, fallbackSearchSuggestions } from '../data/fallbackData'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
+// Cache for API responses
+const cache = new Map()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 0 // No timeout limit
+  timeout: 10000
+})
+
+// Request interceptor for caching
+api.interceptors.request.use((config) => {
+  const cacheKey = `${config.method}:${config.url}:${JSON.stringify(config.params)}`
+  const cached = cache.get(cacheKey)
+  
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    config.adapter = () => Promise.resolve(cached.response)
+  }
+  
+  return config
+})
+
+// Response interceptor for caching
+api.interceptors.response.use((response) => {
+  const cacheKey = `${response.config.method}:${response.config.url}:${JSON.stringify(response.config.params)}`
+  cache.set(cacheKey, {
+    response,
+    timestamp: Date.now()
+  })
+  return response
 })
 
 // Separate config for file uploads with no timeout
@@ -16,166 +41,48 @@ const uploadAPI = axios.create({
   maxBodyLength: Infinity
 })
 
-// Check if backend is available
-let isBackendAvailable = true
-
-const checkBackendStatus = async () => {
-  try {
-    await api.get('/health')
-    isBackendAvailable = true
-  } catch (error) {
-    isBackendAvailable = false
-  }
-}
-
-// Check backend status on app load
-checkBackendStatus()
-
+// Auth interceptor
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('adminToken')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
-})
+}, (error) => Promise.reject(error))
 
 export const hostelAPI = {
   getAll: async (params = {}) => {
-    try {
-      const queryString = new URLSearchParams(params).toString()
-      return await api.get(`/hostels${queryString ? `?${queryString}` : ''}`)
-    } catch (error) {
-      return {
-        data: {
-          hostels: fallbackHostels.slice(0, 6),
-          pagination: { current: 1, pages: 1, total: fallbackHostels.length }
-        }
-      }
-    }
+    const queryString = new URLSearchParams(params).toString()
+    return await api.get(`/hostels${queryString ? `?${queryString}` : ''}`)
   },
   search: async (params) => {
-    try {
-      const queryString = new URLSearchParams(params).toString()
-      return await api.get(`/hostels?${queryString}`)
-    } catch (error) {
-      let filteredHostels = [...fallbackHostels]
-      
-      // Apply basic filtering
-      if (params.search) {
-        filteredHostels = filteredHostels.filter(h => 
-          h.name.toLowerCase().includes(params.search.toLowerCase()) ||
-          h.location.toLowerCase().includes(params.search.toLowerCase())
-        )
-      }
-      if (params.location) {
-        filteredHostels = filteredHostels.filter(h => h.location.includes(params.location))
-      }
-      if (params.gender) {
-        filteredHostels = filteredHostels.filter(h => h.gender === params.gender || h.gender === 'Co-ed')
-      }
-      if (params.type) {
-        filteredHostels = filteredHostels.filter(h => h.type === params.type)
-      }
-      if (params.availability) {
-        filteredHostels = filteredHostels.filter(h => h.availability === params.availability)
-      }
-      if (params.minPrice) {
-        const minPrice = parseInt(params.minPrice, 10)
-        if (!isNaN(minPrice)) {
-          filteredHostels = filteredHostels.filter(h => h.price >= minPrice)
-        }
-      }
-      if (params.maxPrice) {
-        const maxPrice = parseInt(params.maxPrice, 10)
-        if (!isNaN(maxPrice)) {
-          filteredHostels = filteredHostels.filter(h => h.price <= maxPrice)
-        }
-      }
-      if (params.nearbyPlace) {
-        filteredHostels = filteredHostels.filter(h => {
-          if (!h.nearbyPlaces) return false
-          return Object.values(h.nearbyPlaces).some(places => 
-            Array.isArray(places) && places.some(place => 
-              place.name && place.name.toLowerCase().includes(params.nearbyPlace.toLowerCase())
-            )
-          )
-        })
-      }
-      
-      return {
-        data: {
-          hostels: filteredHostels,
-          pagination: { current: 1, pages: 1, total: filteredHostels.length }
-        }
-      }
-    }
+    const queryString = new URLSearchParams(params).toString()
+    return await api.get(`/hostels?${queryString}`)
   },
   getSuggestions: async (query) => {
-    try {
-      return await api.get(`/hostels/search/suggestions?q=${query}`)
-    } catch (error) {
-      const filtered = fallbackSearchSuggestions.filter(s => 
-        s.name.toLowerCase().includes(query.toLowerCase())
-      )
-      return { data: filtered }
-    }
+    return await api.get(`/hostels/search/suggestions?q=${query}`)
   },
   getFilterOptions: async () => {
-    try {
-      return await api.get('/hostels/filters/options')
-    } catch (error) {
-      return { data: fallbackFilterOptions }
-    }
+    return await api.get('/hostels/filters/options')
   },
   getById: async (id) => {
-    try {
-      return await api.get(`/hostels/${id}`)
-    } catch (error) {
-      const hostel = fallbackHostels.find(h => h._id === id)
-      if (hostel) {
-        return { data: hostel }
-      }
-      throw new Error('Hostel not found')
-    }
+    return await api.get(`/hostels/${id}`)
   },
   getBySlug: async (slug) => {
-    try {
-      return await api.get(`/hostels/slug/${slug}`)
-    } catch (error) {
-      const hostel = fallbackHostels.find(h => h.slug === slug)
-      if (hostel) {
-        return { data: hostel }
-      }
-      throw new Error('Hostel not found')
-    }
+    return await api.get(`/hostels/slug/${slug}`)
   },
   create: (data) => api.post('/hostels', data),
   update: (id, data) => api.put(`/hostels/${id}`, data),
   updateFeatured: (id, featured) => api.patch(`/hostels/${id}/featured`, { featured }),
   getFeatured: async () => {
-    try {
-      return await api.get('/hostels/featured/homepage')
-    } catch (error) {
-      return {
-        data: fallbackHostels.filter(h => h.featured).slice(0, 6)
-      }
-    }
+    return await api.get('/hostels/featured/homepage')
   },
   delete: (id) => api.delete(`/hostels/${id}`)
 }
 
 export const enquiryAPI = {
   create: async (data) => {
-    try {
-      return await api.post('/enquiries', data)
-    } catch (error) {
-      console.warn('Backend unavailable, enquiry stored locally')
-      // Store in localStorage for when backend comes back online
-      const enquiries = JSON.parse(localStorage.getItem('pendingEnquiries') || '[]')
-      enquiries.push({ ...data, timestamp: new Date().toISOString() })
-      localStorage.setItem('pendingEnquiries', JSON.stringify(enquiries))
-      return { data: { message: 'Enquiry saved. Will be sent when connection is restored.' } }
-    }
+    return await api.post('/enquiries', data)
   },
   getAll: () => api.get('/enquiries'),
   updateStatus: (id, status) => api.put(`/enquiries/${id}/status`, { status })
@@ -188,27 +95,10 @@ export const authAPI = {
 
 export const leadAPI = {
   createEnquiry: async (data) => {
-    try {
-      return await api.post('/leads/enquiry', data)
-    } catch (error) {
-      if (error.response?.status === 400) {
-        throw new Error(error.response.data?.message || 'Invalid data provided')
-      }
-      const enquiries = JSON.parse(localStorage.getItem('pendingEnquiries') || '[]')
-      enquiries.push({ ...data, type: 'enquiry', timestamp: new Date().toISOString() })
-      localStorage.setItem('pendingEnquiries', JSON.stringify(enquiries))
-      return { data: { message: 'Enquiry saved. Will be sent when connection is restored.' } }
-    }
+    return await api.post('/leads/enquiry', data)
   },
   createContact: async (data) => {
-    try {
-      return await api.post('/leads/contact', data)
-    } catch (error) {
-      const contacts = JSON.parse(localStorage.getItem('pendingContacts') || '[]')
-      contacts.push({ ...data, type: 'contact', timestamp: new Date().toISOString() })
-      localStorage.setItem('pendingContacts', JSON.stringify(contacts))
-      return { data: { message: 'Message saved. Will be sent when connection is restored.' } }
-    }
+    return await api.post('/leads/contact', data)
   },
   getAll: (params = {}) => {
     const queryString = new URLSearchParams(params).toString()

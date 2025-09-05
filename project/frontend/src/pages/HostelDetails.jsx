@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { hostelAPI } from '../services/api'
 import EnquiryForm from '../components/EnquiryForm'
@@ -6,10 +6,16 @@ import HostelMap from '../components/HostelMap'
 import NearbyPlacesDisplay from '../components/NearbyPlacesDisplay'
 import BookingComponent from '../components/BookingComponent'
 
+const MemoizedEnquiryForm = memo(EnquiryForm)
+const MemoizedHostelMap = memo(HostelMap)
+const MemoizedNearbyPlacesDisplay = memo(NearbyPlacesDisplay)
+const MemoizedBookingComponent = memo(BookingComponent)
+
 const HostelDetails = () => {
   const { slug } = useParams()
   const [hostel, setHostel] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [activeTab, setActiveTab] = useState('overview')
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -74,11 +80,15 @@ const HostelDetails = () => {
   }, [isFullscreen])
 
   const fetchHostelDetails = async () => {
+    setLoading(true)
+    setError(null)
     try {
       const response = await hostelAPI.getBySlug(slug)
       setHostel(response.data)
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error fetching hostel details:', error)
+      setError('Failed to load hostel details. Please check your connection and try again.')
+      setHostel(null)
     } finally {
       setLoading(false)
     }
@@ -135,12 +145,37 @@ const HostelDetails = () => {
     </div>
   )
 
-  if (!hostel) return (
+  if (error) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center max-w-md mx-auto px-4">
         <div className="bg-red-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
           <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Connection Error</h2>
+        <p className="text-gray-600 mb-6">{error}</p>
+        <div className="space-y-3">
+          <button
+            onClick={fetchHostelDetails}
+            className="bg-yellow-custom hover:bg-yellow-500 text-gray-900 px-6 py-3 rounded-lg font-semibold transition-colors w-full"
+          >
+            Try Again
+          </button>
+          <Link to="/hostels" className="block bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold transition-colors">
+            ← Back to Hostels
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (!hostel && !loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center max-w-md mx-auto px-4">
+        <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+          <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Hostel Not Found</h2>

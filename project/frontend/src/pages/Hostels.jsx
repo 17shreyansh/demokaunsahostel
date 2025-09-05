@@ -1,8 +1,13 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { hostelAPI } from '../services/api'
 import HostelCard from '../components/common/HostelCard'
 import Select from 'react-select'
+import { debounce } from '../utils/performance'
+
+// Memoized components
+const MemoizedHostelCard = memo(HostelCard)
+const MemoizedSelect = memo(Select)
 
 // Custom slider styles
 const sliderStyles = `
@@ -31,6 +36,7 @@ const Hostels = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [hostels, setHostels] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [pagination, setPagination] = useState({ current: 1, pages: 1, total: 0 })
   const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [] })
   const [showFilters, setShowFilters] = useState(false)
@@ -49,13 +55,13 @@ const Hostels = () => {
     sortBy: searchParams.get('sortBy') || 'newest'
   })
 
-  // Debounced search effect
+  // Optimized debounced search
   useEffect(() => {
     if (searchTimeout) clearTimeout(searchTimeout)
     
     const timeout = setTimeout(() => {
       fetchHostels()
-    }, 500) // 500ms debounce
+    }, 300) // Reduced to 300ms
     
     setSearchTimeout(timeout)
     
@@ -70,14 +76,16 @@ const Hostels = () => {
   const fetchFilterOptions = useCallback(async () => {
     try {
       const response = await hostelAPI.getFilterOptions()
-      setFilterOptions(response.data)
+      setFilterOptions(response.data || { locations: [], roomTypes: [], amenities: [], nearbyPlaces: [] })
     } catch (error) {
       console.error('Error fetching filter options:', error)
+      setFilterOptions({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [] })
     }
   }, [])
 
   const fetchHostels = useCallback(async (page = 1) => {
     setLoading(true)
+    setError(null)
     try {
       const params = {
         ...Object.fromEntries(searchParams),
@@ -89,25 +97,35 @@ const Hostels = () => {
       )
       
       const response = await hostelAPI.search(cleanParams)
-      setHostels(response.data.hostels)
-      setPagination(response.data.pagination)
+      setHostels(response.data.hostels || [])
+      setPagination(response.data.pagination || { current: 1, pages: 1, total: 0 })
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error fetching hostels:', error)
+      setError('Failed to load hostels. Please check your connection and try again.')
+      setHostels([])
+      setPagination({ current: 1, pages: 1, total: 0 })
     } finally {
       setLoading(false)
     }
   }, [searchParams])
 
+  const debouncedUpdateFilters = useMemo(
+    () => debounce((newFilters) => {
+      const updatedFilters = { ...filters, ...newFilters }
+      setFilters(updatedFilters)
+      
+      const params = new URLSearchParams()
+      Object.entries(updatedFilters).forEach(([key, value]) => {
+        if (value && value !== '') params.set(key, value)
+      })
+      setSearchParams(params)
+    }, 300),
+    [filters, setSearchParams]
+  )
+  
   const updateFilters = useCallback((newFilters) => {
-    const updatedFilters = { ...filters, ...newFilters }
-    setFilters(updatedFilters)
-    
-    const params = new URLSearchParams()
-    Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value && value !== '') params.set(key, value)
-    })
-    setSearchParams(params)
-  }, [filters, setSearchParams])
+    debouncedUpdateFilters(newFilters)
+  }, [debouncedUpdateFilters])
 
   const clearFilters = () => {
     setFilters({
@@ -522,6 +540,18 @@ const Hostels = () => {
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-yellow-custom border-t-transparent"></div>
             <p className="mt-4 text-gray-600">Searching hostels...</p>
           </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h4 className="text-2xl font-semibold mb-2 text-gray-900">Connection Error</h4>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={() => fetchHostels()}
+              className="bg-yellow-custom text-gray-900 px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+            >
+              Try Again
+            </button>
+          </div>
         ) : (
           <>
             <div className="flex justify-between items-center mb-6">
@@ -536,7 +566,7 @@ const Hostels = () => {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {hostels.map((hostel) => (
-                <HostelCard 
+                <MemoizedHostelCard 
                   key={hostel._id} 
                   hostel={{
                   ...hostel,
@@ -570,7 +600,7 @@ const Hostels = () => {
           </>
         )}
 
-        {hostels.length === 0 && !loading && (
+        {hostels.length === 0 && !loading && !error && (
           <div className="text-center py-20">
             <div className="text-6xl mb-4">🔍</div>
             <h4 className="text-2xl font-semibold mb-2">No hostels found</h4>

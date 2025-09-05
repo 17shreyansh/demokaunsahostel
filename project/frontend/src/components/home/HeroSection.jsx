@@ -299,7 +299,7 @@ const HeroSection = ({ hostels, loading, content }) => {
                     
                     return (
                       <motion.div 
-                        key={hostel._id}
+                        key={`${hostel._id}-${offset}-${currentHostelIndex}`}
                         animate={{
                           scale: isCenter ? 1.1 : 0.95,
                           y: isCenter ? 0 : offset === -1 ? -8 : 8,
@@ -310,10 +310,8 @@ const HeroSection = ({ hostels, loading, content }) => {
                         transition={{ 
                           duration: 0.8, 
                           ease: [0.16, 1, 0.3, 1],
-                          delay: offset * 0.1,
-                          layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
+                          delay: offset * 0.1
                         }}
-                        layout
                         whileHover={{ scale: isCenter ? 1.12 : 0.97 }}
                       >
                         <div className={`bg-white/95 backdrop-blur-2xl rounded-2xl shadow-xl border border-white/30 mx-4 transition-all duration-300 ease-in-out hover:bg-white/98 group ${
@@ -393,9 +391,9 @@ const HeroSection = ({ hostels, loading, content }) => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              {hostels.map((_, index) => (
+              {hostels.map((hostel, index) => (
                 <motion.button
-                  key={index}
+                  key={`indicator-${hostel._id}-${index}`}
                   onClick={() => setCurrentHostelIndex(index)}
                   className={`h-2 rounded-full transition-all duration-300 ${
                     index === currentHostelIndex 

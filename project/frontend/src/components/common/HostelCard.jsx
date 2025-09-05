@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { memo } from 'react'
 import PriceDisplay from './PriceDisplay'
+import { optimizeImageUrl } from '../../utils/imageOptimization'
 
-const HostelCard = ({ hostel, variant = 'default' }) => {
+const HostelCard = memo(({ hostel, variant = 'default' }) => {
   const isCompact = variant === 'compact'
   
   return (
@@ -16,11 +18,13 @@ const HostelCard = ({ hostel, variant = 'default' }) => {
       {/* Image */}
       <div className={`relative overflow-hidden ${isCompact ? 'h-48' : 'h-56'}`}>
         <img 
-          src={hostel.image || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=300&fit=crop'} 
+          src={optimizeImageUrl(hostel.image, 400, 250) || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop'} 
           alt={hostel.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          loading="lazy"
+          decoding="async"
           onError={(e) => {
-            e.target.src = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=300&fit=crop'
+            e.target.src = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop'
           }}
         />
         <div className="absolute top-4 left-4">
@@ -106,6 +110,8 @@ const HostelCard = ({ hostel, variant = 'default' }) => {
       </div>
     </motion.div>
   )
-}
+})
+
+HostelCard.displayName = 'HostelCard'
 
 export default HostelCard

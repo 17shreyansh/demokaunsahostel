@@ -2,6 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import 'antd/dist/reset.css'
 import App from './App.jsx'
-import './index.css'
+import './tailwind-standalone.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />)

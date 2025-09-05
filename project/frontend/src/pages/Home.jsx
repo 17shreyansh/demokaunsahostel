@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { hostelAPI, pageAPI } from '../services/api'
 import { stateManager } from '../utils/stateManager'
@@ -8,6 +8,13 @@ import FeaturedHostels from '../components/home/FeaturedHostels'
 import ServicesSection from '../components/home/ServicesSection'
 import TestimonialsSection from '../components/home/TestimonialsSection'
 import { FaGraduationCap, FaBuilding, FaBus, FaShoppingCart } from 'react-icons/fa'
+
+// Memoized components
+const MemoizedHeroSection = memo(HeroSection)
+const MemoizedSearchSection = memo(SearchSection)
+const MemoizedFeaturedHostels = memo(FeaturedHostels)
+const MemoizedServicesSection = memo(ServicesSection)
+const MemoizedTestimonialsSection = memo(TestimonialsSection)
 
 const Home = () => {
   const [hostels, setHostels] = useState([])
@@ -21,26 +28,26 @@ const Home = () => {
   }, [])
 
   const fetchData = async () => {
+    setLoading(true)
     try {
-      const [hostelsResponse, contentResponse, nearbyResponse] = await Promise.all([
-        hostelAPI.getFeatured(),
+      // Prioritize critical data first
+      const hostelsResponse = await hostelAPI.getFeatured()
+      setHostels(hostelsResponse.data || [])
+      setLoading(false)
+      
+      // Load non-critical data after
+      const [contentResponse, nearbyResponse] = await Promise.all([
         pageAPI.getPageContent('home'),
         fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces`)
       ])
-      setHostels(hostelsResponse.data || [])
       setPageContent(contentResponse.data.content || {})
       const nearbyData = await nearbyResponse.json()
       setNearbyPlaces(nearbyData || [])
     } catch (error) {
-      console.error('Error:', error)
-      // Fallback to regular hostels if featured endpoint fails
-      try {
-        const fallbackResponse = await hostelAPI.getAll()
-        setHostels(fallbackResponse.data.hostels?.slice(0, 6) || [])
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError)
-      }
-    } finally {
+      console.error('Error fetching data:', error)
+      setHostels([])
+      setPageContent({})
+      setNearbyPlaces([])
       setLoading(false)
     }
   }
@@ -85,69 +92,11 @@ const Home = () => {
         ))}
       </div>
       
-      <HeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
-        <SearchSection content={pageContent.search} />
-        <FeaturedHostels hostels={hostels} loading={loading} />
-        
-        {/* Nearby Places Section */}
-        <section className="py-20 bg-white relative">
-          <div className="container mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Explore Nearby Places</h2>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                Discover important locations around our hostels - from educational institutions to shopping centers
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {['educational', 'office', 'transportation', 'shopping'].map(category => {
-                const categoryPlaces = nearbyPlaces.filter(place => place.category === category)
-                const categoryLabels = {
-                  educational: { name: 'Educational', icon: FaGraduationCap, color: 'blue' },
-                  office: { name: 'IT Parks & Offices', icon: FaBuilding, color: 'purple' },
-                  transportation: { name: 'Transportation', icon: FaBus, color: 'green' },
-                  shopping: { name: 'Shopping', icon: FaShoppingCart, color: 'orange' }
-                }
-                const categoryInfo = categoryLabels[category]
-                
-                return (
-                  <motion.div
-                    key={category}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className={`bg-gradient-to-br from-${categoryInfo.color}-50 to-${categoryInfo.color}-100 p-6 rounded-2xl border border-${categoryInfo.color}-200 hover:shadow-lg transition-all duration-300`}
-                  >
-                    <div className="text-center mb-4">
-                      <div className="mb-2">
-                        <categoryInfo.icon className="w-8 h-8 mx-auto text-gray-700" />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{categoryInfo.name}</h3>
-                      <p className="text-gray-600 text-sm">{categoryPlaces.length} locations</p>
-                    </div>
-                    
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                      {categoryPlaces.slice(0, 3).map((place, index) => (
-                        <div key={place._id} className="flex items-center space-x-2 text-sm">
-                          <div className={`w-2 h-2 bg-${categoryInfo.color}-500 rounded-full`}></div>
-                          <span className="text-gray-700 truncate">{place.name}</span>
-                        </div>
-                      ))}
-                      {categoryPlaces.length > 3 && (
-                        <div className="text-xs text-gray-500 text-center pt-2">
-                          +{categoryPlaces.length - 3} more
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-        
-        <ServicesSection content={pageContent.services} />
-        <TestimonialsSection content={pageContent.testimonials} />
+      <MemoizedHeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
+        <MemoizedSearchSection content={pageContent.search} />
+        <MemoizedFeaturedHostels hostels={hostels} loading={loading} />
+        <MemoizedServicesSection content={pageContent.services} />
+        <MemoizedTestimonialsSection content={pageContent.testimonials} />
     </main>
   )
 }
