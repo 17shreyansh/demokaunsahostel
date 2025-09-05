@@ -9,9 +9,13 @@ const AdminNearbyPlaces = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [editingPlace, setEditingPlace] = useState(null)
   const [mapCoordinates, setMapCoordinates] = useState({ lat: 28.6139, lng: 77.2090 })
+  const [categories, setCategories] = useState({})
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [coordinatesInput, setCoordinatesInput] = useState('')
 
   useEffect(() => {
     fetchPlaces()
+    fetchCategories()
   }, [])
 
   const fetchPlaces = async () => {
@@ -27,15 +31,29 @@ const AdminNearbyPlaces = () => {
     }
   }
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces/categories`)
+      const data = await response.json()
+      setCategories(data)
+    } catch (error) {
+      console.error('Failed to fetch categories:', error)
+    }
+  }
+
   const handleAdd = () => {
     setEditingPlace(null)
     setMapCoordinates({ lat: 28.6139, lng: 77.2090 })
+    setSelectedCategory('')
+    setCoordinatesInput('')
     setModalVisible(true)
   }
 
   const handleEdit = (place) => {
     setEditingPlace(place)
     setMapCoordinates(place.mapCoordinates)
+    setSelectedCategory(place.category)
+    setCoordinatesInput(`${place.mapCoordinates.lat}, ${place.mapCoordinates.lng}`)
     setModalVisible(true)
   }
 
@@ -47,6 +65,7 @@ const AdminNearbyPlaces = () => {
         name: formData.get('name'),
         category: formData.get('category'),
         type: formData.get('type'),
+        coordinates: coordinatesInput,
         mapCoordinates
       }
 
@@ -99,8 +118,32 @@ const AdminNearbyPlaces = () => {
     }
   }
 
-  const officeTypes = ['IT Park', 'Office Complex', 'Tech Hub', 'Business Center', 'Corporate Office']
-  const educationalTypes = ['University', 'College', 'Institute', 'School', 'Training Center']
+  const handleCoordinatesChange = (value) => {
+    setCoordinatesInput(value)
+    // Parse coordinates and update map
+    const coords = value.split(',')
+    if (coords.length === 2) {
+      const lat = parseFloat(coords[0].trim())
+      const lng = parseFloat(coords[1].trim())
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setMapCoordinates({ lat, lng })
+      }
+    }
+  }
+
+  const getCategoryLabel = (category) => {
+    const labels = {
+      office: 'IT Parks & Offices',
+      educational: 'Educational',
+      transportation: 'Transportation',
+      shopping: 'Shopping',
+      healthcare: 'Healthcare',
+      entertainment: 'Entertainment',
+      restaurant: 'Restaurant & Food',
+      banking: 'Banking & Finance'
+    }
+    return labels[category] || category
+  }
 
   return (
     <div className={`transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
@@ -144,11 +187,9 @@ const AdminNearbyPlaces = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      place.category === 'office' 
-                        ? isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-800'
-                        : isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-800'
+                      isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-800'
                     }`}>
-                      {place.category === 'office' ? 'IT Parks & Offices' : 'Educational'}
+                      {getCategoryLabel(place.category)}
                     </span>
                   </td>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
@@ -224,12 +265,14 @@ const AdminNearbyPlaces = () => {
                 <select
                   name="category"
                   required
-                  defaultValue={editingPlace?.category || ''}
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
                   className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 >
                   <option value="">Select category</option>
-                  <option value="office">IT Parks & Offices</option>
-                  <option value="educational">Educational Institutions</option>
+                  {Object.keys(categories).map(category => (
+                    <option key={category} value={category}>{getCategoryLabel(category)}</option>
+                  ))}
                 </select>
               </div>
               
@@ -244,10 +287,7 @@ const AdminNearbyPlaces = () => {
                   className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 >
                   <option value="">Select type</option>
-                  {officeTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                  {educationalTypes.map(type => (
+                  {selectedCategory && categories[selectedCategory] && categories[selectedCategory].map(type => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
@@ -255,11 +295,22 @@ const AdminNearbyPlaces = () => {
               
               <div>
                 <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-                  Map Location
+                  Coordinates (Latitude, Longitude)
                 </label>
+                <input
+                  type="text"
+                  value={coordinatesInput}
+                  onChange={(e) => handleCoordinatesChange(e.target.value)}
+                  placeholder="28.6139, 77.2090"
+                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4`}
+                />
+                <div className="text-sm text-gray-500 mb-4">Click on the map to set coordinates or enter manually</div>
                 <InteractiveMap
                   coordinates={mapCoordinates}
-                  onCoordinatesChange={setMapCoordinates}
+                  onCoordinatesChange={(coords) => {
+                    setMapCoordinates(coords)
+                    setCoordinatesInput(`${coords.lat}, ${coords.lng}`)
+                  }}
                 />
               </div>
               

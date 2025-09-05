@@ -60,24 +60,39 @@ router.get('/', async (req, res) => {
     let searchQuery = null;
     let nearbyQuery = null;
     
-    // Text search
+    // Text search with sanitization
     if (search && search.trim()) {
+      const sanitizedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       searchQuery = {
         $or: [
-          { name: { $regex: search.trim(), $options: 'i' } },
-          { location: { $regex: search.trim(), $options: 'i' } },
-          { description: { $regex: search.trim(), $options: 'i' } },
-          { 'nearbyPlaces.educational.name': { $regex: search.trim(), $options: 'i' } }
+          { name: { $regex: sanitizedSearch, $options: 'i' } },
+          { location: { $regex: sanitizedSearch, $options: 'i' } },
+          { description: { $regex: sanitizedSearch, $options: 'i' } },
+          { 'nearbyPlaces.educational.name': { $regex: sanitizedSearch, $options: 'i' } },
+          { 'nearbyPlaces.office.name': { $regex: sanitizedSearch, $options: 'i' } },
+          { 'nearbyPlaces.transportation.name': { $regex: sanitizedSearch, $options: 'i' } },
+          { 'nearbyPlaces.shopping.name': { $regex: sanitizedSearch, $options: 'i' } },
+          { 'nearbyPlaces.healthcare.name': { $regex: sanitizedSearch, $options: 'i' } },
+          { 'nearbyPlaces.entertainment.name': { $regex: sanitizedSearch, $options: 'i' } },
+          { 'nearbyPlaces.restaurant.name': { $regex: sanitizedSearch, $options: 'i' } },
+          { 'nearbyPlaces.banking.name': { $regex: sanitizedSearch, $options: 'i' } }
         ]
       };
     }
     
-    // Nearby Place filter
+    // Nearby Place filter - search hostels that have this place in their nearby places
     if (nearbyPlace && nearbyPlace.trim() && nearbyPlace !== '') {
+      const placeName = nearbyPlace.trim();
       nearbyQuery = {
         $or: [
-          { 'nearbyPlaces.educational': { $elemMatch: { name: nearbyPlace.trim() } } },
-          { 'nearbyPlaces.offices': { $elemMatch: { name: nearbyPlace.trim() } } }
+          { 'nearbyPlaces.educational.name': placeName },
+          { 'nearbyPlaces.office.name': placeName },
+          { 'nearbyPlaces.transportation.name': placeName },
+          { 'nearbyPlaces.shopping.name': placeName },
+          { 'nearbyPlaces.healthcare.name': placeName },
+          { 'nearbyPlaces.entertainment.name': placeName },
+          { 'nearbyPlaces.restaurant.name': placeName },
+          { 'nearbyPlaces.banking.name': placeName }
         ]
       };
     }
@@ -91,9 +106,10 @@ router.get('/', async (req, res) => {
       query = { ...query, ...nearbyQuery };
     }
     
-    // Location filter
+    // Location filter with sanitization
     if (location && location.trim() && location !== '') {
-      query.location = { $regex: location.trim(), $options: 'i' };
+      const sanitizedLocation = location.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.location = { $regex: sanitizedLocation, $options: 'i' };
     }
     
     // Price range
@@ -136,42 +152,45 @@ router.get('/', async (req, res) => {
     if (nearbyPlace && nearbyPlace.trim()) {
       // Sort by distance to specific nearby place using aggregation
       useAggregation = true;
+      const placeName = nearbyPlace.trim();
       aggregationPipeline = [
         { $match: query },
         {
           $addFields: {
             distanceToPlace: {
-              $let: {
-                vars: {
-                  allPlaces: {
+              $min: {
+                $map: {
+                  input: {
                     $concatArrays: [
                       { $ifNull: ["$nearbyPlaces.educational", []] },
-                      { $ifNull: ["$nearbyPlaces.offices", []] }
+                      { $ifNull: ["$nearbyPlaces.office", []] },
+                      { $ifNull: ["$nearbyPlaces.transportation", []] },
+                      { $ifNull: ["$nearbyPlaces.shopping", []] },
+                      { $ifNull: ["$nearbyPlaces.healthcare", []] },
+                      { $ifNull: ["$nearbyPlaces.entertainment", []] },
+                      { $ifNull: ["$nearbyPlaces.restaurant", []] },
+                      { $ifNull: ["$nearbyPlaces.banking", []] }
                     ]
-                  }
-                },
-                in: {
-                  $min: {
-                    $map: {
-                      input: "$$allPlaces",
-                      as: "place",
-                      in: {
+                  },
+                  as: "place",
+                  in: {
+                    $cond: {
+                      if: { $eq: ["$$place.name", placeName] },
+                      then: {
                         $cond: {
-                          if: { $eq: ["$$place.name", nearbyPlace.trim()] },
+                          if: { $and: [{ $ne: ["$$place.distance", null] }, { $ne: ["$$place.distance", ""] }] },
                           then: {
-                            $let: {
-                              vars: {
-                                distanceStr: { $ifNull: ["$$place.distance", "999 km"] },
-                                distanceParts: { $split: [{ $ifNull: ["$$place.distance", "999 km"] }, " "] }
-                              },
-                              in: {
-                                $toDouble: { $arrayElemAt: ["$$distanceParts", 0] }
-                              }
+                            $toDouble: {
+                              $arrayElemAt: [
+                                { $split: ["$$place.distance", " "] },
+                                0
+                              ]
                             }
                           },
-                          else: 999999
+                          else: 999
                         }
-                      }
+                      },
+                      else: 9999
                     }
                   }
                 }
@@ -179,8 +198,8 @@ router.get('/', async (req, res) => {
             }
           }
         },
-        { $match: { distanceToPlace: { $lt: 999999 } } },
-        { $sort: { distanceToPlace: 1 } },
+        { $match: { distanceToPlace: { $lt: 9999 } } },
+        { $sort: { distanceToPlace: 1, featured: -1, rating: -1 } },
         { $skip: skip },
         { $limit: parseInt(limit) },
         {
@@ -260,13 +279,15 @@ router.get('/search/suggestions', async (req, res) => {
     const { q } = req.query;
     if (!q || q.length < 2) return res.json([]);
     
+    const sanitizedQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    
     const hostels = await Hostel.find(
-      { name: { $regex: q, $options: 'i' } },
+      { name: { $regex: sanitizedQuery, $options: 'i' } },
       { name: 1, location: 1, slug: 1 }
     ).limit(5);
     
     const locations = await Hostel.distinct('location', 
-      { location: { $regex: q, $options: 'i' } }
+      { location: { $regex: sanitizedQuery, $options: 'i' } }
     );
     
     const suggestions = [
@@ -288,29 +309,17 @@ router.get('/filters/options', async (req, res) => {
     const types = await Hostel.distinct('type');
     const amenities = await Hostel.distinct('amenities');
     
-    // Get all nearby places from hostels
-    const hostels = await Hostel.find({}, 'nearbyPlaces').lean();
-    const nearbyPlaces = new Set();
-    
-    hostels.forEach(hostel => {
-      if (hostel.nearbyPlaces?.educational) {
-        hostel.nearbyPlaces.educational.forEach(place => {
-          if (place.name) nearbyPlaces.add(place.name);
-        });
-      }
-      if (hostel.nearbyPlaces?.offices) {
-        hostel.nearbyPlaces.offices.forEach(place => {
-          if (place.name) nearbyPlaces.add(place.name);
-        });
-      }
-    });
+    // Get nearby places from NearbyPlaces collection
+    const NearbyPlaces = require('../models/NearbyPlaces');
+    const nearbyPlacesData = await NearbyPlaces.find({ active: true }, 'name').lean();
+    const nearbyPlaces = nearbyPlacesData.map(place => place.name).sort();
     
     res.json({
       locations: locations.filter(Boolean).sort(),
       genders: genders.filter(Boolean).sort(),
       types: types.filter(Boolean).sort(),
       amenities: amenities.filter(Boolean).sort(),
-      nearbyPlaces: Array.from(nearbyPlaces).sort()
+      nearbyPlaces
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -382,29 +391,53 @@ router.post('/', auth, upload.any(), async (req, res) => {
       }
     });
     
-    // Handle nearby places
-    if (hostelData.nearbyEducational && typeof hostelData.nearbyEducational === 'string') {
-      try {
-        const educational = JSON.parse(hostelData.nearbyEducational);
-        hostelData.nearbyPlaces = { ...hostelData.nearbyPlaces, educational };
-        delete hostelData.nearbyEducational;
-      } catch (e) {
-        console.log('Error parsing nearbyEducational:', e);
-      }
+    // Handle contact info
+    hostelData.contactInfo = {
+      phone: hostelData.phone || '',
+      address: hostelData.address || '',
+      contactPersonName: hostelData.contactPersonName || '',
+      jobTitle: hostelData.jobTitle || '',
+      profileImage: null
+    };
+    
+    // Handle profile image
+    const profileImageFile = req.files?.find(file => file.fieldname === 'profileImage');
+    if (profileImageFile) {
+      hostelData.contactInfo.profileImage = profileImageFile.filename;
     }
     
-    if (hostelData.nearbyOffices && typeof hostelData.nearbyOffices === 'string') {
+    // Handle nearby places
+    if (hostelData.nearbyPlaces && typeof hostelData.nearbyPlaces === 'string') {
       try {
-        const offices = JSON.parse(hostelData.nearbyOffices);
-        hostelData.nearbyPlaces = { ...hostelData.nearbyPlaces, offices };
-        delete hostelData.nearbyOffices;
+        const parsedNearbyPlaces = JSON.parse(hostelData.nearbyPlaces);
+        const nearbyCategories = ['educational', 'office', 'transportation', 'shopping', 'healthcare', 'entertainment', 'restaurant', 'banking'];
+        const normalizedNearbyPlaces = {};
+        
+        nearbyCategories.forEach(category => {
+          normalizedNearbyPlaces[category] = Array.isArray(parsedNearbyPlaces[category]) 
+            ? parsedNearbyPlaces[category].map(place => ({
+                _id: place._id || place.id,
+                name: place.name,
+                type: place.type,
+                distance: place.distance || null
+              }))
+            : [];
+        });
+        
+        hostelData.nearbyPlaces = normalizedNearbyPlaces;
+        console.log('Processed nearby places for creation:', normalizedNearbyPlaces);
       } catch (e) {
-        console.log('Error parsing nearbyOffices:', e);
+        console.error('Error parsing nearbyPlaces:', e);
+        hostelData.nearbyPlaces = {
+          educational: [], office: [], transportation: [], shopping: [],
+          healthcare: [], entertainment: [], restaurant: [], banking: []
+        };
       }
     }
     
     if (req.files && req.files.length > 0) {
-      hostelData.images = req.files.map(file => file.filename);
+      const imageFiles = req.files.filter(file => file.fieldname === 'images');
+      hostelData.images = imageFiles.map(file => file.filename);
     }
     
     const hostel = new Hostel(hostelData);
@@ -463,34 +496,54 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
       }
     });
     
+    // Get existing hostel for contact info
+    const existingHostel = await Hostel.findById(req.params.id);
+    
+    // Handle contact info
+    updateData.contactInfo = {
+      phone: updateData.phone || existingHostel?.contactInfo?.phone || '',
+      address: updateData.address || existingHostel?.contactInfo?.address || '',
+      contactPersonName: updateData.contactPersonName || existingHostel?.contactInfo?.contactPersonName || '',
+      jobTitle: updateData.jobTitle || existingHostel?.contactInfo?.jobTitle || '',
+      profileImage: existingHostel?.contactInfo?.profileImage || null
+    };
+    
+    // Handle profile image
+    const profileImageFile = req.files?.find(file => file.fieldname === 'profileImage');
+    if (profileImageFile) {
+      updateData.contactInfo.profileImage = profileImageFile.filename;
+    } else if (updateData.existingProfileImage) {
+      updateData.contactInfo.profileImage = updateData.existingProfileImage;
+    }
+    
     // Handle nearby places properly
-    const nearbyPlaces = {};
-    
-    if (updateData.nearbyEducational && typeof updateData.nearbyEducational === 'string') {
+    if (updateData.nearbyPlaces && typeof updateData.nearbyPlaces === 'string') {
       try {
-        nearbyPlaces.educational = JSON.parse(updateData.nearbyEducational);
-        delete updateData.nearbyEducational;
+        const parsedNearbyPlaces = JSON.parse(updateData.nearbyPlaces);
+        const nearbyCategories = ['educational', 'office', 'transportation', 'shopping', 'healthcare', 'entertainment', 'restaurant', 'banking'];
+        const normalizedNearbyPlaces = {};
+        
+        nearbyCategories.forEach(category => {
+          normalizedNearbyPlaces[category] = Array.isArray(parsedNearbyPlaces[category]) 
+            ? parsedNearbyPlaces[category].map(place => ({
+                _id: place._id || place.id,
+                name: place.name,
+                type: place.type,
+                distance: place.distance || null
+              }))
+            : [];
+        });
+        
+        updateData.nearbyPlaces = normalizedNearbyPlaces;
+        console.log('Processed nearby places for update:', normalizedNearbyPlaces);
       } catch (e) {
-        console.log('Error parsing nearbyEducational:', e);
-        nearbyPlaces.educational = [];
+        console.error('Error parsing nearbyPlaces:', e);
+        updateData.nearbyPlaces = {
+          educational: [], office: [], transportation: [], shopping: [],
+          healthcare: [], entertainment: [], restaurant: [], banking: []
+        };
       }
-    } else {
-      nearbyPlaces.educational = [];
     }
-    
-    if (updateData.nearbyOffices && typeof updateData.nearbyOffices === 'string') {
-      try {
-        nearbyPlaces.offices = JSON.parse(updateData.nearbyOffices);
-        delete updateData.nearbyOffices;
-      } catch (e) {
-        console.log('Error parsing nearbyOffices:', e);
-        nearbyPlaces.offices = [];
-      }
-    } else {
-      nearbyPlaces.offices = [];
-    }
-    
-    updateData.nearbyPlaces = nearbyPlaces;
     
     // Smart image handling
     let finalImages = [];
@@ -505,24 +558,25 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
         const keepExisting = imageList.filter(img => currentImages.includes(img));
         
         // Add new uploaded images
-        const newImages = req.files ? req.files.map(file => file.filename) : [];
+        const imageFiles = req.files ? req.files.filter(file => file.fieldname === 'images') : [];
+        const newImages = imageFiles.map(file => file.filename);
         
         finalImages = [...keepExisting, ...newImages];
         delete updateData.finalImages;
       } catch (e) {
         // Fallback: keep all existing + add new
-        const existingHostel = await Hostel.findById(req.params.id);
         finalImages = existingHostel?.images || [];
         if (req.files) {
-          finalImages = [...finalImages, ...req.files.map(file => file.filename)];
+          const imageFiles = req.files.filter(file => file.fieldname === 'images');
+          finalImages = [...finalImages, ...imageFiles.map(file => file.filename)];
         }
       }
     } else {
       // No image changes, keep existing
-      const existingHostel = await Hostel.findById(req.params.id);
       finalImages = existingHostel?.images || [];
       if (req.files) {
-        finalImages = [...finalImages, ...req.files.map(file => file.filename)];
+        const imageFiles = req.files.filter(file => file.fieldname === 'images');
+        finalImages = [...finalImages, ...imageFiles.map(file => file.filename)];
       }
     }
     

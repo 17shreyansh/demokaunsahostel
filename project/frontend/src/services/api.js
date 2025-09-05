@@ -80,10 +80,26 @@ export const hostelAPI = {
         filteredHostels = filteredHostels.filter(h => h.availability === params.availability)
       }
       if (params.minPrice) {
-        filteredHostels = filteredHostels.filter(h => h.price >= parseInt(params.minPrice))
+        const minPrice = parseInt(params.minPrice, 10)
+        if (!isNaN(minPrice)) {
+          filteredHostels = filteredHostels.filter(h => h.price >= minPrice)
+        }
       }
       if (params.maxPrice) {
-        filteredHostels = filteredHostels.filter(h => h.price <= parseInt(params.maxPrice))
+        const maxPrice = parseInt(params.maxPrice, 10)
+        if (!isNaN(maxPrice)) {
+          filteredHostels = filteredHostels.filter(h => h.price <= maxPrice)
+        }
+      }
+      if (params.nearbyPlace) {
+        filteredHostels = filteredHostels.filter(h => {
+          if (!h.nearbyPlaces) return false
+          return Object.values(h.nearbyPlaces).some(places => 
+            Array.isArray(places) && places.some(place => 
+              place.name && place.name.toLowerCase().includes(params.nearbyPlace.toLowerCase())
+            )
+          )
+        })
       }
       
       return {

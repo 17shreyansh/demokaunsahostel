@@ -52,7 +52,10 @@ const hostelSchema = new mongoose.Schema({
   contactInfo: {
     phone: String,
     email: String,
-    address: String
+    address: String,
+    contactPersonName: String,
+    profileImage: String,
+    jobTitle: String
   },
   availability: {
     type: String,
@@ -98,12 +101,52 @@ const hostelSchema = new mongoose.Schema({
   },
   nearbyPlaces: {
     educational: [{
-      name: String,
-      distance: String
+      _id: { type: String },
+      name: { type: String },
+      type: { type: String },
+      distance: { type: String }
     }],
-    offices: [{
-      name: String,
-      distance: String
+    office: [{
+      _id: { type: String },
+      name: { type: String },
+      type: { type: String },
+      distance: { type: String }
+    }],
+    transportation: [{
+      _id: { type: String },
+      name: { type: String },
+      type: { type: String },
+      distance: { type: String }
+    }],
+    shopping: [{
+      _id: { type: String },
+      name: { type: String },
+      type: { type: String },
+      distance: { type: String }
+    }],
+    healthcare: [{
+      _id: { type: String },
+      name: { type: String },
+      type: { type: String },
+      distance: { type: String }
+    }],
+    entertainment: [{
+      _id: { type: String },
+      name: { type: String },
+      type: { type: String },
+      distance: { type: String }
+    }],
+    restaurant: [{
+      _id: { type: String },
+      name: { type: String },
+      type: { type: String },
+      distance: { type: String }
+    }],
+    banking: [{
+      _id: { type: String },
+      name: { type: String },
+      type: { type: String },
+      distance: { type: String }
     }]
   },
   reviews: [{
@@ -155,6 +198,11 @@ hostelSchema.pre('save', function(next) {
     this.slug = this.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   }
   next();
+});
+
+// Create geospatial index for location-based queries
+hostelSchema.index({ 
+  'mapCoordinates': '2dsphere' 
 });
 
 module.exports = mongoose.model('Hostel', hostelSchema);

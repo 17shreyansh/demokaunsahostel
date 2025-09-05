@@ -1,0 +1,276 @@
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  FiMessageCircle, 
+  FiX, 
+  FiSend, 
+  FiMapPin, 
+  FiDollarSign, 
+  FiStar, 
+  FiSearch, 
+  FiPhone,
+  FiHome
+} from 'react-icons/fi'
+import { BsWhatsapp, BsRobot } from 'react-icons/bs'
+import './Chatbot.css'
+
+const Chatbot = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
+  const [messages, setMessages] = useState([
+    { id: 1, text: "Hi! I'm your Greater Noida hostel assistant. How can I help you find accommodation near your college?", sender: 'bot', timestamp: new Date() }
+  ])
+  const [inputValue, setInputValue] = useState('')
+  const [showQuickReplies, setShowQuickReplies] = useState(true)
+  const [conversationStep, setConversationStep] = useState(0)
+  const messagesEndRef = useRef(null)
+
+  const quickReplies = [
+    { text: "Hostels near my college", icon: FiHome },
+    { text: "Budget options", icon: FiDollarSign },
+    { text: "Premium hostels", icon: FiStar },
+    { text: "Greater Noida areas", icon: FiMapPin },
+    { text: "Compare hostels", icon: FiSearch },
+    { text: "Talk to expert", icon: FiPhone }
+  ]
+
+  const advancedResponses = {
+    "hostels near my college": {
+      text: "Which college in Greater Noida are you studying at?",
+      followUp: ["Sharda University", "Bennett University", "Galgotias University", "GNIOT", "Other college"]
+    },
+    "budget options": {
+      text: "What's your monthly budget for hostel in Greater Noida?",
+      followUp: ["₹4,000-6,000", "₹6,000-8,000", "₹8,000-12,000", "Above ₹12,000"]
+    },
+    "premium hostels": {
+      text: "Which amenities do you need in Greater Noida hostels?",
+      followUp: ["AC Rooms", "Wi-Fi & Study Area", "Mess Facility", "All Amenities"]
+    },
+    "greater noida areas": {
+      text: "Which area in Greater Noida do you prefer?",
+      followUp: ["Knowledge Park", "Techzone", "Sector Omega", "Sector Alpha", "Near Metro"]
+    },
+    "compare hostels": {
+      text: "What's most important for your Greater Noida stay?",
+      followUp: ["Price vs Amenities", "Distance to College", "Safety & Security", "Food Quality"]
+    },
+    "talk to expert": {
+      text: "I'll connect you with our Greater Noida hostel expert!",
+      isWhatsApp: true
+    }
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const simulateTyping = () => {
+    setIsTyping(true)
+    return new Promise(resolve => {
+      setTimeout(() => {
+        setIsTyping(false)
+        resolve()
+      }, 1000)
+    })
+  }
+
+  const handleQuickReply = async (reply) => {
+    const userMessage = { 
+      id: Date.now(), 
+      text: reply.text, 
+      sender: 'user', 
+      timestamp: new Date() 
+    }
+    setMessages(prev => [...prev, userMessage])
+    setShowQuickReplies(false)
+    
+    await simulateTyping()
+    
+    const response = advancedResponses[reply.text.toLowerCase()]
+    if (response) {
+      const botMessage = { 
+        id: Date.now() + 1, 
+        text: response.text, 
+        sender: 'bot', 
+        timestamp: new Date(),
+        followUp: response.followUp,
+        isWhatsApp: response.isWhatsApp
+      }
+      setMessages(prev => [...prev, botMessage])
+      setConversationStep(prev => prev + 1)
+    }
+  }
+
+  const handleSendMessage = async (text) => {
+    if (!text.trim()) return
+    
+    const userMessage = { 
+      id: Date.now(), 
+      text, 
+      sender: 'user', 
+      timestamp: new Date() 
+    }
+    setMessages(prev => [...prev, userMessage])
+    setInputValue('')
+    
+    await simulateTyping()
+    
+    let botResponse = "Let me connect you with our Greater Noida hostel expert for detailed assistance."
+    
+    if (conversationStep >= 2) {
+      botResponse = "Perfect! Our Greater Noida expert can help you with college-specific hostel recommendations and bookings."
+    }
+    
+    const botMessage = { 
+      id: Date.now() + 1, 
+      text: botResponse, 
+      sender: 'bot', 
+      timestamp: new Date(),
+      isWhatsApp: conversationStep >= 1
+    }
+    setMessages(prev => [...prev, botMessage])
+    setConversationStep(prev => prev + 1)
+  }
+
+  const handleWhatsAppRedirect = () => {
+    const message = "Hi! I was chatting with your Greater Noida hostel assistant and I'm interested in finding accommodation near my college."
+    const whatsappUrl = `https://wa.me/919876543210?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, '_blank')
+  }
+
+  return (
+    <>
+      <motion.div 
+        className={`chat-icon ${isOpen ? 'open' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {isOpen ? <FiX size={20} /> : <FiMessageCircle size={20} />}
+        {!isOpen && <div className="notification-dot"></div>}
+      </motion.div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            className="chat-box"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="chat-header">
+              <div className="avatar">
+                <BsRobot size={18} />
+              </div>
+              <div className="header-info">
+                <h4>Greater Noida Hostels</h4>
+                <span className="status">Online</span>
+              </div>
+            </div>
+          
+            <div className="chat-messages">
+              {messages.map((message) => (
+                <div key={message.id} className={`message ${message.sender}`}>
+                  {message.sender === 'bot' && (
+                    <div className="bot-avatar">
+                      <BsRobot size={14} />
+                    </div>
+                  )}
+                  <div className="message-content">
+                    <div className="message-bubble">
+                      {message.text}
+                      {message.isWhatsApp && (
+                        <button 
+                          className="whatsapp-btn"
+                          onClick={handleWhatsAppRedirect}
+                        >
+                          <BsWhatsapp size={14} />
+                          Continue on WhatsApp
+                        </button>
+                      )}
+                    </div>
+                    {message.followUp && (
+                      <div className="follow-up-buttons">
+                        {message.followUp.map((option, index) => (
+                          <button
+                            key={index}
+                            className="follow-up-btn"
+                            onClick={() => handleSendMessage(option)}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {isTyping && (
+                <div className="message bot">
+                  <div className="bot-avatar">
+                    <BsRobot size={14} />
+                  </div>
+                  <div className="typing-indicator">
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+            
+            {showQuickReplies && (
+              <div className="quick-replies">
+                <div className="quick-replies-grid">
+                  {quickReplies.map((reply, index) => {
+                    const IconComponent = reply.icon
+                    return (
+                      <button
+                        key={index}
+                        className="quick-reply-btn"
+                        onClick={() => handleQuickReply(reply)}
+                      >
+                        <IconComponent size={16} />
+                        <span>{reply.text}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+            
+            <div className="chat-input">
+              <div className="input-container">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
+                  placeholder="Type your message..."
+                  disabled={isTyping}
+                />
+                <button
+                  className="send-btn"
+                  onClick={() => handleSendMessage(inputValue)}
+                  disabled={!inputValue.trim() || isTyping}
+                >
+                  <FiSend size={16} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  )
+}
+
+export default Chatbot

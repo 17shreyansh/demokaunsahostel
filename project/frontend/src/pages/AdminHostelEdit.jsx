@@ -25,6 +25,7 @@ const AdminHostelEdit = () => {
   const [loading, setLoading] = useState(false)
   const [hostel, setHostel] = useState(null)
   const [fileList, setFileList] = useState([])
+  const [profileImage, setProfileImage] = useState(null)
   const [mapCoordinates, setMapCoordinates] = useState({ lat: 28.6139, lng: 77.2090 })
 
   useEffect(() => {
@@ -59,13 +60,16 @@ const AdminHostelEdit = () => {
         amenities: hostelData.amenities || [],
         rules: hostelData.rules || [],
         info: hostelData.info && hostelData.info.length > 0 ? hostelData.info : [{ title: '', value: '' }],
-        nearbyPlaces: hostelData.nearbyPlaces || { educational: [], offices: [] },
+        nearbyPlaces: hostelData.nearbyPlaces || {},
         roomTypes: hostelData.roomTypes && hostelData.roomTypes.length > 0 ? hostelData.roomTypes : [{ name: '', description: '' }],
         reviews: hostelData.reviews?.map(review => ({
           ...review,
           reviewDate: review.date ? dayjs(review.date) : null
         })) || [],
         address: hostelData.contactInfo?.address || '',
+        contactPersonName: hostelData.contactInfo?.contactPersonName || '',
+        jobTitle: hostelData.contactInfo?.jobTitle || '',
+        phone: hostelData.contactInfo?.phone || '',
         coordinates: hostelData.mapCoordinates ? `${hostelData.mapCoordinates.lat}, ${hostelData.mapCoordinates.lng}` : ''
       }
       
@@ -87,6 +91,19 @@ const AdminHostelEdit = () => {
         }))
         setFileList(existingFiles)
       }
+      
+      // Set profile image if exists
+      if (hostelData.contactInfo?.profileImage) {
+        setProfileImage({
+          uid: 'profile-existing',
+          name: hostelData.contactInfo.profileImage,
+          status: 'done',
+          url: `${import.meta.env.VITE_BACKEND_URL}/uploads/${hostelData.contactInfo.profileImage}`,
+          isExisting: true
+        })
+      }
+      
+      console.log('Loaded hostel nearbyPlaces:', hostelData.nearbyPlaces)
     } catch (error) {
       message.error('Failed to fetch hostel details')
     } finally {
@@ -107,9 +124,8 @@ const AdminHostelEdit = () => {
           const validInfo = values[key]?.filter(item => item.title && item.value) || []
           formData.append(key, JSON.stringify(validInfo))
         } else if (key === 'nearbyPlaces') {
-          const nearbyData = values[key] || { educational: [], offices: [] }
-          formData.append('nearbyEducational', JSON.stringify(nearbyData.educational || []))
-          formData.append('nearbyOffices', JSON.stringify(nearbyData.offices || []))
+          const nearbyData = values[key] || {}
+          formData.append('nearbyPlaces', JSON.stringify(nearbyData))
         } else if (key === 'coordinates') {
           // Skip coordinates field as it's handled separately
           return
@@ -147,6 +163,13 @@ const AdminHostelEdit = () => {
         formData.append('images', file.originFileObj)
       })
       
+      // Handle profile image
+      if (profileImage && profileImage.originFileObj) {
+        formData.append('profileImage', profileImage.originFileObj)
+      } else if (profileImage && profileImage.isExisting) {
+        formData.append('existingProfileImage', profileImage.name)
+      }
+      
       // Send final image list (existing + new)
       const finalImageNames = [
         ...keepImages.map(file => file.name),
@@ -179,6 +202,10 @@ const AdminHostelEdit = () => {
 
   const handleUploadChange = ({ fileList: newFileList }) => {
     setFileList(newFileList)
+  }
+
+  const handleProfileImageChange = ({ fileList: newFileList }) => {
+    setProfileImage(newFileList[0] || null)
   }
 
   return (
@@ -444,12 +471,76 @@ const AdminHostelEdit = () => {
           </Row>
         </Card>
 
+        {/* Contact Information */}
+        <Card 
+          title={
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                <span className="text-orange-600 font-bold">3</span>
+              </div>
+              <span className="text-lg font-semibold">Contact Information</span>
+            </div>
+          }
+          className="shadow-lg border-0 rounded-xl overflow-hidden"
+        >
+          <Row gutter={16}>
+            <Col xs={24} md={12}>
+              <Form.Item name="contactPersonName" label="Contact Person Name">
+                <Input size="large" placeholder="e.g., John Doe" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="jobTitle" label="Job Title">
+                <Input size="large" placeholder="e.g., Property Manager" />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Row gutter={16}>
+            <Col xs={24} md={12}>
+              <Form.Item name="phone" label="Phone Number">
+                <Input size="large" placeholder="e.g., +91 9876543210" />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Row gutter={16}>
+            <Col xs={24}>
+              <Form.Item label="Profile Image">
+                <Upload
+                  listType="picture-card"
+                  fileList={profileImage ? [profileImage] : []}
+                  onChange={handleProfileImageChange}
+                  beforeUpload={() => false}
+                  accept="image/*"
+                  maxCount={1}
+                  showUploadList={{
+                    showPreviewIcon: true,
+                    showRemoveIcon: true,
+                    showDownloadIcon: false
+                  }}
+                >
+                  {!profileImage && (
+                    <div>
+                      <UploadOutlined />
+                      <div style={{ marginTop: 8 }}>Upload Profile</div>
+                    </div>
+                  )}
+                </Upload>
+                <div className="text-sm text-gray-500 mt-2">
+                  Upload contact person's profile image. Recommended size: 200x200px
+                </div>
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
+
         {/* Amenities & Rules */}
         <Card 
           title={
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <span className="text-purple-600 font-bold">3</span>
+                <span className="text-purple-600 font-bold">4</span>
               </div>
               <span className="text-lg font-semibold">Amenities & Rules</span>
             </div>

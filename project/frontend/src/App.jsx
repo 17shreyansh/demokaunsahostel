@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import Chatbot from './components/Chatbot'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminLayout from './layouts/AdminLayout'
 import { AdminProvider } from './contexts/AdminContext'
@@ -92,6 +93,7 @@ function App() {
           </Route>
         </Routes>
         <ScrollToTop />
+        <Chatbot />
       </div>
     </Router>
   )

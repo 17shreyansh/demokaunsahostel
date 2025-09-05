@@ -18,6 +18,25 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get categories with types
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = {
+      office: ['IT Park', 'Office Complex', 'Tech Hub', 'Business Center', 'Corporate Office', 'Coworking Space'],
+      educational: ['University', 'College', 'Institute', 'School', 'Training Center', 'Library'],
+      transportation: ['Metro Station', 'Bus Stop', 'Railway Station', 'Airport', 'Taxi Stand', 'Auto Stand'],
+      shopping: ['Mall', 'Market', 'Supermarket', 'Shopping Complex', 'Local Store', 'Grocery Store'],
+      healthcare: ['Hospital', 'Clinic', 'Pharmacy', 'Diagnostic Center', 'Emergency Care', 'Dental Clinic'],
+      entertainment: ['Cinema', 'Park', 'Sports Complex', 'Gaming Zone', 'Club', 'Recreation Center'],
+      restaurant: ['Restaurant', 'Fast Food', 'Cafe', 'Food Court', 'Street Food', 'Bakery'],
+      banking: ['Bank', 'ATM', 'Financial Services', 'Insurance Office', 'Money Exchange', 'Post Office']
+    };
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get places with road distances from a point
 router.get('/distances', async (req, res) => {
   try {

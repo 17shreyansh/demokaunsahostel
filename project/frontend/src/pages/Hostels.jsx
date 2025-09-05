@@ -206,7 +206,7 @@ const Hostels = () => {
           {/* Advanced Filters */}
           {showFilters && (
             <div className="p-6 bg-gray-50 border-t border-gray-100" style={{position: 'relative', zIndex: 1}}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 {/* Location */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
@@ -371,7 +371,7 @@ const Hostels = () => {
                 </div>
 
                 {/* Nearby Place */}
-                <div>
+                <div className="lg:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Near To</label>
                   <Select
                     value={filters.nearbyPlace ? { value: filters.nearbyPlace, label: filters.nearbyPlace } : null}
@@ -387,6 +387,7 @@ const Hostels = () => {
                     ]}
                     placeholder="Select Place"
                     isClearable
+                    isSearchable
                     styles={{
                       control: (base, state) => ({
                         ...base,

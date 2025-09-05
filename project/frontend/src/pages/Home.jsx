@@ -7,10 +7,12 @@ import SearchSection from '../components/home/SearchSection'
 import FeaturedHostels from '../components/home/FeaturedHostels'
 import ServicesSection from '../components/home/ServicesSection'
 import TestimonialsSection from '../components/home/TestimonialsSection'
+import { FaGraduationCap, FaBuilding, FaBus, FaShoppingCart } from 'react-icons/fa'
 
 const Home = () => {
   const [hostels, setHostels] = useState([])
   const [pageContent, setPageContent] = useState({})
+  const [nearbyPlaces, setNearbyPlaces] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -20,12 +22,15 @@ const Home = () => {
 
   const fetchData = async () => {
     try {
-      const [hostelsResponse, contentResponse] = await Promise.all([
+      const [hostelsResponse, contentResponse, nearbyResponse] = await Promise.all([
         hostelAPI.getFeatured(),
-        pageAPI.getPageContent('home')
+        pageAPI.getPageContent('home'),
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces`)
       ])
       setHostels(hostelsResponse.data || [])
       setPageContent(contentResponse.data.content || {})
+      const nearbyData = await nearbyResponse.json()
+      setNearbyPlaces(nearbyData || [])
     } catch (error) {
       console.error('Error:', error)
       // Fallback to regular hostels if featured endpoint fails
@@ -83,6 +88,64 @@ const Home = () => {
       <HeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
         <SearchSection content={pageContent.search} />
         <FeaturedHostels hostels={hostels} loading={loading} />
+        
+        {/* Nearby Places Section */}
+        <section className="py-20 bg-white relative">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Explore Nearby Places</h2>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                Discover important locations around our hostels - from educational institutions to shopping centers
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {['educational', 'office', 'transportation', 'shopping'].map(category => {
+                const categoryPlaces = nearbyPlaces.filter(place => place.category === category)
+                const categoryLabels = {
+                  educational: { name: 'Educational', icon: FaGraduationCap, color: 'blue' },
+                  office: { name: 'IT Parks & Offices', icon: FaBuilding, color: 'purple' },
+                  transportation: { name: 'Transportation', icon: FaBus, color: 'green' },
+                  shopping: { name: 'Shopping', icon: FaShoppingCart, color: 'orange' }
+                }
+                const categoryInfo = categoryLabels[category]
+                
+                return (
+                  <motion.div
+                    key={category}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className={`bg-gradient-to-br from-${categoryInfo.color}-50 to-${categoryInfo.color}-100 p-6 rounded-2xl border border-${categoryInfo.color}-200 hover:shadow-lg transition-all duration-300`}
+                  >
+                    <div className="text-center mb-4">
+                      <div className="mb-2">
+                        <categoryInfo.icon className="w-8 h-8 mx-auto text-gray-700" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{categoryInfo.name}</h3>
+                      <p className="text-gray-600 text-sm">{categoryPlaces.length} locations</p>
+                    </div>
+                    
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {categoryPlaces.slice(0, 3).map((place, index) => (
+                        <div key={place._id} className="flex items-center space-x-2 text-sm">
+                          <div className={`w-2 h-2 bg-${categoryInfo.color}-500 rounded-full`}></div>
+                          <span className="text-gray-700 truncate">{place.name}</span>
+                        </div>
+                      ))}
+                      {categoryPlaces.length > 3 && (
+                        <div className="text-xs text-gray-500 text-center pt-2">
+                          +{categoryPlaces.length - 3} more
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+        
         <ServicesSection content={pageContent.services} />
         <TestimonialsSection content={pageContent.testimonials} />
     </main>

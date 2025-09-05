@@ -28,11 +28,17 @@ export const fallbackHostels = [
         { name: 'Sharda University', distance: '3 km' },
         { name: 'Bennett University', distance: '4 km' }
       ],
-      offices: [
+      office: [
         { name: 'TCS Noida', distance: '15 km' },
         { name: 'Wipro Greater Noida', distance: '8 km' },
         { name: 'HCL Technologies', distance: '12 km' }
-      ]
+      ],
+      transportation: [],
+      shopping: [],
+      healthcare: [],
+      entertainment: [],
+      restaurant: [],
+      banking: []
     },
     info: [
       { title: 'Room Type', value: 'Single/Double' },
@@ -85,11 +91,17 @@ export const fallbackHostels = [
         { name: 'GNIOT', distance: '2 km' },
         { name: 'IMS Engineering College', distance: '4 km' }
       ],
-      offices: [
+      office: [
         { name: 'Infosys Noida', distance: '18 km' },
         { name: 'Adobe Greater Noida', distance: '10 km' },
         { name: 'Samsung R&D', distance: '14 km' }
-      ]
+      ],
+      transportation: [],
+      shopping: [],
+      healthcare: [],
+      entertainment: [],
+      restaurant: [],
+      banking: []
     },
     info: [
       { title: 'Room Type', value: 'Single' },
@@ -135,10 +147,16 @@ export const fallbackHostels = [
         { name: 'KIET Group', distance: '3 km' },
         { name: 'Accurate Institute', distance: '2 km' }
       ],
-      offices: [
+      office: [
         { name: 'Coforge Noida', distance: '16 km' },
         { name: 'Nagarro Greater Noida', distance: '9 km' }
-      ]
+      ],
+      transportation: [],
+      shopping: [],
+      healthcare: [],
+      entertainment: [],
+      restaurant: [],
+      banking: []
     },
     info: [
       { title: 'Room Type', value: 'Double/Triple' },
@@ -184,10 +202,16 @@ export const fallbackHostels = [
         { name: 'NIET', distance: '4 km' },
         { name: 'GNIOT', distance: '3 km' }
       ],
-      offices: [
+      office: [
         { name: 'Tech Mahindra Noida', distance: '17 km' },
         { name: 'Accenture Greater Noida', distance: '11 km' }
-      ]
+      ],
+      transportation: [],
+      shopping: [],
+      healthcare: [],
+      entertainment: [],
+      restaurant: [],
+      banking: []
     },
     info: [
       { title: 'Room Type', value: 'Single/Double' },
@@ -232,11 +256,17 @@ export const fallbackHostels = [
         { name: 'Bennett University', distance: '5 km' },
         { name: 'Galgotias University', distance: '6 km' }
       ],
-      offices: [
+      office: [
         { name: 'Microsoft Noida', distance: '12 km' },
         { name: 'Oracle Greater Noida', distance: '8 km' },
         { name: 'IBM Noida', distance: '15 km' }
-      ]
+      ],
+      transportation: [],
+      shopping: [],
+      healthcare: [],
+      entertainment: [],
+      restaurant: [],
+      banking: []
     },
     info: [
       { title: 'Room Type', value: 'Single Suite' },
@@ -282,10 +312,16 @@ export const fallbackHostels = [
         { name: 'Amity University', distance: '4 km' },
         { name: 'GNIOT', distance: '3 km' }
       ],
-      offices: [
+      office: [
         { name: 'Wipro Greater Noida', distance: '7 km' },
         { name: 'HCL Technologies', distance: '10 km' }
-      ]
+      ],
+      transportation: [],
+      shopping: [],
+      healthcare: [],
+      entertainment: [],
+      restaurant: [],
+      banking: []
     },
     info: [
       { title: 'Room Type', value: 'Double/Triple' },
@@ -331,6 +367,32 @@ export const fallbackFilterOptions = {
     'Recreation Room',
     'Conference Room',
     'Sports Area'
+  ],
+  nearbyPlaces: [
+    'Galgotias University',
+    'Sharda University',
+    'Bennett University',
+    'Amity University',
+    'GNIOT',
+    'IMS Engineering College',
+    'GL Bajaj Institute',
+    'KIET Group',
+    'Accurate Institute',
+    'JSS Academy',
+    'NIET',
+    'TCS Noida',
+    'Wipro Greater Noida',
+    'HCL Technologies',
+    'Infosys Noida',
+    'Adobe Greater Noida',
+    'Samsung R&D',
+    'Coforge Noida',
+    'Nagarro Greater Noida',
+    'Tech Mahindra Noida',
+    'Accenture Greater Noida',
+    'Microsoft Noida',
+    'Oracle Greater Noida',
+    'IBM Noida'
   ]
 };
 
