@@ -17,16 +17,26 @@ const HostelCard = memo(({ hostel, variant = 'default' }) => {
     >
       {/* Image */}
       <div className={`relative overflow-hidden ${isCompact ? 'h-48' : 'h-56'}`}>
-        <img 
-          src={optimizeImageUrl(hostel.image, 400, 250) || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop'} 
-          alt={hostel.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          loading="lazy"
-          decoding="async"
-          onError={(e) => {
-            e.target.src = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop'
-          }}
-        />
+        {optimizeImageUrl(hostel.image, 400, 250) ? (
+          <img 
+            src={optimizeImageUrl(hostel.image, 400, 250)} 
+            alt={hostel.name}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              e.target.style.display = 'none'
+              e.target.nextElementSibling.style.display = 'flex'
+            }}
+          />
+        ) : null}
+        <div className={`w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-500 ${optimizeImageUrl(hostel.image, 400, 250) ? 'hidden' : 'flex'}`}>
+          <svg className="w-12 h-12 mb-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+          </svg>
+          <p className="text-sm font-medium">Hostel Image</p>
+          <p className="text-xs">Not Available</p>
+        </div>
         <div className="absolute top-4 left-4">
           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
             hostel.availability === 'Available' ? 'bg-green-500 text-white' :

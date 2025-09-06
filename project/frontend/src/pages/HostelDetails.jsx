@@ -797,7 +797,7 @@ const HostelDetails = () => {
             </div>
 
             {/* Sticky Enquiry Form */}
-            <div className="sticky top-24">
+            <div className="sticky top-16">
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div className="bg-gradient-to-r from-yellow-custom to-orange-400 p-4 text-gray-900">
                   <h3 className="text-xl font-bold mb-1">Send Enquiry</h3>

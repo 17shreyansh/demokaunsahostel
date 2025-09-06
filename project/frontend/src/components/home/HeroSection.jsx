@@ -135,23 +135,23 @@ const HeroSection = ({ hostels, loading, content }) => {
               {content?.trustBadge || 'Trusted by 1200+ Students'}
             </div>
             
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-4 sm:mb-6">
               {content?.mainTitle || 'Find Your Perfect'}
               <span className="block bg-gradient-to-r from-yellow-500 via-yellow-400 to-orange-400 bg-clip-text text-transparent min-h-[1.2em]">
                 {animatedText}
                 <span className="typewriter-cursor text-yellow-custom">|</span>
               </span>
-              <span className="block text-gray-700 text-2xl md:text-3xl lg:text-4xl font-medium mt-2">
+              <span className="block text-gray-700 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium mt-1 sm:mt-2">
                 {content?.location || 'in Greater Noida'}
               </span>
             </h1>
             
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-xl">
+            <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8 leading-relaxed max-w-xl">
               {content?.description || 'Find your perfect nest! Premium hostels with modern amenities and vibrant communities. Where comfort meets convenience in Greater Noida.'}
             </p>
             
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-12">
               <Link to={content?.primaryButton?.link || '/hostels'} className="group bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-semibold px-8 py-4 rounded-2xl hover:shadow-2xl hover:shadow-yellow-200 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
                 <svg className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -199,12 +199,12 @@ const HeroSection = ({ hostels, loading, content }) => {
             </div>
             {/* Enhanced Search Bar */}
             <motion.div 
-              className="mb-8 relative z-30"
+              className="mb-6 sm:mb-8 relative z-30"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <div className="search-container bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 p-2 hover:shadow-3xl transition-all duration-500 group relative">
+              <div className="search-container bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 p-3 sm:p-2 hover:shadow-3xl transition-all duration-500 group relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-orange-400/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="flex items-center">
                   <div className="flex-1 relative">
@@ -281,7 +281,7 @@ const HeroSection = ({ hostels, loading, content }) => {
             
             {/* Enhanced Hostel Slider */}
             <motion.div 
-              className="relative h-96 overflow-visible px-4"
+              className="relative h-96 sm:h-[28rem] overflow-visible px-2 sm:px-4"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.4 }}
@@ -293,30 +293,41 @@ const HeroSection = ({ hostels, loading, content }) => {
               ) : hostels.length > 0 ? (
                 <div className="relative h-full flex flex-col justify-center space-y-4">
                   {[-1, 0, 1].map((offset) => {
-                    const index = (currentHostelIndex + offset + hostels.length) % hostels.length
-                    const hostel = hostels[index]
+                    const displayHostels = hostels.slice(0, 6)
+                    const index = (currentHostelIndex + offset + displayHostels.length) % displayHostels.length
+                    const hostel = displayHostels[index]
                     const isCenter = offset === 0
+                    
+                    if (!hostel) return null
                     
                     return (
                       <motion.div 
-                        key={`${hostel._id}-${offset}-${currentHostelIndex}`}
+                        key={hostel._id}
+                        layout
                         animate={{
-                          scale: isCenter ? 1.1 : 0.95,
-                          y: isCenter ? 0 : offset === -1 ? -8 : 8,
-                          rotate: isCenter ? 0 : offset === -1 ? 1 : -1,
-                          opacity: isCenter ? 1 : 0.75,
-                          zIndex: isCenter ? 20 : 0
+                          scale: isCenter ? 1.1 : 0.85,
+                          opacity: isCenter ? 1 : 0.4,
+                          y: isCenter ? 0 : offset === -1 ? -10 : 10,
+                          zIndex: isCenter ? 20 : 0,
+                          filter: isCenter ? 'blur(0px)' : 'blur(1px)'
                         }}
                         transition={{ 
-                          duration: 0.8, 
-                          ease: [0.16, 1, 0.3, 1],
-                          delay: offset * 0.1
+                          layout: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+                          duration: 0.6,
+                          ease: [0.16, 1, 0.3, 1]
                         }}
-                        whileHover={{ scale: isCenter ? 1.12 : 0.97 }}
+                        whileHover={{ 
+                          scale: isCenter ? 1.12 : 0.87,
+                          transition: { duration: 0.2 }
+                        }}
+                        style={{
+                          willChange: 'transform',
+                          transform: 'translate3d(0,0,0)'
+                        }}
                       >
-                        <div className={`bg-white/95 backdrop-blur-2xl rounded-2xl shadow-xl border border-white/30 mx-4 transition-all duration-300 ease-in-out hover:bg-white/98 group ${
-                          isCenter ? 'shadow-2xl border-yellow-200/50 p-6 shadow-yellow-100/20' : 'p-4 hover:shadow-lg'
-                        }`}>
+                        <div className={`bg-white/95 backdrop-blur-2xl rounded-xl sm:rounded-2xl shadow-xl border border-white/30 mx-2 sm:mx-4 transition-all duration-300 ease-in-out hover:bg-white/98 group ${
+                          isCenter ? 'shadow-2xl border-yellow-200/50 p-4 sm:p-6 shadow-yellow-100/20' : 'p-3 sm:p-4 hover:shadow-lg'
+                        }`} style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}>
                           {/* Card glow effect */}
                           <div className={`absolute inset-0 bg-gradient-to-r from-yellow-400/5 to-orange-400/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
                             isCenter ? 'opacity-30' : ''
@@ -325,7 +336,7 @@ const HeroSection = ({ hostels, loading, content }) => {
                             <div className="flex-1">
                               <div className="flex items-center justify-between mb-2">
                                 <h3 className={`font-bold text-gray-900 leading-tight transition-all duration-300 ${
-                                  isCenter ? 'text-xl' : 'text-lg'
+                                  isCenter ? 'text-lg sm:text-xl' : 'text-base sm:text-lg'
                                 }`}>{hostel.name}</h3>
                                 <div className={`px-2 py-1 rounded-full text-xs font-semibold transition-colors duration-300 ${
                                   hostel.availability === 'Available' ? 'bg-green-100 text-green-700' :
@@ -377,9 +388,9 @@ const HeroSection = ({ hostels, loading, content }) => {
                             </div>
                           </div>
                         </div>
-                      </motion.div>
-                    )
-                  })}
+                        </motion.div>
+                      )
+                    })}
                 </div>
               ) : null}
             </motion.div>
@@ -391,17 +402,30 @@ const HeroSection = ({ hostels, loading, content }) => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              {hostels.map((hostel, index) => (
+              {hostels.slice(0, 6).map((hostel, index) => (
                 <motion.button
                   key={`indicator-${hostel._id}-${index}`}
                   onClick={() => setCurrentHostelIndex(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
+                  className={`h-2 rounded-full transition-all duration-500 ${
                     index === currentHostelIndex 
                       ? 'bg-yellow-400 w-6 shadow-lg shadow-yellow-200' 
                       : 'bg-gray-300 hover:bg-gray-400 w-2'
                   }`}
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ 
+                    scale: 1.2,
+                    transition: { type: "spring", stiffness: 400, damping: 10 }
+                  }}
+                  whileTap={{ 
+                    scale: 0.9,
+                    transition: { type: "spring", stiffness: 400, damping: 10 }
+                  }}
+                  animate={{
+                    backgroundColor: index === currentHostelIndex ? '#F59E0B' : '#D1D5DB'
+                  }}
+                  transition={{
+                    duration: 0.3,
+                    ease: "easeInOut"
+                  }}
                 />
               ))}
             </motion.div>

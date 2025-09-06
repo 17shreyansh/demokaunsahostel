@@ -7,6 +7,7 @@ import SearchSection from '../components/home/SearchSection'
 import FeaturedHostels from '../components/home/FeaturedHostels'
 import ServicesSection from '../components/home/ServicesSection'
 import TestimonialsSection from '../components/home/TestimonialsSection'
+import OurPartners from '../components/home/OurPartners'
 import { FaGraduationCap, FaBuilding, FaBus, FaShoppingCart } from 'react-icons/fa'
 
 // Memoized components
@@ -15,6 +16,7 @@ const MemoizedSearchSection = memo(SearchSection)
 const MemoizedFeaturedHostels = memo(FeaturedHostels)
 const MemoizedServicesSection = memo(ServicesSection)
 const MemoizedTestimonialsSection = memo(TestimonialsSection)
+const MemoizedOurPartners = memo(OurPartners)
 
 const Home = () => {
   const [hostels, setHostels] = useState([])
@@ -94,6 +96,7 @@ const Home = () => {
       
       <MemoizedHeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
         <MemoizedSearchSection content={pageContent.search} />
+        <MemoizedOurPartners />
         <MemoizedFeaturedHostels hostels={hostels} loading={loading} />
         <MemoizedServicesSection content={pageContent.services} />
         <MemoizedTestimonialsSection content={pageContent.testimonials} />

@@ -99,9 +99,9 @@ const SearchSection = ({ content }) => {
     <div className="relative">
       <button
         onClick={() => toggleDropdown(type)}
-        className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-left focus:ring-2 focus:ring-yellow-custom focus:border-yellow-custom hover:border-gray-300 transition-all duration-300 flex items-center justify-between group"
+        className="w-full px-3 sm:px-4 py-3 sm:py-3.5 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-left focus:ring-2 focus:ring-yellow-custom focus:border-yellow-custom hover:border-gray-300 transition-all duration-300 flex items-center justify-between group"
       >
-        <span className={`${value ? 'text-gray-900' : 'text-gray-500'} font-medium`}>
+        <span className={`${value ? 'text-gray-900' : 'text-gray-500'} font-medium text-sm sm:text-base truncate`}>
           {displayValue || placeholder}
         </span>
         <svg 
@@ -140,19 +140,19 @@ const SearchSection = ({ content }) => {
   return (
     <section className="py-16">
       <div className="container mx-auto px-6">
-        <div className="search-container bg-white rounded-3xl mx-4 sm:mx-6 lg:mx-8 my-8 p-8 sm:p-12 shadow-2xl border border-gray-100">
+        <div className="search-container bg-white rounded-2xl sm:rounded-3xl mx-2 sm:mx-4 lg:mx-8 my-6 sm:my-8 p-4 sm:p-8 lg:p-12 shadow-2xl border border-gray-100">
           <div className="max-w-5xl mx-auto text-center">
-            <div className="mb-8">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                 {content?.title || 'Search Your Ideal Hostel'}
               </h2>
-              <p className="text-gray-600 text-lg font-medium">
+              <p className="text-gray-600 text-base sm:text-lg font-medium px-2">
                 {content?.subtitle || 'Filter by location, budget, amenities, and more to find your perfect stay'}
               </p>
             </div>
           
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-inner p-8 border border-yellow-100">
-              <div ref={dropdownRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl sm:rounded-2xl shadow-inner p-4 sm:p-6 lg:p-8 border border-yellow-100">
+              <div ref={dropdownRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
                 <CustomDropdown 
                   type="location" 
                   placeholder="Select Location" 
@@ -183,20 +183,20 @@ const SearchSection = ({ content }) => {
                 />
                 <button 
                   onClick={handleSearch}
-                  className="search-button bg-gradient-to-r from-yellow-custom to-yellow-400 text-gray-900 font-bold px-6 py-3.5 rounded-xl hover:shadow-2xl hover:shadow-yellow-200 transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center justify-center group"
+                  className="search-button bg-gradient-to-r from-yellow-custom to-yellow-400 text-gray-900 font-bold px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg sm:rounded-xl hover:shadow-2xl hover:shadow-yellow-200 transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center justify-center group sm:col-span-2 lg:col-span-1"
                 >
-                  <svg className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  Search Hostels
+                  <span className="text-sm sm:text-base">Search Hostels</span>
                 </button>
               </div>
             </div>
           
             {/* University Logos */}
-            <div className="mt-16">
-              <p className="text-gray-500 text-sm mb-8 font-medium">Trusted by students from top universities</p>
-              <div className="flex flex-wrap justify-center items-center gap-6 lg:gap-8">
+            <div className="mt-8 sm:mt-12 lg:mt-16">
+              <p className="text-gray-500 text-xs sm:text-sm mb-4 sm:mb-6 lg:mb-8 font-medium">Trusted by students from top universities</p>
+              <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 lg:gap-6">
                 {(content?.universityLogos || [
                   'Galgotias University',
                   'Sharda University', 
@@ -204,7 +204,7 @@ const SearchSection = ({ content }) => {
                   'GL Bajaj Institute'
                 ]).map((university) => (
                   <div key={university} className="group">
-                    <span className="university-badge text-gray-500 font-semibold px-6 py-3 rounded-xl shadow-md border border-gray-100 hover:border-yellow-200 hover:shadow-lg hover:text-yellow-custom transition-all duration-300 group-hover:scale-105">
+                    <span className="university-badge text-gray-500 font-semibold px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl shadow-md border border-gray-100 hover:border-yellow-200 hover:shadow-lg hover:text-yellow-custom transition-all duration-300 group-hover:scale-105 text-xs sm:text-sm">
                       {university}
                     </span>
                   </div>
