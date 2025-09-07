@@ -1,0 +1,32 @@
+/* Optimized CSS animation for partners scroll */
+.partners-scroll {
+  animation: scroll-partners 8s linear infinite;
+  will-change: transform;
+}
+
+@keyframes scroll-partners {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Faster on mobile */
+@media (max-width: 768px) {
+  .partners-scroll {
+    animation-duration: 6s;
+  }
+}
+
+/* Pause animation on hover for better UX */
+.partners-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* Performance optimizations */
+.partners-scroll img {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
