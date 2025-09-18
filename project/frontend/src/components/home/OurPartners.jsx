@@ -10,6 +10,8 @@ import logo4 from '../../assets/logo/4.jpg'
 import logo5 from '../../assets/logo/5.jpg'
 import logo6 from '../../assets/logo/6.jpg'
 import logo7 from '../../assets/logo/7.jpg'
+import logo8 from '../../assets/logo/8.jpg'
+
 
 // Partner logos data
 const partners = [
@@ -20,6 +22,8 @@ const partners = [
   { id: 5, name: 'Partner 5', logo: logo5 },
   { id: 6, name: 'Partner 6', logo: logo6 },
   { id: 7, name: 'Partner 7', logo: logo7 },
+  { id: 8, name: 'Partner 7', logo: logo8 },
+
 ]
 
 const OurPartners = () => {

@@ -139,7 +139,7 @@ const Chatbot = () => {
 
   const handleWhatsAppRedirect = () => {
     const message = "Hi! I was chatting with your Greater Noida hostel assistant and I'm interested in finding accommodation near my college."
-    const whatsappUrl = `https://wa.me/919876543210?text=${encodeURIComponent(message)}`
+    const whatsappUrl = `https://wa.me/91859594865?text=${encodeURIComponent(message)}`
     window.open(whatsappUrl, '_blank')
   }
 
