@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { hostelAPI } from '../services/api'
 import { useTheme } from '../contexts/ThemeContext'
 import { stateManager, invalidateData } from '../utils/stateManager'
+import { forceRefresh } from '../utils/cacheManager'
 
 const AdminHostels = () => {
   const navigate = useNavigate()
@@ -12,14 +13,23 @@ const AdminHostels = () => {
 
   const [hostels, setHostels] = useState([])
   const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState(null)
 
-  const fetchHostels = async () => {
+  const fetchHostels = async (force = false) => {
     try {
       setLoading(true)
+      console.log(`Fetching hostels at ${new Date().toISOString()}, force: ${force}`)
+      if (force) {
+        hostelAPI.clearCache() // Clear cache for forced refresh
+        console.log('Cache cleared')
+      }
       const response = await hostelAPI.getAll()
+      console.log('Fetched hostels count:', response.data?.hostels?.length || response.data?.length || 0)
+      console.log('First hostel description:', response.data?.hostels?.[0]?.description || response.data?.[0]?.description)
       setHostels(response.data.hostels || response.data || [])
+      setLastUpdated(new Date())
     } catch (error) {
-      console.error('Failed to fetch hostels')
+      console.error('Failed to fetch hostels:', error)
       setHostels([])
     } finally {
       setLoading(false)
@@ -28,7 +38,7 @@ const AdminHostels = () => {
 
   useEffect(() => {
     fetchHostels()
-    return stateManager.subscribe('hostels', fetchHostels)
+    return stateManager.subscribe('hostels', () => fetchHostels(true))
   }, [])
 
   useEffect(() => {
@@ -98,17 +108,28 @@ const AdminHostels = () => {
     <div className={`transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>My Properties</h1>
+          <div>
+            <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>My Properties</h1>
+            {lastUpdated && (
+              <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </p>
+            )}
+          </div>
           <div className="flex gap-3">
             <button 
-              onClick={() => invalidateData()}
+              onClick={() => {
+                forceRefresh()
+                hostelAPI.clearCache()
+                fetchHostels(true)
+              }}
               className={`px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
                 isDark 
                   ? 'bg-gray-700 hover:bg-gray-600 text-white' 
                   : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
               } shadow-lg hover:shadow-xl`}
             >
-              🔄 Refresh
+              🔄 Force Refresh
             </button>
             <button 
               onClick={handleAdd}

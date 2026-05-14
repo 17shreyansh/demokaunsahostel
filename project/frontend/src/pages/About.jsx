@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { pageAPI } from '../services/api'
-import photo1 from '../assets/photo 1.jpg'
-import photo2 from '../assets/photo 2.jpg'
+import founderImage from '../assets/founder.jpeg'
 
 const About = () => {
   const [content, setContent] = useState({})
@@ -126,62 +125,49 @@ const About = () => {
       {/* CEO & Leadership Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <span className="inline-block px-6 py-2 bg-yellow-custom text-gray-900 font-semibold rounded-full text-sm mb-6">
                 CEO & Founder
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                 {content.leadership?.title || 'Leadership Excellence'}
               </h2>
               <div className="w-20 h-1 bg-yellow-custom mx-auto rounded mb-4"></div>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
                 {content.leadership?.subtitle || 'Meet the visionary transforming student accommodation in Greater Noida'}
               </p>
             </div>
             
-            <div className="grid lg:grid-cols-3 gap-16 items-center">
-              {/* Images Section */}
-              <div className="lg:col-span-1 space-y-16">
-                {/* First Image - Left Aligned */}
-                <div className="relative group">
-                  <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-3xl shadow-2xl transform rotate-2 group-hover:rotate-0 transition-all duration-500">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              {/* Founder Image Section */}
+              <div className="order-2 lg:order-1">
+                <div className="relative group max-w-md mx-auto lg:max-w-none">
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-custom/20 to-yellow-custom/10 rounded-3xl transform rotate-3 group-hover:rotate-1 transition-transform duration-500"></div>
+                  <div className="relative bg-white p-4 md:p-6 rounded-3xl shadow-2xl transform -rotate-1 group-hover:rotate-0 transition-all duration-500">
                     <img 
-                      src={content.leadership?.ceo?.image1 ? `${import.meta.env.VITE_API_URL}${content.leadership.ceo.image1}` : photo1}
-                      alt="CEO Portrait" 
-                      className="w-full aspect-[3/4] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                      src={content.leadership?.ceo?.image ? `${import.meta.env.VITE_API_URL}${content.leadership.ceo.image}` : founderImage}
+                      alt="Founder & CEO" 
+                      className="w-full aspect-[4/5] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
                     />
+                    <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-yellow-custom/30 rounded-full blur-xl"></div>
+                    <div className="absolute -top-3 -left-3 w-12 h-12 bg-yellow-custom rounded-full opacity-80"></div>
                   </div>
-                  <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-yellow-custom/20 rounded-full blur-2xl"></div>
-                  <div className="absolute -top-3 -left-3 w-12 h-12 bg-yellow-custom rounded-full opacity-80"></div>
-                </div>
-                
-                {/* Second Image - Right Aligned */}
-                <div className="relative group flex justify-end">
-                  <div className="bg-gradient-to-br from-yellow-50 to-white p-6 rounded-3xl shadow-2xl transform -rotate-2 group-hover:rotate-0 transition-all duration-500">
-                    <img 
-                      src={content.leadership?.ceo?.image2 ? `${import.meta.env.VITE_API_URL}${content.leadership.ceo.image2}` : photo2}
-                      alt="CEO Professional" 
-                      className="w-full aspect-[3/4] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <div className="absolute -top-6 -left-6 w-20 h-20 bg-yellow-custom/25 rounded-full blur-xl"></div>
-                  <div className="absolute -bottom-3 -right-3 w-10 h-10 bg-yellow-custom rounded-full opacity-70"></div>
                 </div>
               </div>
               
               {/* Content Section */}
-              <div className="lg:col-span-2 space-y-8">
-                <div className="bg-white rounded-2xl shadow-xl p-8">
-                  <div className="flex items-center space-x-4 mb-6">
-                    <div className="w-16 h-16 bg-yellow-custom rounded-full flex items-center justify-center">
+              <div className="order-1 lg:order-2 space-y-6">
+                <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
+                    <div className="w-16 h-16 bg-yellow-custom rounded-full flex items-center justify-center flex-shrink-0">
                       <svg className="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900">
-                        {content.leadership?.ceo?.name || 'CEO Name'}
+                    <div className="text-center sm:text-left">
+                      <h3 className="text-xl md:text-2xl font-bold text-gray-900">
+                        {content.leadership?.ceo?.name || 'Founder Name'}
                       </h3>
                       <p className="text-yellow-600 font-semibold">
                         {content.leadership?.ceo?.position || 'CEO & Founder'}
@@ -189,39 +175,39 @@ const About = () => {
                     </div>
                   </div>
                   
-                  <div className="grid md:grid-cols-2 gap-6 mb-6">
+                  <div className="grid sm:grid-cols-2 gap-4 mb-6">
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-2">Experience</h4>
-                      <p className="text-gray-600">
+                      <h4 className="font-semibold text-gray-900 mb-2 text-sm md:text-base">Experience</h4>
+                      <p className="text-gray-600 text-sm md:text-base">
                         {content.leadership?.ceo?.experience || '15+ years in hospitality and real estate'}
                       </p>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-2">Education</h4>
-                      <p className="text-gray-600">
-                        {content.leadership?.ceo?.education || 'MBA from premier business school'}
+                      <h4 className="font-semibold text-gray-900 mb-2 text-sm md:text-base">Vision</h4>
+                      <p className="text-gray-600 text-sm md:text-base">
+                        {content.leadership?.ceo?.vision || 'Transforming student living with innovation and excellence'}
                       </p>
                     </div>
                   </div>
                   
-                  <p className="text-gray-700 leading-relaxed mb-6">
-                    {content.leadership?.ceo?.bio || 'Passionate about transforming student living experiences with innovative solutions and exceptional service quality.'}
+                  <p className="text-gray-700 leading-relaxed mb-6 text-sm md:text-base">
+                    {content.leadership?.ceo?.bio || 'Passionate about transforming student living experiences with innovative solutions and exceptional service quality. Committed to creating safe, comfortable, and affordable accommodation that feels like home.'}
                   </p>
                   
                   {content.leadership?.ceo?.quote && (
-                    <blockquote className="border-l-4 border-yellow-custom pl-6 italic text-gray-600 mb-6">
+                    <blockquote className="border-l-4 border-yellow-custom pl-4 md:pl-6 italic text-gray-600 mb-6 text-sm md:text-base">
                       "{content.leadership.ceo.quote}"
                     </blockquote>
                   )}
                   
                   {content.leadership?.ceo?.achievements && content.leadership.ceo.achievements.length > 0 && (
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">Key Achievements</h4>
+                      <h4 className="font-semibold text-gray-900 mb-3 text-sm md:text-base">Key Achievements</h4>
                       <ul className="space-y-2">
                         {content.leadership.ceo.achievements.map((achievement, index) => (
                           <li key={index} className="flex items-start space-x-2">
                             <div className="w-2 h-2 bg-yellow-custom rounded-full mt-2 flex-shrink-0"></div>
-                            <span className="text-gray-600">{achievement}</span>
+                            <span className="text-gray-600 text-sm md:text-base">{achievement}</span>
                           </li>
                         ))}
                       </ul>
@@ -229,54 +215,21 @@ const About = () => {
                   )}
                 </div>
                 
-                {/* Team Members */}
-                {content.leadership?.team && content.leadership.team.length > 0 && (
-                  <div className="bg-white rounded-2xl shadow-xl p-8">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Leadership Team</h3>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {content.leadership.team.map((member, index) => (
-                        <div key={index} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                          {member.image ? (
-                            <img 
-                              src={`${import.meta.env.VITE_API_URL}${member.image}`}
-                              alt={member.name}
-                              className="w-16 h-16 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
-                              <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                            </div>
-                          )}
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">{member.name}</h4>
-                            <p className="text-yellow-600 text-sm font-medium mb-2">{member.position}</p>
-                            <p className="text-gray-600 text-sm">{member.bio}</p>
-                            {(member.linkedin || member.email) && (
-                              <div className="flex space-x-3 mt-2">
-                                {member.linkedin && (
-                                  <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clipRule="evenodd" />
-                                    </svg>
-                                  </a>
-                                )}
-                                {member.email && (
-                                  <a href={`mailto:${member.email}`} className="text-gray-600 hover:text-gray-800">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                  </a>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                {/* Contact Info */}
+                <div className="bg-gradient-to-r from-yellow-custom to-yellow-400 rounded-2xl p-6 md:p-8 text-center">
+                  <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Ready to Connect?</h4>
+                  <p className="text-gray-800 mb-6 text-sm md:text-base">
+                    Have questions about our services or want to learn more about our vision?
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a href="/contact" className="bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors text-sm md:text-base">
+                      Get in Touch
+                    </a>
+                    <a href="/hostels" className="bg-white text-gray-900 px-6 py-3 rounded-lg font-semibold border-2 border-gray-900 hover:bg-gray-100 transition-colors text-sm md:text-base">
+                      View Properties
+                    </a>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

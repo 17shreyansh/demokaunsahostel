@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { cacheManager } from '../utils/cacheManager'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
@@ -6,30 +7,39 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 const cache = new Map()
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
+// Register cache with cache manager
+cacheManager.register('api', cache)
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000
 })
 
-// Request interceptor for caching
+// Request interceptor for caching (only cache GET requests)
 api.interceptors.request.use((config) => {
-  const cacheKey = `${config.method}:${config.url}:${JSON.stringify(config.params)}`
-  const cached = cache.get(cacheKey)
-  
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    config.adapter = () => Promise.resolve(cached.response)
+  // Only cache GET requests
+  if (config.method === 'get') {
+    const cacheKey = `${config.method}:${config.url}:${JSON.stringify(config.params)}`
+    const cached = cache.get(cacheKey)
+    
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      config.adapter = () => Promise.resolve(cached.response)
+    }
   }
   
   return config
 })
 
-// Response interceptor for caching
+// Response interceptor for caching (only cache GET responses)
 api.interceptors.response.use((response) => {
-  const cacheKey = `${response.config.method}:${response.config.url}:${JSON.stringify(response.config.params)}`
-  cache.set(cacheKey, {
-    response,
-    timestamp: Date.now()
-  })
+  // Only cache GET responses
+  if (response.config.method === 'get') {
+    const cacheKey = `${response.config.method}:${response.config.url}:${JSON.stringify(response.config.params)}`
+    cache.set(cacheKey, {
+      response,
+      timestamp: Date.now()
+    })
+  }
   return response
 })
 
@@ -41,18 +51,30 @@ const uploadAPI = axios.create({
   maxBodyLength: Infinity
 })
 
-// Auth interceptor
-api.interceptors.request.use((config) => {
+// Auth interceptor for both APIs
+const authInterceptor = (config) => {
   const token = localStorage.getItem('adminToken')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
-}, (error) => Promise.reject(error))
+}
+
+api.interceptors.request.use(authInterceptor, (error) => Promise.reject(error))
+uploadAPI.interceptors.request.use(authInterceptor, (error) => Promise.reject(error))
+
+// Clear cache function
+const clearCache = () => {
+  console.log('Clearing API cache...')
+  cache.clear()
+  cacheManager.clearAll()
+}
 
 export const hostelAPI = {
   getAll: async (params = {}) => {
-    const queryString = new URLSearchParams(params).toString()
+    // Add timestamp to bypass cache
+    const allParams = { ...params, _t: Date.now() }
+    const queryString = new URLSearchParams(allParams).toString()
     return await api.get(`/hostels${queryString ? `?${queryString}` : ''}`)
   },
   search: async (params) => {
@@ -66,18 +88,36 @@ export const hostelAPI = {
     return await api.get('/hostels/filters/options')
   },
   getById: async (id) => {
-    return await api.get(`/hostels/${id}`)
+    // Add timestamp to bypass cache
+    return await api.get(`/hostels/${id}?_t=${Date.now()}`)
   },
   getBySlug: async (slug) => {
     return await api.get(`/hostels/slug/${slug}`)
   },
-  create: (data) => api.post('/hostels', data),
-  update: (id, data) => api.put(`/hostels/${id}`, data),
-  updateFeatured: (id, featured) => api.patch(`/hostels/${id}/featured`, { featured }),
+  create: async (data) => {
+    const result = await uploadAPI.post('/hostels', data)
+    clearCache() // Clear cache after create
+    return result
+  },
+  update: async (id, data) => {
+    const result = await uploadAPI.put(`/hostels/${id}`, data)
+    clearCache() // Clear cache after update
+    return result
+  },
+  updateFeatured: async (id, featured) => {
+    const result = await api.patch(`/hostels/${id}/featured`, { featured })
+    clearCache() // Clear cache after featured update
+    return result
+  },
   getFeatured: async () => {
     return await api.get('/hostels/featured/homepage')
   },
-  delete: (id) => api.delete(`/hostels/${id}`)
+  delete: async (id) => {
+    const result = await api.delete(`/hostels/${id}`)
+    clearCache() // Clear cache after delete
+    return result
+  },
+  clearCache
 }
 
 export const enquiryAPI = {

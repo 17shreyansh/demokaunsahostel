@@ -483,6 +483,9 @@ router.patch('/:id/featured', auth, async (req, res) => {
 
 router.put('/:id', auth, upload.any(), async (req, res) => {
   try {
+    console.log('Updating hostel with ID:', req.params.id);
+    console.log('Update data received:', Object.keys(req.body));
+    
     const updateData = { ...req.body };
     
     // Handle JSON fields
@@ -584,13 +587,22 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
     
     const hostel = await Hostel.findByIdAndUpdate(req.params.id, updateData, { new: true });
     
+    if (!hostel) {
+      return res.status(404).json({ message: 'Hostel not found' });
+    }
+    
     // Clear cache to force refresh
     cache.clear();
+    console.log('Hostel updated successfully:', hostel.name);
     
     res.json({ hostel, success: true, message: 'Hostel updated successfully' });
   } catch (error) {
     console.error('Update hostel error:', error);
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ 
+      message: error.message,
+      success: false,
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

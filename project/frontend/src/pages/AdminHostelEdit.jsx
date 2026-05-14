@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { invalidateData } from '../utils/stateManager'
+import { forceRefresh } from '../utils/cacheManager'
 import {
   Card, Form, Input, Select, Upload, Button, Space, message, 
   Row, Col, Divider, Typography, InputNumber, Tag, DatePicker
@@ -177,21 +178,35 @@ const AdminHostelEdit = () => {
       ]
       formData.append('finalImages', JSON.stringify(finalImageNames))
 
-
+      // Debug: Log what we're sending
+      console.log('Sending update data:')
+      console.log('- Name:', values.name)
+      console.log('- Description:', values.description)
+      console.log('- Price:', values.price)
+      console.log('- Images:', finalImageNames)
       
+      let response
       if (id && id !== 'new') {
-        const response = await hostelAPI.update(id, formData)
-  
+        response = await hostelAPI.update(id, formData)
+        console.log('Update response:', response.data)
         message.success('Hostel updated successfully')
       } else {
-        const response = await hostelAPI.create(formData)
-  
+        response = await hostelAPI.create(formData)
+        console.log('Create response:', response.data)
         message.success('Hostel created successfully')
       }
       
-      // Trigger global refresh and navigate
-      invalidateData()
-      navigate('/admin/hostels')
+      // Force complete refresh of all caches and data
+      forceRefresh()
+      hostelAPI.clearCache()
+      invalidateData('hostels')
+      invalidateData('homepage')
+      invalidateData('dashboard')
+      
+      console.log('Update completed, all caches cleared, navigating back...')
+      
+      // Navigate back
+      navigate('/admin/hostels', { replace: true })
     } catch (error) {
 
       message.error(`Failed to save hostel: ${error.response?.data?.message || error.message}`)
