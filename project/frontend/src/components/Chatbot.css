@@ -1,4 +1,4 @@
-/* Clean, responsive chatbot styles */
+/* Clean, responsive chatbot styles - 120 FPS GPU Optimized */
 .chat-icon {
   position: fixed;
   bottom: 20px;
@@ -15,10 +15,15 @@
   z-index: 1000;
   color: white;
   transition: all 0.3s ease;
+  
+  /* GPU Acceleration */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .chat-icon:hover {
-  transform: scale(1.05);
+  transform: scale(1.05) translate3d(0, 0, 0);
   box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
 }
 
@@ -207,6 +212,8 @@
   background: #9ca3af;
   border-radius: 50%;
   animation: typing 1.4s infinite ease-in-out;
+  /* Offload typing animation to the GPU layer */
+  will-change: transform, opacity;
 }
 
 .typing-dot:nth-child(2) {
@@ -217,13 +224,14 @@
   animation-delay: 0.4s;
 }
 
+/* Use translate3d instead of translateY to bypass CPU layout engine */
 @keyframes typing {
   0%, 60%, 100% {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
     opacity: 0.4;
   }
   30% {
-    transform: translateY(-8px);
+    transform: translate3d(0, -8px, 0);
     opacity: 1;
   }
 }
@@ -316,6 +324,15 @@
 .send-btn:disabled {
   background: #d1d5db;
   cursor: not-allowed;
+}
+
+/* GPU promotion for interactive buttons to prevent repaint on hover */
+.whatsapp-btn, 
+.follow-up-btn, 
+.quick-reply-btn, 
+.send-btn {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Mobile responsive */
