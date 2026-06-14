@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { cacheManager } from '../utils/cacheManager'
 
-const API_BASE_URL = import.meta.env.  || 'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
 // Cache for API responses
 const cache = new Map()
