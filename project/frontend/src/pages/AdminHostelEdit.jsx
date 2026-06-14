@@ -71,7 +71,8 @@ const AdminHostelEdit = () => {
         contactPersonName: hostelData.contactInfo?.contactPersonName || '',
         jobTitle: hostelData.contactInfo?.jobTitle || '',
         phone: hostelData.contactInfo?.phone || '',
-        coordinates: hostelData.mapCoordinates ? `${hostelData.mapCoordinates.lat}, ${hostelData.mapCoordinates.lng}` : ''
+        coordinates: hostelData.mapCoordinates ? `${hostelData.mapCoordinates.lat}, ${hostelData.mapCoordinates.lng}` : '',
+        videoTourUrl: hostelData.videoTourUrl || ''
       }
       
       form.setFieldsValue(formValues)
@@ -797,6 +798,20 @@ const AdminHostelEdit = () => {
             <div className="text-sm text-gray-500 mt-2">
               Upload any size images. Supported formats: JPG, PNG, WebP, GIF, BMP
             </div>
+          </Form.Item>
+        </Card>
+
+        <Card title="Video Tour" className="mb-6">
+          <Form.Item 
+            name="videoTourUrl" 
+            label="YouTube Video URL"
+            extra="Paste the YouTube video URL for virtual tour of the hostel (e.g., https://www.youtube.com/watch?v=VIDEO_ID)"
+          >
+            <Input 
+              size="large" 
+              placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+              prefix={<svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>}
+            />
           </Form.Item>
         </Card>
 

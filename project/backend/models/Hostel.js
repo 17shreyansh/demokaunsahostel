@@ -32,6 +32,9 @@ const hostelSchema = new mongoose.Schema({
   images: [{
     type: String
   }],
+  videoTourUrl: {
+    type: String
+  },
   amenities: [{
     type: String
   }],
