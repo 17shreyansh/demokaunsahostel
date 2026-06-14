@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useTheme, ThemeProvider } from '../contexts/ThemeContext'
-import { FiHome, FiGrid, FiUsers, FiSettings } from 'react-icons/fi'
+import { FiHome, FiGrid, FiUsers, FiSettings, FiFileText, FiFolder, FiMessageSquare } from 'react-icons/fi'
 
 const AdminLayoutContent = () => {
   const navigate = useNavigate()
@@ -30,9 +30,10 @@ const AdminLayoutContent = () => {
   const menuItems = [
     { key: 'dashboard', label: 'Dashboard', icon: FiHome },
     { key: 'hostels', label: 'My Properties', icon: FiGrid },
+    { key: 'blog', label: 'Blog Posts', icon: FiFileText },
     { key: 'nearbyplaces', label: 'Nearby Places', icon: FiUsers },
     { key: 'leads', label: 'Bookings', icon: FiUsers },
-    { key: 'page-content', label: 'Page Content', icon: FiSettings },
+    { key: 'page-content', label: 'Page Content', icon: FiFolder },
     { key: 'settings', label: 'Settings', icon: FiSettings }
   ]
 
@@ -47,6 +48,7 @@ const AdminLayoutContent = () => {
   const getSelectedKey = () => {
     const path = location.pathname
     if (path.includes('/hostels')) return ['hostels']
+    if (path.includes('/blog')) return ['blog']
     if (path.includes('/nearbyplaces')) return ['nearbyplaces']
     if (path.includes('/leads')) return ['leads']
     if (path.includes('/page-content')) return ['page-content']
@@ -59,6 +61,9 @@ const AdminLayoutContent = () => {
     if (path.includes('/hostels/new')) return 'Add New Property'
     if (path.includes('/hostels/') && path.split('/').length > 3) return 'Edit Property'
     if (path.includes('/hostels')) return 'My Properties'
+    if (path.includes('/blog/new')) return 'Create Blog Post'
+    if (path.includes('/blog/edit')) return 'Edit Blog Post'
+    if (path.includes('/blog')) return 'Blog Management'
     if (path.includes('/nearbyplaces')) return 'Nearby Places'
     if (path.includes('/leads')) return 'Booking Management'
     if (path.includes('/page-content')) return 'Page Content Editor'

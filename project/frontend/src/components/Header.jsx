@@ -41,6 +41,11 @@ const Header = () => {
               ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
               : 'text-gray-600 hover:text-yellow-custom hover:bg-yellow-50'
           }`}>Hostels</Link>
+          <Link to="/blog" className={`nav-link font-medium px-4 py-2 rounded-lg transition-all duration-300 ${
+            location.pathname.startsWith('/blog') 
+              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
+              : 'text-gray-600 hover:text-yellow-custom hover:bg-yellow-50'
+          }`}>Blogs</Link>
           <Link to="/about" className={`nav-link font-medium px-4 py-2 rounded-lg transition-all duration-300 ${
             location.pathname === '/about' 
               ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
@@ -86,6 +91,11 @@ const Header = () => {
               ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
               : 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-custom'
           }`}>Hostels</Link>
+          <Link to="/blog" className={`block nav-link font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
+            location.pathname.startsWith('/blog') 
+              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
+              : 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-custom'
+          }`}>Blogs</Link>
           <Link to="/about" className={`block nav-link font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
             location.pathname === '/about' 
               ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 

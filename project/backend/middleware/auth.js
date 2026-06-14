@@ -8,10 +8,11 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ message: 'Access denied. No valid token provided.' });
     }
     
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const token = authHeader.substring(7);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     req.admin = { id: decoded.id };
+    req.user = { _id: decoded.id };
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {

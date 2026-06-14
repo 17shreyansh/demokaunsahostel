@@ -2,11 +2,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const compression = require('compression');
 require('dotenv').config();
 
 const app = express();
 
-// Middleware
+// Security & Performance Middleware
+app.use(helmet());
+app.use(compression());
 app.use(cors({
   origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
   credentials: true
@@ -29,6 +33,19 @@ app.use('/api/nearbyplaces', require('./routes/nearbyplaces'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/pages', require('./routes/pages'));
 app.use('/api/page-content', require('./routes/pageContent'));
+
+// Blog System Routes
+app.use('/api/blog', require('./routes/blog.routes'));
+const { categoryRouter, tagRouter, authorRouter, commentRouter, mediaRouter, analyticsRouter } = require('./routes/blog-supporting.routes');
+app.use('/api/blog/categories', categoryRouter);
+app.use('/api/blog/tags', tagRouter);
+app.use('/api/blog/authors', authorRouter);
+app.use('/api/blog/comments', commentRouter);
+app.use('/api/blog/media', mediaRouter);
+app.use('/api/blog/analytics', analyticsRouter);
+
+// SEO Routes
+app.use('/api', require('./routes/seo.routes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
