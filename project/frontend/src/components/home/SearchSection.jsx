@@ -1,128 +1,44 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { hostelAPI } from '../../services/api'
 
-const SearchSection = ({ content }) => {
-  const navigate = useNavigate()
-  const [filters, setFilters] = useState({
-    location: '',
-    nearbyPlace: '',
-    minPrice: '',
-    maxPrice: '',
-    gender: ''
-  })
-  const [dropdownOpen, setDropdownOpen] = useState({
-    location: false,
-    nearby: false,
-    budget: false,
-    gender: false
-  })
-  const [filterOptions, setFilterOptions] = useState({ locations: [], nearbyPlaces: [] })
-  const dropdownRef = useRef(null)
-
-  // Fetch filter options
-  useEffect(() => {
-    const fetchFilterOptions = async () => {
-      try {
-        const response = await hostelAPI.getFilterOptions()
-        setFilterOptions(response.data)
-      } catch (error) {
-        console.error('Error fetching filter options:', error)
-      }
-    }
-    fetchFilterOptions()
-  }, [])
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen({ location: false, nearby: false, budget: false, gender: false })
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  const budgets = content?.budgetOptions || [
-    { value: { min: '', max: '7000' }, label: 'Budget Friendly (Under ₹7K)' },
-    { value: { min: '7000', max: '10000' }, label: 'Affordable (₹7K - ₹10K)' },
-    { value: { min: '10000', max: '15000' }, label: 'Premium (₹10K - ₹15K)' },
-    { value: { min: '15000', max: '' }, label: 'Luxury (Above ₹15K)' }
-  ]
-
-  const genders = content?.genderOptions || [
-    { value: 'Boys', label: 'Boys Only' },
-    { value: 'Girls', label: 'Girls Only' },
-    { value: 'Co-ed', label: 'Co-ed' }
-  ]
-
-  const handleFilterChange = (type, value, label) => {
-    if (type === 'budget') {
-      setFilters(prev => ({ 
-        ...prev, 
-        minPrice: value.min, 
-        maxPrice: value.max,
-        budgetLabel: label 
-      }))
-    } else if (type === 'nearby') {
-      setFilters(prev => ({ ...prev, nearbyPlace: value, nearbyLabel: label }))
-    } else {
-      setFilters(prev => ({ ...prev, [type]: value, [`${type}Label`]: label }))
-    }
-    setDropdownOpen(prev => ({ ...prev, [type]: false }))
-  }
-
-  const toggleDropdown = (type) => {
-    setDropdownOpen(prev => ({
-      location: false,
-      nearby: false,
-      budget: false,
-      gender: false,
-      [type]: !prev[type]
-    }))
-  }
-
-  const handleSearch = () => {
-    const searchParams = new URLSearchParams()
-    if (filters.location) searchParams.set('location', filters.location)
-    if (filters.nearbyPlace) searchParams.set('nearbyPlace', filters.nearbyPlace)
-    if (filters.minPrice) searchParams.set('minPrice', filters.minPrice)
-    if (filters.maxPrice) searchParams.set('maxPrice', filters.maxPrice)
-    if (filters.gender) searchParams.set('gender', filters.gender)
-    
-    navigate(`/hostels?${searchParams.toString()}`)
-  }
-
-  const CustomDropdown = ({ type, placeholder, options, value, displayValue }) => (
-    <div className="relative">
-      <button
-        onClick={() => toggleDropdown(type)}
-        className="w-full px-3 sm:px-4 py-3 sm:py-3.5 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-left focus:ring-2 focus:ring-yellow-custom focus:border-yellow-custom hover:border-gray-300 transition-all duration-300 flex items-center justify-between group"
+/* -------------------------------------------------------------------------- */
+/* EXTRACTED & MEMOIZED MICRO-COMPONENT                                       */
+/* -------------------------------------------------------------------------- */
+// Extracted to prevent DOM destruction on parent render.
+// Wrapped in memo so unaffected dropdowns ignore sibling state changes.
+const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, isOpen, onToggle, onSelect }) => (
+  <div className="relative">
+    <button
+      onClick={() => onToggle(type)}
+      className="w-full px-3 sm:px-4 py-3 sm:py-3.5 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-left focus:ring-2 focus:ring-yellow-custom focus:border-yellow-custom hover:border-gray-300 transition-all duration-300 flex items-center justify-between group"
+    >
+      <span className={`${value ? 'text-gray-900' : 'text-gray-500'} font-medium text-sm sm:text-base truncate`}>
+        {displayValue || placeholder}
+      </span>
+      <svg 
+        className={`w-5 h-5 text-gray-400 transition-transform duration-300 group-hover:text-yellow-custom ${
+          isOpen ? 'rotate-180' : ''
+        }`} 
+        fill="none" 
+        stroke="currentColor" 
+        viewBox="0 0 24 24"
       >
-        <span className={`${value ? 'text-gray-900' : 'text-gray-500'} font-medium text-sm sm:text-base truncate`}>
-          {displayValue || placeholder}
-        </span>
-        <svg 
-          className={`w-5 h-5 text-gray-400 transition-transform duration-300 group-hover:text-yellow-custom ${
-            dropdownOpen[type] ? 'rotate-180' : ''
-          }`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      
-      {dropdownOpen[type] && (
-        <div className="search-dropdown absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
-          <div className="max-h-60 overflow-y-auto">
-            {options.map((option, index) => (
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    
+    {isOpen && (
+      <div className="search-dropdown absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="max-h-60 overflow-y-auto">
+          {options.map((option, index) => {
+            // Pre-calculate key to avoid inline object stringification if possible
+            const itemKey = typeof option.value === 'object' ? option.label : option.value;
+            
+            return (
               <button
-                key={typeof option.value === 'object' ? JSON.stringify(option.value) : option.value}
-                onClick={() => handleFilterChange(type, option.value, option.label)}
+                key={itemKey}
+                onClick={() => onSelect(type, option.value, option.label)}
                 className="w-full px-4 py-3 text-left hover:bg-yellow-50 hover:text-yellow-custom transition-all duration-200 border-b border-gray-50 last:border-b-0 font-medium group"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
@@ -130,12 +46,127 @@ const SearchSection = ({ content }) => {
                   {option.label}
                 </span>
               </button>
-            ))}
-          </div>
+            )
+          })}
         </div>
-      )}
-    </div>
-  )
+      </div>
+    )}
+  </div>
+));
+
+CustomDropdown.displayName = 'CustomDropdown';
+
+
+/* -------------------------------------------------------------------------- */
+/* MAIN COMPONENT                                                             */
+/* -------------------------------------------------------------------------- */
+const SearchSection = ({ content }) => {
+  const navigate = useNavigate();
+  
+  const [filters, setFilters] = useState({
+    location: '',
+    nearbyPlace: '',
+    minPrice: '',
+    maxPrice: '',
+    gender: ''
+  });
+  
+  // Replaced heavy object tracking with a single active pointer
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [filterOptions, setFilterOptions] = useState({ locations: [], nearbyPlaces: [] });
+  const dropdownRef = useRef(null);
+
+  // Fetch filter options with abort control
+  useEffect(() => {
+    const abortController = new AbortController();
+    
+    const fetchFilterOptions = async () => {
+      try {
+        const response = await hostelAPI.getFilterOptions({ signal: abortController.signal });
+        setFilterOptions(response.data);
+      } catch (error) {
+        if (error.name !== 'CanceledError') {
+          console.error('Error fetching filter options:', error);
+        }
+      }
+    };
+    
+    fetchFilterOptions();
+    return () => abortController.abort();
+  }, []);
+
+  // Optimized click listener: Only attaches when a dropdown is actually open
+  useEffect(() => {
+    if (!activeDropdown) return; 
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeDropdown]);
+
+  // Memoized static arrays to preserve referential equality
+  const budgets = useMemo(() => content?.budgetOptions || [
+    { value: { min: '', max: '7000' }, label: 'Budget Friendly (Under ₹7K)' },
+    { value: { min: '7000', max: '10000' }, label: 'Affordable (₹7K - ₹10K)' },
+    { value: { min: '10000', max: '15000' }, label: 'Premium (₹10K - ₹15K)' },
+    { value: { min: '15000', max: '' }, label: 'Luxury (Above ₹15K)' }
+  ], [content?.budgetOptions]);
+
+  const genders = useMemo(() => content?.genderOptions || [
+    { value: 'Boys', label: 'Boys Only' },
+    { value: 'Girls', label: 'Girls Only' },
+    { value: 'Co-ed', label: 'Co-ed' }
+  ], [content?.genderOptions]);
+
+  const universities = useMemo(() => content?.universityLogos || [
+    'Galgotias University',
+    'Sharda University', 
+    'Bennett University',
+    'GL Bajaj Institute'
+  ], [content?.universityLogos]);
+
+  // Transform dynamic options once per fetch, not per render
+  const locationOptions = useMemo(() => 
+    filterOptions.locations.map(loc => ({ value: loc, label: loc })), 
+  [filterOptions.locations]);
+  
+  const nearbyPlaceOptions = useMemo(() => 
+    filterOptions.nearbyPlaces.map(place => ({ value: place, label: place })), 
+  [filterOptions.nearbyPlaces]);
+
+  // Handlers memoized with useCallback to prevent child re-renders
+  const handleFilterChange = useCallback((type, value, label) => {
+    setFilters(prev => {
+      if (type === 'budget') {
+        return { ...prev, minPrice: value.min, maxPrice: value.max, budgetLabel: label };
+      }
+      if (type === 'nearby') {
+        return { ...prev, nearbyPlace: value, nearbyLabel: label };
+      }
+      return { ...prev, [type]: value, [`${type}Label`]: label };
+    });
+    setActiveDropdown(null);
+  }, []);
+
+  const toggleDropdown = useCallback((type) => {
+    setActiveDropdown(prev => prev === type ? null : type);
+  }, []);
+
+  const handleSearch = useCallback(() => {
+    const searchParams = new URLSearchParams();
+    if (filters.location) searchParams.set('location', filters.location);
+    if (filters.nearbyPlace) searchParams.set('nearbyPlace', filters.nearbyPlace);
+    if (filters.minPrice) searchParams.set('minPrice', filters.minPrice);
+    if (filters.maxPrice) searchParams.set('maxPrice', filters.maxPrice);
+    if (filters.gender) searchParams.set('gender', filters.gender);
+    
+    navigate(`/hostels?${searchParams.toString()}`);
+  }, [filters, navigate]);
 
   return (
     <section className="py-16">
@@ -150,22 +181,28 @@ const SearchSection = ({ content }) => {
                 {content?.subtitle || 'Filter by location, budget, amenities, and more to find your perfect stay'}
               </p>
             </div>
-          
+            
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl sm:rounded-2xl shadow-inner p-4 sm:p-6 lg:p-8 border border-yellow-100">
               <div ref={dropdownRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
                 <CustomDropdown 
                   type="location" 
                   placeholder="Select Location" 
-                  options={filterOptions.locations.map(loc => ({ value: loc, label: loc }))}
+                  options={locationOptions}
                   value={filters.location}
                   displayValue={filters.locationLabel}
+                  isOpen={activeDropdown === 'location'}
+                  onToggle={toggleDropdown}
+                  onSelect={handleFilterChange}
                 />
                 <CustomDropdown 
                   type="nearby" 
                   placeholder="Near College/Office" 
-                  options={filterOptions.nearbyPlaces.map(place => ({ value: place, label: place }))}
+                  options={nearbyPlaceOptions}
                   value={filters.nearbyPlace}
                   displayValue={filters.nearbyLabel}
+                  isOpen={activeDropdown === 'nearby'}
+                  onToggle={toggleDropdown}
+                  onSelect={handleFilterChange}
                 />
                 <CustomDropdown 
                   type="budget" 
@@ -173,6 +210,9 @@ const SearchSection = ({ content }) => {
                   options={budgets} 
                   value={filters.minPrice || filters.maxPrice}
                   displayValue={filters.budgetLabel}
+                  isOpen={activeDropdown === 'budget'}
+                  onToggle={toggleDropdown}
+                  onSelect={handleFilterChange}
                 />
                 <CustomDropdown 
                   type="gender" 
@@ -180,6 +220,9 @@ const SearchSection = ({ content }) => {
                   options={genders}
                   value={filters.gender}
                   displayValue={filters.genderLabel}
+                  isOpen={activeDropdown === 'gender'}
+                  onToggle={toggleDropdown}
+                  onSelect={handleFilterChange}
                 />
                 <button 
                   onClick={handleSearch}
@@ -192,17 +235,12 @@ const SearchSection = ({ content }) => {
                 </button>
               </div>
             </div>
-          
+            
             {/* University Logos */}
             <div className="mt-8 sm:mt-12 lg:mt-16">
               <p className="text-gray-500 text-xs sm:text-sm mb-4 sm:mb-6 lg:mb-8 font-medium">Trusted by students from top universities</p>
               <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 lg:gap-6">
-                {(content?.universityLogos || [
-                  'Galgotias University',
-                  'Sharda University', 
-                  'Bennett University',
-                  'GL Bajaj Institute'
-                ]).map((university) => (
+                {universities.map((university) => (
                   <div key={university} className="group">
                     <span className="university-badge text-gray-500 font-semibold px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl shadow-md border border-gray-100 hover:border-yellow-200 hover:shadow-lg hover:text-yellow-custom transition-all duration-300 group-hover:scale-105 text-xs sm:text-sm">
                       {university}
@@ -215,7 +253,7 @@ const SearchSection = ({ content }) => {
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default SearchSection
+export default SearchSection;

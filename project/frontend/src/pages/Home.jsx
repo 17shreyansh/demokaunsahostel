@@ -1,107 +1,153 @@
-import { useState, useEffect, memo, useMemo } from 'react'
-import { motion } from 'framer-motion'
-import { hostelAPI, pageAPI } from '../services/api'
-import { stateManager } from '../utils/stateManager'
-import HeroSection from '../components/home/HeroSection'
-import SearchSection from '../components/home/SearchSection'
-import FeaturedHostels from '../components/home/FeaturedHostels'
-import ServicesSection from '../components/home/ServicesSection'
-import TestimonialsSection from '../components/home/TestimonialsSection'
-import OurPartners from '../components/home/OurPartners'
-import { FaGraduationCap, FaBuilding, FaBus, FaShoppingCart } from 'react-icons/fa'
+import { useState, useEffect, memo } from 'react';
+import { hostelAPI, pageAPI } from '../services/api';
+import { stateManager } from '../utils/stateManager';
+import HeroSection from '../components/home/HeroSection';
+import SearchSection from '../components/home/SearchSection';
+import FeaturedHostels from '../components/home/FeaturedHostels';
+import ServicesSection from '../components/home/ServicesSection';
+import TestimonialsSection from '../components/home/TestimonialsSection';
+import OurPartners from '../components/home/OurPartners';
 
 // Memoized components
-const MemoizedHeroSection = memo(HeroSection)
-const MemoizedSearchSection = memo(SearchSection)
-const MemoizedFeaturedHostels = memo(FeaturedHostels)
-const MemoizedServicesSection = memo(ServicesSection)
-const MemoizedTestimonialsSection = memo(TestimonialsSection)
-const MemoizedOurPartners = memo(OurPartners)
+const MemoizedHeroSection = memo(HeroSection);
+const MemoizedSearchSection = memo(SearchSection);
+const MemoizedFeaturedHostels = memo(FeaturedHostels);
+const MemoizedServicesSection = memo(ServicesSection);
+const MemoizedTestimonialsSection = memo(TestimonialsSection);
+const MemoizedOurPartners = memo(OurPartners);
+
+// Injected Hardware-Accelerated CSS Animations
+// Replaces expensive Framer Motion JS tweens with zero-cost GPU compositing
+const backgroundStyles = `
+  @keyframes blob1 {
+    0%, 100% { transform: translate3d(0px, 0px, 0) scale(1); }
+    50% { transform: translate3d(30px, -20px, 0) scale(1.2); }
+  }
+  @keyframes blob2 {
+    0%, 100% { transform: translate3d(0px, 0px, 0) scale(1); }
+    50% { transform: translate3d(-40px, 30px, 0) scale(1.1); }
+  }
+  @keyframes blobRotate {
+    0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.05); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
+  }
+  @keyframes blob3 {
+    0%, 100% { transform: translate3d(0px, 0px, 0) rotate(0deg); }
+    50% { transform: translate3d(0px, -20px, 0) rotate(180deg); }
+  }
+  @keyframes blob4 {
+    0%, 100% { transform: translate3d(0px, 0px, 0) scale(1); }
+    50% { transform: translate3d(0px, 25px, 0) scale(1.2); }
+  }
+  @keyframes floatingDot {
+    0%, 100% { transform: translate3d(0px, 0px, 0) scale(1); opacity: 0.3; }
+    50% { transform: translate3d(0px, -10px, 0) scale(1.5); opacity: 0.7; }
+  }
+  .gpu-layer {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+  }
+`;
 
 const Home = () => {
-  const [hostels, setHostels] = useState([])
-  const [pageContent, setPageContent] = useState({})
-  const [nearbyPlaces, setNearbyPlaces] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [hostels, setHostels] = useState([]);
+  const [pageContent, setPageContent] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData()
-    return stateManager.subscribe('homepage', fetchData)
-  }, [])
+    const abortController = new AbortController();
+    const signal = abortController.signal;
 
-  const fetchData = async () => {
-    setLoading(true)
-    try {
-      // Prioritize critical data first
-      const hostelsResponse = await hostelAPI.getFeatured()
-      setHostels(hostelsResponse.data || [])
-      setLoading(false)
-      
-      // Load non-critical data after
-      const [contentResponse, nearbyResponse] = await Promise.all([
-        pageAPI.getPageContent('home'),
-        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces`)
-      ])
-      setPageContent(contentResponse.data.content || {})
-      const nearbyData = await nearbyResponse.json()
-      setNearbyPlaces(nearbyData || [])
-    } catch (error) {
-      console.error('Error fetching data:', error)
-      setHostels([])
-      setPageContent({})
-      setNearbyPlaces([])
-      setLoading(false)
-    }
-  }
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fire all requests concurrently to destroy the network waterfall
+        const hostelsPromise = hostelAPI.getFeatured({ signal });
+        const contentPromise = pageAPI.getPageContent('home', { signal });
+
+        // Await critical data first to paint Hero section immediately
+        const hostelsResponse = await hostelsPromise;
+        if (!signal.aborted) {
+          setHostels(hostelsResponse.data || []);
+          setLoading(false);
+        }
+
+        // Await non-critical content
+        const contentResponse = await contentPromise;
+        if (!signal.aborted) {
+          setPageContent(contentResponse.data.content || {});
+        }
+      } catch (error) {
+        if (error.name !== 'CanceledError') {
+          console.error('Error fetching data:', error);
+          if (!signal.aborted) {
+            setHostels([]);
+            setPageContent({});
+            setLoading(false);
+          }
+        }
+      }
+    };
+
+    fetchData();
+
+    // Preserve existing pub/sub subscription
+    const unsubscribe = stateManager.subscribe('homepage', fetchData);
+
+    return () => {
+      abortController.abort(); // Cancel pending fetches on unmount
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, []);
 
   return (
     <main className="relative">
-      {/* Fixed Hero Background with all effects */}
-      <div className="fixed top-0 left-0 w-full h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 overflow-hidden" style={{ zIndex: -1 }}>
-        <motion.div 
-          className="absolute top-20 -left-20 w-80 h-80 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-full opacity-20 blur-3xl"
-          animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], y: [0, -20, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      <style>{backgroundStyles}</style>
+
+      {/* Fixed GPU-Accelerated Background */}
+      <div className="fixed top-0 left-0 w-full h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
+        <div 
+          className="absolute top-20 -left-20 w-80 h-80 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-full opacity-20 blur-3xl gpu-layer"
+          style={{ animation: 'blob1 8s ease-in-out infinite' }}
         />
-        <motion.div 
-          className="absolute bottom-20 -right-20 w-96 h-96 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full opacity-20 blur-3xl"
-          animate={{ scale: [1, 1.1, 1], x: [0, -40, 0], y: [0, 30, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        <div 
+          className="absolute bottom-20 -right-20 w-96 h-96 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full opacity-20 blur-3xl gpu-layer"
+          style={{ animation: 'blob2 10s ease-in-out infinite 2s' }}
         />
-        <motion.div 
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full opacity-10 blur-3xl"
-          animate={{ rotate: [0, 360], scale: [1, 1.05, 1] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        <div 
+          className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full opacity-10 blur-3xl gpu-layer"
+          style={{ animation: 'blobRotate 20s linear infinite' }}
         />
-        <motion.div 
-          className="absolute top-32 left-1/4 w-16 h-16 bg-gradient-to-br from-yellow-300 to-orange-300 rounded-2xl opacity-30 blur-sm"
-          animate={{ y: [0, -20, 0], rotate: [0, 180, 360] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        <div 
+          className="absolute top-32 left-1/4 w-16 h-16 bg-gradient-to-br from-yellow-300 to-orange-300 rounded-2xl opacity-30 blur-sm gpu-layer"
+          style={{ animation: 'blob3 6s ease-in-out infinite' }}
         />
-        <motion.div 
-          className="absolute bottom-40 right-1/4 w-12 h-12 bg-gradient-to-br from-blue-300 to-purple-300 rounded-full opacity-40 blur-sm"
-          animate={{ y: [0, 25, 0], scale: [1, 1.2, 1] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        <div 
+          className="absolute bottom-40 right-1/4 w-12 h-12 bg-gradient-to-br from-blue-300 to-purple-300 rounded-full opacity-40 blur-sm gpu-layer"
+          style={{ animation: 'blob4 4s ease-in-out infinite 1s' }}
         />
         {[...Array(6)].map((_, i) => (
-          <motion.div
+          <div
             key={`floating-dot-${i}`}
-            className="absolute w-2 h-2 bg-yellow-400 rounded-full opacity-30"
-            style={{ left: `${20 + i * 15}%`, top: `${30 + (i % 3) * 20}%` }}
-            animate={{ y: [0, -10, 0], opacity: [0.3, 0.7, 0.3], scale: [1, 1.5, 1] }}
-            transition={{ duration: 3 + i * 0.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
+            className="absolute w-2 h-2 bg-yellow-400 rounded-full gpu-layer"
+            style={{ 
+              left: `${20 + i * 15}%`, 
+              top: `${30 + (i % 3) * 20}%`,
+              animation: `floatingDot ${3 + i * 0.5}s ease-in-out infinite ${i * 0.3}s`
+            }}
           />
         ))}
       </div>
       
       <MemoizedHeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
-        <MemoizedSearchSection content={pageContent.search} />
-        <MemoizedOurPartners />
-        <MemoizedFeaturedHostels hostels={hostels} loading={loading} />
-        <MemoizedServicesSection content={pageContent.services} />
-        <MemoizedTestimonialsSection content={pageContent.testimonials} />
+      <MemoizedSearchSection content={pageContent.search} />
+      <MemoizedOurPartners />
+      <MemoizedFeaturedHostels hostels={hostels} loading={loading} />
+      <MemoizedServicesSection content={pageContent.services} />
+      <MemoizedTestimonialsSection content={pageContent.testimonials} />
     </main>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

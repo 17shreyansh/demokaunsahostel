@@ -1,15 +1,19 @@
-/* Optimized CSS animation for partners scroll */
+/* Optimized CSS animation for partners scroll - 120 FPS Target */
 .partners-scroll {
   animation: scroll-partners 8s linear infinite;
   will-change: transform;
+  /* Force strict 3D hardware acceleration to prevent sub-pixel rendering artifacts */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 @keyframes scroll-partners {
   0% {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -25,8 +29,10 @@
   animation-play-state: paused;
 }
 
-/* Performance optimizations */
+/* Image specific GPU offloading */
 .partners-scroll img {
   transform: translateZ(0);
   backface-visibility: hidden;
+  /* Prevent image aliasing and edge-blur during hardware-accelerated movement */
+  image-rendering: -webkit-optimize-contrast;
 }
