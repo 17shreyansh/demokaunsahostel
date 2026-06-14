@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Select, List, Typography, Tag, message, Spin, Collapse, Button, Space, Alert } from 'antd'
-import { DeleteOutlined, ReloadOutlined, EnvironmentOutlined } from '@ant-design/icons'
+import { DeleteOutlined, ReloadOutlined, EnvironmentOutlined, PlusOutlined, ClearOutlined } from '@ant-design/icons'
 import { FaGraduationCap, FaBuilding, FaBus, FaShoppingCart, FaHospital, FaFilm, FaUtensils, FaUniversity } from 'react-icons/fa'
 
 const { Title, Text } = Typography
@@ -234,6 +234,63 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
     }
   }, [coordinates, calculateDistances])
 
+  const fetchAllNearbyPlaces = useCallback(async () => {
+    if (!coordinates?.lat || !coordinates?.lng) {
+      message.warning('Please set hostel coordinates first')
+      return
+    }
+
+    setLoading(true)
+    
+    try {
+      // Fetch all places with distances
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}`
+      )
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch places: ${response.statusText}`)
+      }
+      
+      const placesWithDistances = await response.json()
+      console.log('Fetched all places with distances:', placesWithDistances)
+      
+      // Group places by category
+      const groupedPlaces = {}
+      Object.keys(categories).forEach(category => {
+        groupedPlaces[category] = placesWithDistances
+          .filter(place => place.category === category)
+          .map(place => ({
+            _id: place._id,
+            name: place.name,
+            type: place.type,
+            category: place.category,
+            distance: place.distance
+          }))
+      })
+      
+      console.log('Grouped places by category:', groupedPlaces)
+      onChange(groupedPlaces)
+      
+      const totalCount = Object.values(groupedPlaces).reduce((sum, places) => sum + places.length, 0)
+      message.success(`Successfully added ${totalCount} nearby places across all categories`)
+    } catch (error) {
+      console.error('Failed to fetch all nearby places:', error)
+      message.error(`Failed to fetch nearby places: ${error.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }, [coordinates, categories, onChange])
+
+  const clearAllPlaces = useCallback(() => {
+    const emptyPlaces = {}
+    Object.keys(categories).forEach(category => {
+      emptyPlaces[category] = []
+    })
+    onChange(emptyPlaces)
+    message.success('All nearby places cleared')
+  }, [categories, onChange])
+
   const getTotalSelectedCount = useCallback(() => {
     return Object.values(normalizedValue).reduce((total, places) => total + places.length, 0)
   }, [normalizedValue])
@@ -254,6 +311,26 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
               size="small"
             >
               Refresh
+            </Button>
+            <Button 
+              icon={<PlusOutlined />} 
+              onClick={fetchAllNearbyPlaces}
+              loading={loading || distanceLoading}
+              disabled={!coordinates?.lat}
+              size="small"
+              type="primary"
+              style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+            >
+              Fetch All Places
+            </Button>
+            <Button 
+              icon={<ClearOutlined />} 
+              onClick={clearAllPlaces}
+              disabled={!hasSelectedPlaces()}
+              size="small"
+              danger
+            >
+              Clear All
             </Button>
             <Button 
               icon={<EnvironmentOutlined />} 
@@ -411,8 +488,8 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
       {/* Footer info */}
       <div className="mt-4 p-3 bg-blue-50 rounded-lg">
         <Text type="secondary" className="text-xs">
-          💡 Tip: Set hostel coordinates first, then add nearby places to automatically calculate distances.
-          You can recalculate distances anytime using the "Calculate Distances" button.
+          💡 Tip: Set hostel coordinates first, then click "Fetch All Places" to automatically add all nearby places with distances.
+          You can also add places manually or recalculate distances anytime.
         </Text>
       </div>
     </div>
