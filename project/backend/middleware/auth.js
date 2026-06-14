@@ -2,17 +2,24 @@ const jwt = require('jsonwebtoken');
 
 const auth = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    // Check for token in cookies first, then fall back to Authorization header
+    let token = req.cookies?.token;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+    
+    if (!token) {
       return res.status(401).json({ message: 'Access denied. No valid token provided.' });
     }
     
-    const token = authHeader.substring(7);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    req.admin = { id: decoded.id };
-    req.user = { _id: decoded.id };
+    req.user = { id: decoded.id, role: decoded.role || 'admin' };
+    req.admin = { id: decoded.id }; // backward compatibility
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
@@ -25,4 +32,13 @@ const auth = async (req, res, next) => {
   }
 };
 
+// Middleware to check if user is admin
+const adminOnly = (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied. Admin only.' });
+  }
+  next();
+};
+
 module.exports = auth;
+module.exports.adminOnly = adminOnly;

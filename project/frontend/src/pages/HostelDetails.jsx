@@ -1,15 +1,29 @@
-import { useState, useEffect, useRef, memo } from 'react'
+import { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { hostelAPI } from '../services/api'
 import EnquiryForm from '../components/EnquiryForm'
 import HostelMap from '../components/HostelMap'
 import NearbyPlacesDisplay from '../components/NearbyPlacesDisplay'
 import BookingComponent from '../components/BookingComponent'
+import ReviewSection from '../components/ReviewSection'
 
 const MemoizedEnquiryForm = memo(EnquiryForm)
 const MemoizedHostelMap = memo(HostelMap)
 const MemoizedNearbyPlacesDisplay = memo(NearbyPlacesDisplay)
 const MemoizedBookingComponent = memo(BookingComponent)
+const MemoizedReviewSection = memo(ReviewSection)
+
+/* -------------------------------------------------------------------------- */
+/* STATIC ASSETS (Prevents Memory Reallocation)                               */
+/* -------------------------------------------------------------------------- */
+const UPLOADS_BASE_URL = import.meta.env.VITE_UPLOADS_BASE_URL || '';
+const STARS = [0, 1, 2, 3, 4];
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: 'M4 6h16M4 10h16M4 14h16M4 18h16' },
+  { id: 'amenities', label: 'Amenities', icon: 'M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
+  { id: 'location', label: 'Location', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
+  { id: 'reviews', label: 'Reviews', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z' }
+];
 
 const HostelDetails = () => {
   const { slug } = useParams()
@@ -20,19 +34,42 @@ const HostelDetails = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
-  const [touchStart, setTouchStart] = useState(null)
-  const [touchEnd, setTouchEnd] = useState(null)
+  
+  const touchStartRef = useRef(null)
+  const touchEndRef = useRef(null)
   
   const overviewRef = useRef(null)
   const amenitiesRef = useRef(null)
   const locationRef = useRef(null)
   const reviewsRef = useRef(null)
 
-  useEffect(() => {
-    fetchHostelDetails()
-  }, [slug])
+  const fetchHostelDetails = useCallback(async (abortController) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await hostelAPI.getBySlug(slug, { signal: abortController?.signal })
+      if (!abortController?.signal.aborted) {
+        setHostel(response.data)
+      }
+    } catch (error) {
+      if (error.name !== 'CanceledError') {
+        console.error('Error fetching hostel details:', error)
+        setError('Failed to load hostel details. Please check your connection and try again.')
+        setHostel(null)
+      }
+    } finally {
+      if (!abortController?.signal.aborted) {
+        setLoading(false)
+      }
+    }
+  }, [slug]);
 
-  // Auto-play functionality
+  useEffect(() => {
+    const abortController = new AbortController()
+    fetchHostelDetails(abortController)
+    return () => abortController.abort()
+  }, [fetchHostelDetails])
+
   useEffect(() => {
     if (isAutoPlaying && hostel?.images?.length > 1 && !isFullscreen) {
       const interval = setInterval(() => {
@@ -42,104 +79,115 @@ const HostelDetails = () => {
     }
   }, [isAutoPlaying, hostel?.images?.length, isFullscreen])
 
+  // Hardware-Accelerated Scroll Listener
   useEffect(() => {
+    if (!hostel) return;
+    
+    let ticking = false;
     const handleScroll = () => {
-      const sections = [
-        { id: 'overview', ref: overviewRef },
-        { id: 'amenities', ref: amenitiesRef },
-        { id: 'location', ref: locationRef },
-        { id: 'reviews', ref: reviewsRef }
-      ]
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollPosition = window.scrollY + 200
+          const sections = [
+            { id: 'overview', ref: overviewRef },
+            { id: 'amenities', ref: amenitiesRef },
+            { id: 'location', ref: locationRef },
+            { id: 'reviews', ref: reviewsRef }
+          ]
 
-      const scrollPosition = window.scrollY + 200
-
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i]
-        if (section.ref.current && section.ref.current.offsetTop <= scrollPosition) {
-          setActiveTab(section.id)
-          break
-        }
+          for (let i = sections.length - 1; i >= 0; i--) {
+            const section = sections[i]
+            if (section.ref.current && section.ref.current.offsetTop <= scrollPosition) {
+              setActiveTab(section.id)
+              break
+            }
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     }
 
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [hostel])
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (isFullscreen) {
-        if (e.key === 'ArrowLeft') prevImage()
-        if (e.key === 'ArrowRight') nextImage()
-        if (e.key === 'Escape') setIsFullscreen(false)
-      }
-    }
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [isFullscreen])
-
-  const fetchHostelDetails = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await hostelAPI.getBySlug(slug)
-      setHostel(response.data)
-    } catch (error) {
-      console.error('Error fetching hostel details:', error)
-      setError('Failed to load hostel details. Please check your connection and try again.')
-      setHostel(null)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const nextImage = () => {
+  const nextImage = useCallback(() => {
     if (hostel?.images?.length > 1) {
       setCurrentImageIndex((prev) => (prev + 1) % hostel.images.length)
       setIsAutoPlaying(false)
-      setTimeout(() => setIsAutoPlaying(true), 10000) // Resume auto-play after 10s
+      setTimeout(() => setIsAutoPlaying(true), 10000)
     }
-  }
+  }, [hostel?.images?.length])
 
-  const prevImage = () => {
+  const prevImage = useCallback(() => {
     if (hostel?.images?.length > 1) {
       setCurrentImageIndex((prev) => (prev - 1 + hostel.images.length) % hostel.images.length)
       setIsAutoPlaying(false)
-      setTimeout(() => setIsAutoPlaying(true), 10000) // Resume auto-play after 10s
+      setTimeout(() => setIsAutoPlaying(true), 10000)
     }
-  }
+  }, [hostel?.images?.length])
 
-  // Touch handlers
-  const handleTouchStart = (e) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
-  }
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const handleKeyPress = (e) => {
+      if (e.key === 'ArrowLeft') prevImage()
+      if (e.key === 'ArrowRight') nextImage()
+      if (e.key === 'Escape') setIsFullscreen(false)
+    }
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [isFullscreen, nextImage, prevImage])
 
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-  }
+  const handleTouchStart = useCallback((e) => {
+    touchEndRef.current = null
+    touchStartRef.current = e.targetTouches[0].clientX
+  }, [])
 
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > 50
-    const isRightSwipe = distance < -50
+  const handleTouchMove = useCallback((e) => {
+    touchEndRef.current = e.targetTouches[0].clientX
+  }, [])
 
-    if (isLeftSwipe) nextImage()
-    if (isRightSwipe) prevImage()
-  }
+  const handleTouchEnd = useCallback(() => {
+    if (!touchStartRef.current || !touchEndRef.current) return
+    const distance = touchStartRef.current - touchEndRef.current
+    
+    if (distance > 50) nextImage()
+    if (distance < -50) prevImage()
+  }, [nextImage, prevImage])
 
-  const openFullscreen = (index) => {
+  const openFullscreen = useCallback((index) => {
     setCurrentImageIndex(index)
     setIsFullscreen(true)
     setIsAutoPlaying(false)
-  }
+  }, [])
+
+  const handleEnquirySuccess = useCallback(() => {
+    alert('Enquiry sent successfully! We will contact you soon.')
+  }, [])
+
+  const handleRetryFetch = useCallback(() => {
+    fetchHostelDetails(new AbortController())
+  }, [fetchHostelDetails])
+
+  const formattedPrice = useMemo(() => 
+    Number(hostel?.price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','), 
+  [hostel?.price])
+
+  const parsedVideoUrl = useMemo(() => {
+    if (!hostel?.videoTourUrl) return null;
+    return hostel.videoTourUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/');
+  }, [hostel?.videoTourUrl])
+
+  const slicedInfo = useMemo(() => 
+    hostel?.info ? hostel.info.slice(0, 3) : [], 
+  [hostel?.info])
+
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-custom border-t-transparent mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-custom border-t-transparent mx-auto mb-4 transform-gpu will-change-transform"></div>
         <p className="text-gray-600 text-lg">Loading hostel details...</p>
       </div>
     </div>
@@ -157,7 +205,7 @@ const HostelDetails = () => {
         <p className="text-gray-600 mb-6">{error}</p>
         <div className="space-y-3">
           <button
-            onClick={fetchHostelDetails}
+            onClick={handleRetryFetch}
             className="bg-yellow-custom hover:bg-yellow-500 text-gray-900 px-6 py-3 rounded-lg font-semibold transition-colors w-full"
           >
             Try Again
@@ -187,38 +235,30 @@ const HostelDetails = () => {
     </div>
   )
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: 'M4 6h16M4 10h16M4 14h16M4 18h16' },
-    { id: 'amenities', label: 'Amenities', icon: 'M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
-    { id: 'location', label: 'Location', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
-    { id: 'reviews', label: 'Reviews', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z' }
-  ]
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Enhanced Hero Section with Better Slider */}
-      <div className="relative h-[300px] sm:h-[400px] md:h-[600px] bg-gradient-to-r from-blue-900 to-purple-900 overflow-hidden">
+      <div className="relative h-[300px] sm:h-[400px] md:h-[600px] bg-gradient-to-r from-blue-900 to-purple-900 overflow-hidden transform-gpu">
         {hostel.images && hostel.images.length > 0 ? (
           <>
-            {/* Image Container with Touch Support */}
             <div 
               className="relative w-full h-full"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              <div className="flex transition-transform duration-500 ease-in-out h-full"
-                   style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}>
+              <div className="flex transition-transform duration-500 ease-in-out h-full will-change-transform"
+                   style={{ transform: `translate3d(-${currentImageIndex * 100}%, 0, 0)` }}>
                 {hostel.images.map((image, index) => (
                   <div key={index} className="w-full h-full flex-shrink-0 relative">
                     <img
-                      src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${image}`}
+                      src={`${UPLOADS_BASE_URL}/${image}`}
                       alt={`${hostel.name} ${index + 1}`}
                       className="w-full h-full object-cover cursor-pointer"
                       onClick={() => openFullscreen(index)}
+                      fetchpriority={index === 0 ? 'high' : 'auto'}
                       loading={index === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
                     />
-                    {/* Zoom indicator - Hidden on mobile */}
                     <div className="hidden md:block absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white p-2 rounded-full opacity-0 hover:opacity-100 transition-opacity">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
@@ -233,10 +273,9 @@ const HostelDetails = () => {
             
             {hostel.images.length > 1 && (
               <>
-                {/* Navigation Buttons - Hidden on mobile */}
                 <button
                   onClick={prevImage}
-                  className="hidden md:block absolute left-6 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 shadow-lg z-10"
+                  className="hidden md:block absolute left-6 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 shadow-lg z-10 will-change-transform"
                   aria-label="Previous image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,7 +284,7 @@ const HostelDetails = () => {
                 </button>
                 <button
                   onClick={nextImage}
-                  className="hidden md:block absolute right-6 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 shadow-lg z-10"
+                  className="hidden md:block absolute right-6 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 shadow-lg z-10 will-change-transform"
                   aria-label="Next image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,7 +292,6 @@ const HostelDetails = () => {
                   </svg>
                 </button>
                 
-                {/* Enhanced Dots Indicator - Hidden on mobile */}
                 <div className="hidden md:flex absolute bottom-24 left-1/2 transform -translate-x-1/2 space-x-2 z-10">
                   {hostel.images.map((_, index) => (
                     <button
@@ -273,12 +311,10 @@ const HostelDetails = () => {
                   ))}
                 </div>
                 
-                {/* Image Counter - Hidden on mobile */}
                 <div className="hidden md:block absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium z-10">
                   {currentImageIndex + 1} / {hostel.images.length}
                 </div>
                 
-                {/* Auto-play Control - Hidden on mobile */}
                 <button
                   onClick={() => setIsAutoPlaying(!isAutoPlaying)}
                   className="hidden md:block absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white p-2 rounded-full transition-all duration-300 hover:bg-black/70 z-10"
@@ -330,7 +366,7 @@ const HostelDetails = () => {
               </svg>
               {hostel.mapCoordinates ? (
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${hostel.mapCoordinates.lat},${hostel.mapCoordinates.lng}`}
+                  href={`https://maps.google.com/?q=${hostel.mapCoordinates.lat},${hostel.mapCoordinates.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="truncate hover:underline"
@@ -343,7 +379,7 @@ const HostelDetails = () => {
             </div>
             <div className="flex items-center">
               <div className="flex text-yellow-custom mr-2 sm:mr-3">
-                {[...Array(5)].map((_, i) => (
+                {STARS.map((i) => (
                   <svg key={i} className={`w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 ${i < Math.floor(hostel.rating || 4.8) ? 'text-yellow-custom' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
@@ -355,7 +391,6 @@ const HostelDetails = () => {
         </div>
       </div>
 
-      {/* Breadcrumb */}
       <div className="bg-white border-b shadow-sm hidden md:block">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <nav className="flex text-sm">
@@ -368,12 +403,10 @@ const HostelDetails = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8 md:py-12">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-8 md:gap-12">
-          {/* Left Column - Main Content */}
+          
           <div className="xl:col-span-2 space-y-4 sm:space-y-6 md:space-y-8">
-            {/* Enhanced Image Gallery */}
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6">
               <div className="flex justify-between items-center mb-3 sm:mb-4">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900">Gallery</h3>
@@ -395,15 +428,16 @@ const HostelDetails = () => {
                     <button
                       key={index}
                       onClick={() => openFullscreen(index)}
-                      className={`group relative rounded-lg overflow-hidden border-2 transition-all duration-300 hover:shadow-lg ${
+                      className={`group relative rounded-lg overflow-hidden border-2 transition-all duration-300 hover:shadow-lg transform-gpu ${
                         index === currentImageIndex ? 'border-yellow-custom ring-2 ring-yellow-custom/20' : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <img 
-                        src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${image}`} 
+                        src={`${UPLOADS_BASE_URL}/${image}`} 
                         alt={`${hostel.name} ${index + 1}`}
-                        className="w-full h-16 sm:h-20 md:h-24 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-16 sm:h-20 md:h-24 object-cover group-hover:scale-105 transition-transform duration-300 transform-gpu will-change-transform"
                         loading="lazy"
+                        decoding="async"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                         <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -430,8 +464,7 @@ const HostelDetails = () => {
               )}
             </div>
 
-            {/* Video Tour Section */}
-            {hostel.videoTourUrl && (
+            {parsedVideoUrl && (
               <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-red-600" fill="currentColor" viewBox="0 0 24 24">
@@ -442,27 +475,27 @@ const HostelDetails = () => {
                 <div className="relative" style={{ paddingBottom: '56.25%', height: 0, overflow: 'hidden' }}>
                   <iframe
                     className="absolute top-0 left-0 w-full h-full rounded-lg"
-                    src={hostel.videoTourUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                    src={parsedVideoUrl}
                     title="Hostel Video Tour"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    loading="lazy"
                   />
                 </div>
               </div>
             )}
 
-            {/* Mobile Pricing Card - Show after gallery on mobile */}
             <div className="xl:hidden">
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-gradient-to-r from-yellow-custom to-orange-400 p-4 text-gray-900 text-center">
                   <div className="text-2xl font-bold mb-1">
-                    Rs. {Number(hostel.price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    Rs. {formattedPrice}
                     <span className="text-base font-normal ml-1">/{hostel.priceType || 'month'}</span>
                   </div>
                   <div className="flex justify-center mt-2">
                     <div className="flex text-gray-900">
-                      {[...Array(5)].map((_, i) => (
+                      {STARS.map((i) => (
                         <svg key={i} className={`w-4 h-4 ${i < Math.floor(hostel.rating || 4.8) ? 'text-gray-900' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
@@ -473,7 +506,7 @@ const HostelDetails = () => {
                 </div>
                 
                 <div className="p-4 space-y-3">
-                  {hostel.info && hostel.info.slice(0, 3).map((item, index) => (
+                  {slicedInfo.map((item, index) => (
                     <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                       <span className="text-gray-600 font-medium text-sm">{item.title}</span>
                       <span className="font-bold text-base text-gray-900">{item.value}</span>
@@ -501,12 +534,10 @@ const HostelDetails = () => {
               </div>
             </div>
 
-            {/* Mobile Booking Component */}
             <div className="xl:hidden">
-              <BookingComponent hostel={hostel} />
+              <MemoizedBookingComponent hostel={hostel} />
             </div>
 
-            {/* Mobile Enquiry Form */}
             <div className="xl:hidden">
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-gradient-to-r from-yellow-custom to-orange-400 p-4 text-gray-900">
@@ -514,22 +545,19 @@ const HostelDetails = () => {
                   <p className="text-gray-800 text-sm">Get personalized assistance</p>
                 </div>
                 <div className="p-4">
-                  <EnquiryForm 
+                  <MemoizedEnquiryForm 
                     hostelId={hostel._id}
                     hostelName={hostel.name}
                     source="hostel-details"
-                    onSuccess={() => {
-                      alert('Enquiry sent successfully! We will contact you soon.')
-                    }}
+                    onSuccess={handleEnquirySuccess}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Sticky Tab Navigation */}
-            <div className="sticky top-20 z-30 bg-white rounded-xl sm:rounded-2xl shadow-lg mb-4 sm:mb-6">
+            <div className="sticky top-20 z-30 bg-white rounded-xl sm:rounded-2xl shadow-lg mb-4 sm:mb-6 transform-gpu">
               <nav className="flex border-b border-gray-100 overflow-x-auto">
-                {tabs.map((tab) => (
+                {TABS.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => {
@@ -549,14 +577,13 @@ const HostelDetails = () => {
                     </svg>
                     <span className="hidden sm:inline">{tab.label}</span>
                     {activeTab === tab.id && (
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-custom rounded-t-full"></div>
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-custom rounded-t-full transform-gpu will-change-transform"></div>
                     )}
                   </button>
                 ))}
               </nav>
             </div>
 
-            {/* Tab Content */}
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
               <div className="p-4 sm:p-6 md:p-8">
                 <div ref={overviewRef} className="space-y-4 sm:space-y-6 md:space-y-8 mb-8 sm:mb-10 md:mb-12">
@@ -611,7 +638,6 @@ const HostelDetails = () => {
                   </div>
                 </div>
 
-                {/* Rules Section */}
                 {hostel.rules && hostel.rules.length > 0 && (
                   <div className="mb-12">
                     <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
@@ -678,9 +704,8 @@ const HostelDetails = () => {
                     Location & Nearby
                   </h3>
                   
-                  {/* Interactive Map */}
                   {hostel.mapCoordinates && hostel.mapCoordinates.lat && hostel.mapCoordinates.lng ? (
-                    <HostelMap 
+                    <MemoizedHostelMap 
                       coordinates={hostel.mapCoordinates}
                       hostelName={hostel.name}
                       address={hostel.contactInfo?.address || hostel.location}
@@ -695,75 +720,28 @@ const HostelDetails = () => {
                       </div>
                     </div>
                   )}
-                  {/* Enhanced Nearby Places */}
-                  <NearbyPlacesDisplay hostelCoordinates={hostel.mapCoordinates} hostelNearbyPlaces={hostel.nearbyPlaces} />
+                  <MemoizedNearbyPlacesDisplay hostelCoordinates={hostel.mapCoordinates} hostelNearbyPlaces={hostel.nearbyPlaces} />
                 </div>
 
                 <div ref={reviewsRef} className="mb-12">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                    <svg className="w-6 h-6 mr-3 text-yellow-custom" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                    </svg>
-                    Guest Reviews
-                  </h3>
-                  <div className="space-y-6">
-                    {hostel.reviews && hostel.reviews.length > 0 ? (
-                      hostel.reviews.map((review, index) => (
-                      <div key={index} className="bg-gradient-to-r from-gray-50 to-blue-50 p-6 rounded-xl border border-gray-200">
-                        <div className="flex items-start space-x-4">
-                          <div className="bg-yellow-custom text-gray-900 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
-                            {review.avatar || review.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <div className="font-bold text-gray-900 text-lg">{review.name}</div>
-                                <div className="flex text-yellow-custom">
-                                  {[...Array(review.rating)].map((_, i) => (
-                                    <svg key={i} className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                  ))}
-                                </div>
-                              </div>
-                              <span className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full">{review.date}</span>
-                            </div>
-                            <p className="text-gray-700 leading-relaxed">{review.comment}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                    ) : (
-                      <div className="text-center py-12">
-                        <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                          <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                          </svg>
-                        </div>
-                        <p className="text-gray-500 text-lg">No reviews available yet.</p>
-                        <p className="text-gray-400 text-sm mt-2">Be the first to share your experience!</p>
-                      </div>
-                    )}
-                  </div>
+                  {/* Replaced old hardcoded HTML with the isolated ReviewSection component */}
+                  <MemoizedReviewSection hostelId={hostel._id} />
                 </div>
               </div>
             </div>
 
-
           </div>
 
-          {/* Right Column - Enhanced Sidebar - Hidden on mobile */}
           <div className="hidden xl:block xl:col-span-1 space-y-6">
-            {/* Enhanced Pricing Card */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
               <div className="bg-gradient-to-r from-yellow-custom to-orange-400 p-6 text-gray-900 text-center">
                 <div className="text-4xl font-bold mb-2">
-                  Rs. {Number(hostel.price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  Rs. {formattedPrice}
                   <span className="text-lg font-normal ml-1">/{hostel.priceType || 'month'}</span>
                 </div>
                 <div className="flex justify-center mt-3">
                   <div className="flex text-gray-900">
-                    {[...Array(5)].map((_, i) => (
+                    {STARS.map((i) => (
                       <svg key={i} className={`w-4 h-4 ${i < Math.floor(hostel.rating || 4.8) ? 'text-gray-900' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
@@ -818,7 +796,6 @@ const HostelDetails = () => {
               </div>
             </div>
 
-            {/* Sticky Enquiry Form */}
             <div className="sticky top-16">
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div className="bg-gradient-to-r from-yellow-custom to-orange-400 p-4 text-gray-900">
@@ -826,31 +803,26 @@ const HostelDetails = () => {
                   <p className="text-gray-800 text-sm">Get personalized assistance</p>
                 </div>
                 <div className="p-4">
-                  <EnquiryForm 
+                  <MemoizedEnquiryForm 
                     hostelId={hostel._id}
                     hostelName={hostel.name}
                     source="hostel-details"
-                    onSuccess={() => {
-                      alert('Enquiry sent successfully! We will contact you soon.')
-                    }}
+                    onSuccess={handleEnquirySuccess}
                   />
                 </div>
               </div>
 
-              {/* Booking Component */}
               <div className="mt-6">
-                <BookingComponent hostel={hostel} />
+                <MemoizedBookingComponent hostel={hostel} />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Fullscreen Image Modal */}
       {isFullscreen && hostel.images && (
         <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center">
           <div className="relative w-full h-full flex items-center justify-center p-4">
-            {/* Close Button */}
             <button
               onClick={() => setIsFullscreen(false)}
               className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 z-10"
@@ -861,19 +833,19 @@ const HostelDetails = () => {
               </svg>
             </button>
             
-            {/* Image */}
             <img
-              src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${hostel.images[currentImageIndex]}`}
+              src={`${UPLOADS_BASE_URL}/${hostel.images[currentImageIndex]}`}
               alt={`${hostel.name} ${currentImageIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full object-contain transform-gpu"
+              loading="lazy"
+              decoding="async"
             />
             
-            {/* Navigation */}
             {hostel.images.length > 1 && (
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300"
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 transform-gpu will-change-transform"
                   aria-label="Previous image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -882,7 +854,7 @@ const HostelDetails = () => {
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 transform-gpu will-change-transform"
                   aria-label="Next image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -892,27 +864,27 @@ const HostelDetails = () => {
               </>
             )}
             
-            {/* Image Info */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full">
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full transform-gpu">
               <span className="text-sm font-medium">
                 {currentImageIndex + 1} of {hostel.images.length} • {hostel.name}
               </span>
             </div>
             
-            {/* Thumbnail Strip */}
-            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-full overflow-x-auto px-4">
+            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-full overflow-x-auto px-4 transform-gpu">
               {hostel.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`flex-shrink-0 w-16 h-12 rounded border-2 overflow-hidden transition-all duration-300 ${
+                  className={`flex-shrink-0 w-16 h-12 rounded border-2 overflow-hidden transition-all duration-300 transform-gpu will-change-transform ${
                     index === currentImageIndex ? 'border-white' : 'border-white/50 hover:border-white/80'
                   }`}
                 >
                   <img
-                    src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${image}`}
+                    src={`${UPLOADS_BASE_URL}/${image}`}
                     alt={`Thumbnail ${index + 1}`}
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </button>
               ))}
@@ -924,4 +896,4 @@ const HostelDetails = () => {
   )
 }
 
-export default HostelDetails
+export default memo(HostelDetails);

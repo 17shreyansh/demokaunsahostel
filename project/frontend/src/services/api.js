@@ -12,7 +12,8 @@ cacheManager.register('api', cache)
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000
+  timeout: 10000,
+  withCredentials: true // Enable cookies
 })
 
 // Request interceptor for caching (only cache GET requests)
@@ -48,15 +49,13 @@ const uploadAPI = axios.create({
   baseURL: API_BASE_URL,
   timeout: 0, // No timeout for uploads
   maxContentLength: Infinity,
-  maxBodyLength: Infinity
+  maxBodyLength: Infinity,
+  withCredentials: true // Enable cookies
 })
 
-// Auth interceptor for both APIs
+// Auth interceptor for both APIs - no longer needed for cookies but kept for backward compatibility
 const authInterceptor = (config) => {
-  const token = localStorage.getItem('adminToken')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
+  // Cookies are sent automatically, no need to set Authorization header
   return config
 }
 
@@ -129,8 +128,35 @@ export const enquiryAPI = {
 }
 
 export const authAPI = {
+  adminLogin: (credentials) => api.post('/auth/admin/login', credentials),
   login: (credentials) => api.post('/auth/login', credentials),
-  register: (data) => api.post('/auth/register', data)
+  signup: (data) => api.post('/auth/signup', data),
+  logout: () => api.post('/auth/logout'),
+  getMe: () => api.get('/auth/me'),
+  updateProfile: (data) => api.put('/auth/profile', data)
+}
+
+export const userAPI = {
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString()
+    return api.get(`/users${queryString ? `?${queryString}` : ''}`)
+  },
+  getStats: () => api.get('/users/stats'),
+  getById: (id) => api.get(`/users/${id}`),
+  toggleStatus: (id) => api.patch(`/users/${id}/toggle-status`),
+  delete: (id) => api.delete(`/users/${id}`)
+}
+
+export const reviewAPI = {
+  getByHostel: (hostelId) => api.get(`/reviews/hostel/${hostelId}`),
+  getMyReviews: () => api.get('/reviews/my-reviews'),
+  create: (data) => api.post('/reviews', data),
+  update: (id, data) => api.put(`/reviews/${id}`, data),
+  delete: (id) => api.delete(`/reviews/${id}`),
+  // Admin routes
+  getAllAdmin: () => api.get('/reviews/admin/all'),
+  approve: (id, isApproved) => api.patch(`/reviews/admin/${id}/approve`, { isApproved }),
+  deleteAdmin: (id) => api.delete(`/reviews/admin/${id}`)
 }
 
 export const leadAPI = {

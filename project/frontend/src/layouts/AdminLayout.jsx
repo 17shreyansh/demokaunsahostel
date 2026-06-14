@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useTheme, ThemeProvider } from '../contexts/ThemeContext'
-import { FiHome, FiGrid, FiUsers, FiSettings, FiFileText, FiFolder, FiMessageSquare } from 'react-icons/fi'
+import { authAPI } from '../services/api'
+import { FiHome, FiGrid, FiUsers, FiSettings, FiFileText, FiFolder, FiMessageSquare, FiStar } from 'react-icons/fi'
 
 const AdminLayoutContent = () => {
   const navigate = useNavigate()
@@ -21,19 +22,24 @@ const AdminLayoutContent = () => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken')
-    localStorage.removeItem('adminUser')
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
     navigate('/admin')
   }
 
   const menuItems = [
     { key: 'dashboard', label: 'Dashboard', icon: FiHome },
     { key: 'hostels', label: 'My Properties', icon: FiGrid },
+    { key: 'users', label: 'Users', icon: FiUsers },
+    { key: 'reviews', label: 'Reviews', icon: FiStar },
     { key: 'blog', label: 'Blog Posts', icon: FiFileText },
-    { key: 'nearbyplaces', label: 'Nearby Places', icon: FiUsers },
-    { key: 'leads', label: 'Bookings', icon: FiUsers },
-    { key: 'page-content', label: 'Page Content', icon: FiFolder },
+    { key: 'nearbyplaces', label: 'Nearby Places', icon: FiMessageSquare },
+    { key: 'leads', label: 'Bookings', icon: FiFolder },
+    { key: 'page-content', label: 'Page Content', icon: FiFileText },
     { key: 'settings', label: 'Settings', icon: FiSettings }
   ]
 
@@ -48,6 +54,8 @@ const AdminLayoutContent = () => {
   const getSelectedKey = () => {
     const path = location.pathname
     if (path.includes('/hostels')) return ['hostels']
+    if (path.includes('/users')) return ['users']
+    if (path.includes('/reviews')) return ['reviews']
     if (path.includes('/blog')) return ['blog']
     if (path.includes('/nearbyplaces')) return ['nearbyplaces']
     if (path.includes('/leads')) return ['leads']
@@ -61,6 +69,8 @@ const AdminLayoutContent = () => {
     if (path.includes('/hostels/new')) return 'Add New Property'
     if (path.includes('/hostels/') && path.split('/').length > 3) return 'Edit Property'
     if (path.includes('/hostels')) return 'My Properties'
+    if (path.includes('/users')) return 'User Management'
+    if (path.includes('/reviews')) return 'Review Management'
     if (path.includes('/blog/new')) return 'Create Blog Post'
     if (path.includes('/blog/edit')) return 'Edit Blog Post'
     if (path.includes('/blog')) return 'Blog Management'

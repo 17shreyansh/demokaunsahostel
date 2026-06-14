@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const helmet = require('helmet');
 const compression = require('compression');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // MongoDB Connection
@@ -33,6 +35,8 @@ app.use('/api/nearbyplaces', require('./routes/nearbyplaces'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/pages', require('./routes/pages'));
 app.use('/api/page-content', require('./routes/pageContent'));
+app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/users', require('./routes/users'));
 
 // Blog System Routes
 app.use('/api/blog', require('./routes/blog.routes'));

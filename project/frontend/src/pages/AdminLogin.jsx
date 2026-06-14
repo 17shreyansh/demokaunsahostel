@@ -14,9 +14,8 @@ const AdminLoginContent = () => {
     setError('')
 
     try {
-      const response = await authAPI.login(values)
-      localStorage.setItem('adminToken', response.data.token)
-      localStorage.setItem('adminUser', JSON.stringify(response.data.admin))
+      const response = await authAPI.adminLogin(values)
+      // No need to store token - it's in HTTP-only cookie now
       navigate('/admin/dashboard')
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed')

@@ -7,6 +7,7 @@ import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminLayout from './layouts/AdminLayout'
 import { AdminProvider } from './contexts/AdminContext'
+import { UserProvider } from './contexts/UserContext'
 import LoadingSpinner from './components/common/LoadingSpinner'
 
 // Lazy load pages
@@ -15,6 +16,8 @@ const Hostels = lazy(() => import('./pages/Hostels'))
 const HostelDetails = lazy(() => import('./pages/HostelDetails'))
 const About = lazy(() => import('./pages/About'))
 const Contact = lazy(() => import('./pages/Contact'))
+const UserAuth = lazy(() => import('./pages/UserAuth'))
+const UserProfile = lazy(() => import('./pages/UserProfile'))
 const AdminLogin = lazy(() => import('./pages/AdminLogin'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminHostels = lazy(() => import('./pages/AdminHostels'))
@@ -23,6 +26,8 @@ const AdminNearbyPlaces = lazy(() => import('./pages/AdminNearbyPlaces'))
 const AdminLeads = lazy(() => import('./pages/AdminLeads'))
 const AdminSettings = lazy(() => import('./pages/AdminSettings'))
 const AdminPageContent = lazy(() => import('./pages/AdminPageContent'))
+const AdminUsers = lazy(() => import('./pages/AdminUsers'))
+const AdminReviews = lazy(() => import('./pages/AdminReviews'))
 const AdminBlogList = lazy(() => import('./pages/blog/AdminBlogList'))
 const AdminBlogEditor = lazy(() => import('./pages/blog/AdminBlogEditor'))
 const BlogList = lazy(() => import('./pages/blog/BlogListPage'))
@@ -42,92 +47,112 @@ function ScrollToTop() {
 function App() {
   return (
     <HelmetProvider>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <div className="App">
-          <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
-            <Routes>
-              {/* Public Routes with Header/Footer */}
-              <Route path="/" element={
-                <>
-                  <Header />
-                  <Home />
-                  <Footer />
-                </>
-              } />
-              <Route path="/hostels" element={
-                <>
-                  <Header />
-                  <Hostels />
-                  <Footer />
-                </>
-              } />
-              <Route path="/hostel/:slug" element={
-                <>
-                  <Header />
-                  <HostelDetails />
-                  <Footer />
-                </>
-              } />
-              <Route path="/about" element={
-                <>
-                  <Header />
-                  <About />
-                  <Footer />
-                </>
-              } />
-              <Route path="/contact" element={
-                <>
-                  <Header />
-                  <Contact />
-                  <Footer />
-                </>
-              } />
+      <UserProvider>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <div className="App">
+            <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
+              <Routes>
+                {/* Public Routes with Header/Footer */}
+                <Route path="/" element={
+                  <>
+                    <Header />
+                    <Home />
+                    <Footer />
+                  </>
+                } />
+                <Route path="/hostels" element={
+                  <>
+                    <Header />
+                    <Hostels />
+                    <Footer />
+                  </>
+                } />
+                <Route path="/hostel/:slug" element={
+                  <>
+                    <Header />
+                    <HostelDetails />
+                    <Footer />
+                  </>
+                } />
+                <Route path="/about" element={
+                  <>
+                    <Header />
+                    <About />
+                    <Footer />
+                  </>
+                } />
+                <Route path="/contact" element={
+                  <>
+                    <Header />
+                    <Contact />
+                    <Footer />
+                  </>
+                } />
 
-              {/* Admin Routes without Header/Footer */}
-              <Route path="/admin" element={<AdminLogin />} />
-              <Route path="/admin/*" element={
-                <ProtectedRoute>
-                  <AdminProvider>
-                    <AdminLayout />
-                  </AdminProvider>
-                </ProtectedRoute>
-              }>
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="hostels" element={<AdminHostels />} />
-                <Route path="hostels/new" element={<AdminHostelEdit />} />
-                <Route path="hostels/:id" element={<AdminHostelEdit />} />
-                <Route path="nearbyplaces" element={<AdminNearbyPlaces />} />
-                <Route path="leads" element={<AdminLeads />} />
-                <Route path="settings" element={<AdminSettings />} />
-                <Route path="page-content" element={<AdminPageContent />} />
-                <Route path="blog" element={<AdminBlogList />} />
-                <Route path="blog/new" element={<AdminBlogEditor />} />
-                <Route path="blog/edit/:id" element={<AdminBlogEditor />} />
-              </Route>
+                {/* User Auth & Profile Routes */}
+                <Route path="/user/auth" element={
+                  <>
+                    <Header />
+                    <UserAuth />
+                    <Footer />
+                  </>
+                } />
+                <Route path="/user/profile" element={
+                  <>
+                    <Header />
+                    <UserProfile />
+                    <Footer />
+                  </>
+                } />
 
-              {/* Public Blog Routes */}
-              <Route path="/blog" element={
-                <>
-                  <Header />
-                  <BlogList />
-                  <Footer />
-                </>
-              } />
-              <Route path="/blog/:slug" element={
-                <>
-                  <Header />
-                  <BlogPost />
-                  <Footer />
-                </>
-              } />
-            </Routes>
-          </Suspense>
-          <ScrollToTop />
-          <Suspense fallback={null}>
-            <Chatbot />
-          </Suspense>
-        </div>
-      </Router>
+                {/* Admin Routes without Header/Footer */}
+                <Route path="/admin" element={<AdminLogin />} />
+                <Route path="/admin/*" element={
+                  <ProtectedRoute>
+                    <AdminProvider>
+                      <AdminLayout />
+                    </AdminProvider>
+                  </ProtectedRoute>
+                }>
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="hostels" element={<AdminHostels />} />
+                  <Route path="hostels/new" element={<AdminHostelEdit />} />
+                  <Route path="hostels/:id" element={<AdminHostelEdit />} />
+                  <Route path="nearbyplaces" element={<AdminNearbyPlaces />} />
+                  <Route path="leads" element={<AdminLeads />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="reviews" element={<AdminReviews />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="page-content" element={<AdminPageContent />} />
+                  <Route path="blog" element={<AdminBlogList />} />
+                  <Route path="blog/new" element={<AdminBlogEditor />} />
+                  <Route path="blog/edit/:id" element={<AdminBlogEditor />} />
+                </Route>
+
+                {/* Public Blog Routes */}
+                <Route path="/blog" element={
+                  <>
+                    <Header />
+                    <BlogList />
+                    <Footer />
+                  </>
+                } />
+                <Route path="/blog/:slug" element={
+                  <>
+                    <Header />
+                    <BlogPost />
+                    <Footer />
+                  </>
+                } />
+              </Routes>
+            </Suspense>
+            <ScrollToTop />
+            <Suspense fallback={null}>
+              <Chatbot />
+            </Suspense>
+          </div>
+        </Router>
+      </UserProvider>
     </HelmetProvider>
   )
 }
