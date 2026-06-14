@@ -1,34 +1,71 @@
-import { useState, useEffect } from 'react'
-import { pageAPI } from '../services/api'
-import founderImage from '../assets/founder.jpeg'
+import { useState, useEffect, memo } from 'react';
+import { pageAPI } from '../services/api';
+import founderImage from '../assets/founder.jpeg';
 
-const About = () => {
-  const [content, setContent] = useState({})
-  const [loading, setLoading] = useState(true)
+/* -------------------------------------------------------------------------- */
+/* STATIC ASSETS (Prevents Memory Reallocation)                               */
+/* -------------------------------------------------------------------------- */
+const FALLBACK_STATS = [
+  { number: '500+', label: 'Happy Students' },
+  { number: '50+', label: 'Premium Hostels' },
+  { number: '5+', label: 'Years Experience' },
+  { number: '24/7', label: 'Support Available' }
+];
+
+const FALLBACK_VALUES = [
+  { title: 'Safety First', description: 'Your security is our top priority with 24/7 surveillance and secure access' },
+  { title: 'Quality Living', description: 'Premium amenities and comfortable spaces for the best student experience' },
+  { title: 'Community', description: 'Building connections and lifelong friendships in our vibrant communities' },
+  { title: 'Innovation', description: 'Modern solutions and smart technology for contemporary living needs' }
+];
+
+/* -------------------------------------------------------------------------- */
+/* MAIN COMPONENT                                                             */
+/* -------------------------------------------------------------------------- */
+const About = memo(() => {
+  const [content, setContent] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchContent()
-  }, [])
+    const abortController = new AbortController();
 
-  const fetchContent = async () => {
-    try {
-      const response = await pageAPI.getPageContent('about')
-      console.log('About page response:', response.data)
-      setContent(response.data.content || {})
-    } catch (error) {
-      console.error('Error fetching about content:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    const fetchContent = async () => {
+      try {
+        const response = await pageAPI.getPageContent('about', {
+          signal: abortController.signal
+        });
+        
+        if (!abortController.signal.aborted) {
+          setContent(response.data.content || {});
+        }
+      } catch (error) {
+        if (error.name !== 'CanceledError') {
+          console.error('Error fetching about content:', error);
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchContent();
+
+    return () => abortController.abort();
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-custom"></div>
+      <div className="flex justify-center items-center h-64" aria-busy="true">
+        {/* GPU-Accelerated Spinner */}
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-custom transform-gpu will-change-transform"></div>
       </div>
-    )
+    );
   }
+
+  // Derive arrays once per render using static fallbacks
+  const stats = content.about?.stats || FALLBACK_STATS;
+  const values = content.about?.values || FALLBACK_VALUES;
 
   return (
     <div className="bg-white">
@@ -56,13 +93,11 @@ const About = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {(content.about?.stats || [
-              { number: '500+', label: 'Happy Students' },
-              { number: '50+', label: 'Premium Hostels' },
-              { number: '5+', label: 'Years Experience' },
-              { number: '24/7', label: 'Support Available' }
-            ]).map((stat, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            {stats.map((stat, index) => (
+              <div 
+                key={index} 
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 transform-gpu will-change-transform"
+              >
                 <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
                 <div className="text-gray-600">{stat.label}</div>
               </div>
@@ -105,12 +140,7 @@ const About = () => {
               </div>
               
               <div className="space-y-6">
-                {(content.about?.values || [
-                  { title: 'Safety First', description: 'Your security is our top priority with 24/7 surveillance and secure access' },
-                  { title: 'Quality Living', description: 'Premium amenities and comfortable spaces for the best student experience' },
-                  { title: 'Community', description: 'Building connections and lifelong friendships in our vibrant communities' },
-                  { title: 'Innovation', description: 'Modern solutions and smart technology for contemporary living needs' }
-                ]).map((value, index) => (
+                {values.map((value, index) => (
                   <div key={index} className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-yellow-custom">
                     <h4 className="font-bold text-gray-900 mb-2">{value.title}</h4>
                     <p className="text-gray-600">{value.description}</p>
@@ -143,15 +173,17 @@ const About = () => {
               {/* Founder Image Section */}
               <div className="order-2 lg:order-1">
                 <div className="relative group max-w-md mx-auto lg:max-w-none">
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-custom/20 to-yellow-custom/10 rounded-3xl transform rotate-3 group-hover:rotate-1 transition-transform duration-500"></div>
-                  <div className="relative bg-white p-4 md:p-6 rounded-3xl shadow-2xl transform -rotate-1 group-hover:rotate-0 transition-all duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-custom/20 to-yellow-custom/10 rounded-3xl transform rotate-3 group-hover:rotate-1 transition-transform duration-500 will-change-transform"></div>
+                  <div className="relative bg-white p-4 md:p-6 rounded-3xl shadow-2xl transform -rotate-1 group-hover:rotate-0 transition-all duration-500 transform-gpu will-change-transform">
                     <img 
                       src={content.leadership?.ceo?.image ? `${import.meta.env.VITE_API_URL}${content.leadership.ceo.image}` : founderImage}
                       alt="Founder & CEO" 
-                      className="w-full aspect-[4/5] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full aspect-[4/5] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500 transform-gpu will-change-transform"
                     />
-                    <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-yellow-custom/30 rounded-full blur-xl"></div>
-                    <div className="absolute -top-3 -left-3 w-12 h-12 bg-yellow-custom rounded-full opacity-80"></div>
+                    <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-yellow-custom/30 rounded-full blur-xl pointer-events-none"></div>
+                    <div className="absolute -top-3 -left-3 w-12 h-12 bg-yellow-custom rounded-full opacity-80 pointer-events-none"></div>
                   </div>
                 </div>
               </div>
@@ -222,10 +254,10 @@ const About = () => {
                     Have questions about our services or want to learn more about our vision?
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <a href="/contact" className="bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors text-sm md:text-base">
+                    <a href="/contact" className="bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors transform-gpu hover:-translate-y-1 will-change-transform text-sm md:text-base">
                       Get in Touch
                     </a>
-                    <a href="/hostels" className="bg-white text-gray-900 px-6 py-3 rounded-lg font-semibold border-2 border-gray-900 hover:bg-gray-100 transition-colors text-sm md:text-base">
+                    <a href="/hostels" className="bg-white text-gray-900 px-6 py-3 rounded-lg font-semibold border-2 border-gray-900 hover:bg-gray-100 transition-colors transform-gpu hover:-translate-y-1 will-change-transform text-sm md:text-base">
                       View Properties
                     </a>
                   </div>
@@ -290,17 +322,19 @@ const About = () => {
             Join thousands of students who have made StayNest their home away from home. Experience the difference.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/hostels" className="bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+            <a href="/hostels" className="bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors transform-gpu hover:-translate-y-1 will-change-transform">
               Explore Hostels
             </a>
-            <a href="/contact" className="bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold border-2 border-gray-900 hover:bg-gray-100 transition-colors">
+            <a href="/contact" className="bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold border-2 border-gray-900 hover:bg-gray-100 transition-colors transform-gpu hover:-translate-y-1 will-change-transform">
               Contact Us
             </a>
           </div>
         </div>
       </section>
     </div>
-  )
-}
+  );
+});
 
-export default About
+About.displayName = 'About';
+
+export default About;

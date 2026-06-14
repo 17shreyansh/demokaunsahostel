@@ -1,61 +1,91 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { pageAPI } from '../services/api'
 import logo from '../assets/logo.png'
 
-const Header = () => {
+// 1. Static Configuration: Extracted outside render to prevent memory reallocation
+const NAV_LINKS = [
+  { path: '/', label: 'Home', exact: true },
+  { path: '/hostels', label: 'Hostels', exact: true },
+  { path: '/blog', label: 'Blogs', exact: false },
+  { path: '/about', label: 'About', exact: true },
+  { path: '/contact', label: 'Contact', exact: true }
+];
+
+// 2. Component Memoization
+const Header = memo(() => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState('')
   const location = useLocation()
 
+  // 3. Network Safety: AbortController prevents state updates on unmounted components
   useEffect(() => {
+    const abortController = new AbortController()
+
+    const fetchPhoneNumber = async () => {
+      try {
+        const response = await pageAPI.getPageContent('contact', { 
+          signal: abortController.signal 
+        })
+        const phone = response.data?.content?.contact?.contactInfo?.phone
+        if (phone && !abortController.signal.aborted) {
+          setPhoneNumber(phone)
+        }
+      } catch (error) {
+        if (error.name !== 'CanceledError') {
+          console.error('Error fetching phone number:', error)
+        }
+      }
+    }
+
     fetchPhoneNumber()
+    
+    return () => abortController.abort()
   }, [])
 
-  const fetchPhoneNumber = async () => {
-    try {
-      const response = await pageAPI.getPageContent('contact')
-      const phone = response.data.content?.contact?.contactInfo?.phone
-      if (phone) setPhoneNumber(phone)
-    } catch (error) {
-      console.error('Error fetching phone number:', error)
-    }
+  // 4. UX Optimization: Automatically close mobile menu when clicking a link
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname])
+
+  // Helper to determine active route
+  const checkIsActive = (path, exact) => {
+    return exact 
+      ? location.pathname === path 
+      : location.pathname.startsWith(path);
   }
 
   return (
-    <header id="home" className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50">
+    <header id="home" className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50 transform-gpu">
       <nav className="container mx-auto px-6 py-3 flex justify-between items-center">
 
         <Link to="/" className="flex items-center group">
-          <img src={logo} alt="KaunsaHostel Logo" className="h-11 transition-transform duration-300 group-hover:scale-105" />
+          {/* 5. GPU Acceleration: Added will-change-transform to prevent layout thrashing on hover */}
+          <img 
+            src={logo} 
+            alt="KaunsaHostel Logo" 
+            className="h-11 transition-transform duration-300 transform-gpu group-hover:scale-105 will-change-transform" 
+          />
         </Link>
         
         <div className="hidden md:flex items-center space-x-1">
-          <Link to="/" className={`nav-link font-medium px-4 py-2 rounded-lg transition-all duration-300 ${
-            location.pathname === '/' 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:text-yellow-custom hover:bg-yellow-50'
-          }`}>Home</Link>
-          <Link to="/hostels" className={`nav-link font-medium px-4 py-2 rounded-lg transition-all duration-300 ${
-            location.pathname === '/hostels' 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:text-yellow-custom hover:bg-yellow-50'
-          }`}>Hostels</Link>
-          <Link to="/blog" className={`nav-link font-medium px-4 py-2 rounded-lg transition-all duration-300 ${
-            location.pathname.startsWith('/blog') 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:text-yellow-custom hover:bg-yellow-50'
-          }`}>Blogs</Link>
-          <Link to="/about" className={`nav-link font-medium px-4 py-2 rounded-lg transition-all duration-300 ${
-            location.pathname === '/about' 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:text-yellow-custom hover:bg-yellow-50'
-          }`}>About</Link>
-          <Link to="/contact" className={`nav-link font-medium px-4 py-2 rounded-lg transition-all duration-300 ${
-            location.pathname === '/contact' 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:text-yellow-custom hover:bg-yellow-50'
-          }`}>Contact</Link>
+          {/* 6. DRY Architecture: Replaced massive repetitive blocks with a clean map */}
+          {NAV_LINKS.map(({ path, label, exact }) => {
+            const isActive = checkIsActive(path, exact);
+            return (
+              <Link 
+                key={`desktop-${path}`}
+                to={path} 
+                className={`nav-link font-medium px-4 py-2 rounded-lg transition-all duration-300 ${
+                  isActive 
+                    ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
+                    : 'text-gray-600 hover:text-yellow-custom hover:bg-yellow-50'
+                }`}
+              >
+                {label}
+              </Link>
+            )
+          })}
         </div>
         
         {phoneNumber && (
@@ -81,31 +111,23 @@ const Header = () => {
       
       {mobileMenuOpen && (
         <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 px-6 pt-4 pb-6 space-y-2">
-          <Link to="/" className={`block nav-link font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
-            location.pathname === '/' 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-custom'
-          }`}>Home</Link>
-          <Link to="/hostels" className={`block nav-link font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
-            location.pathname === '/hostels' 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-custom'
-          }`}>Hostels</Link>
-          <Link to="/blog" className={`block nav-link font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
-            location.pathname.startsWith('/blog') 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-custom'
-          }`}>Blogs</Link>
-          <Link to="/about" className={`block nav-link font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
-            location.pathname === '/about' 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-custom'
-          }`}>About</Link>
-          <Link to="/contact" className={`block nav-link font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
-            location.pathname === '/contact' 
-              ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
-              : 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-custom'
-          }`}>Contact</Link>
+          {NAV_LINKS.map(({ path, label, exact }) => {
+            const isActive = checkIsActive(path, exact);
+            return (
+              <Link 
+                key={`mobile-${path}`}
+                to={path} 
+                className={`block nav-link font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
+                  isActive 
+                    ? 'text-yellow-custom bg-yellow-50 border border-yellow-200' 
+                    : 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-custom'
+                }`}
+              >
+                {label}
+              </Link>
+            )
+          })}
+          
           {phoneNumber && (
             <a href={`tel:${phoneNumber.replace(/\s/g, '')}`} className="flex items-center justify-center bg-black text-white font-semibold py-3 px-6 rounded-xl hover:bg-gray-800 transition-all duration-300 mt-6">
               <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -118,6 +140,8 @@ const Header = () => {
       )}
     </header>
   )
-}
+})
+
+Header.displayName = 'Header'
 
 export default Header
