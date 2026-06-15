@@ -32,6 +32,8 @@ router.get('/managers/kyc/pending', auth, adminOnly, async (req, res) => {
 // Approve KYC
 router.post('/managers/:id/kyc/approve', auth, adminOnly, async (req, res) => {
   try {
+    const Hostel = require('../models/Hostel');
+    
     const manager = await HostelManager.findByIdAndUpdate(
       req.params.id,
       { 
@@ -41,7 +43,13 @@ router.post('/managers/:id/kyc/approve', auth, adminOnly, async (req, res) => {
       { new: true }
     ).select('-password');
     
-    res.json({ message: 'KYC approved', manager, success: true });
+    // Update all hostels owned by this manager to verified
+    await Hostel.updateMany(
+      { _id: { $in: manager.hostels } },
+      { verified: true }
+    );
+    
+    res.json({ message: 'KYC approved and hostels verified', manager, success: true });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -50,7 +58,9 @@ router.post('/managers/:id/kyc/approve', auth, adminOnly, async (req, res) => {
 // Reject KYC
 router.post('/managers/:id/kyc/reject', auth, adminOnly, async (req, res) => {
   try {
+    const Hostel = require('../models/Hostel');
     const { reason } = req.body;
+    
     const manager = await HostelManager.findByIdAndUpdate(
       req.params.id,
       { 
@@ -60,7 +70,13 @@ router.post('/managers/:id/kyc/reject', auth, adminOnly, async (req, res) => {
       { new: true }
     ).select('-password');
     
-    res.json({ message: 'KYC rejected', manager, success: true });
+    // Update all hostels owned by this manager to not verified
+    await Hostel.updateMany(
+      { _id: { $in: manager.hostels } },
+      { verified: false }
+    );
+    
+    res.json({ message: 'KYC rejected and hostels unverified', manager, success: true });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

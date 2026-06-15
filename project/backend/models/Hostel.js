@@ -69,6 +69,10 @@ const hostelSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  verified: {
+    type: Boolean,
+    default: false
+  },
   rating: {
     type: Number,
     default: 0

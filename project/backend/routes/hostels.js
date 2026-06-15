@@ -206,7 +206,7 @@ router.get('/', async (req, res) => {
           $project: {
             name: 1, slug: 1, description: 1, location: 1, price: 1, priceType: 1, sessionPrice: 1,
             images: 1, amenities: 1, availability: 1, rating: 1,
-            featured: 1, gender: 1, type: 1
+            featured: 1, gender: 1, type: 1, verified: 1
           }
         }
       ];
@@ -234,7 +234,7 @@ router.get('/', async (req, res) => {
         // Fallback to regular query
         [hostels, total] = await Promise.all([
           Hostel.find(query)
-            .select('name slug description location price priceType sessionPrice images amenities availability rating featured gender type')
+            .select('name slug description location price priceType sessionPrice images amenities availability rating featured gender type verified')
             .sort(sort)
             .skip(skip)
             .limit(parseInt(limit))
@@ -245,7 +245,7 @@ router.get('/', async (req, res) => {
     } else {
       [hostels, total] = await Promise.all([
         Hostel.find(query)
-          .select('name slug description location price priceType sessionPrice images amenities availability rating featured gender type')
+          .select('name slug description location price priceType sessionPrice images amenities availability rating featured gender type verified')
           .sort(sort)
           .skip(skip)
           .limit(parseInt(limit))
@@ -616,7 +616,7 @@ router.get('/featured/homepage', async (req, res) => {
     }
     
     const featuredHostels = await Hostel.find({ featured: true })
-      .select('name slug description location price priceType sessionPrice images amenities availability rating featured')
+      .select('name slug description location price priceType sessionPrice images amenities availability rating featured verified')
       .sort({ updatedAt: -1 })
       .limit(6)
       .lean();

@@ -58,6 +58,7 @@ const AdminHostelEdit = () => {
         securityDeposit: hostelData.securityDeposit || 0,
         capacity: hostelData.capacity || '',
         checkIn: hostelData.checkIn || '',
+        verified: hostelData.verified === 'true' || hostelData.verified === true || false,
         amenities: hostelData.amenities || [],
         rules: hostelData.rules || [],
         info: hostelData.info && hostelData.info.length > 0 ? hostelData.info : [{ title: '', value: '' }],
@@ -421,6 +422,14 @@ const AdminHostelEdit = () => {
                   max={5} 
                   step={0.1}
                 />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name="verified" label="Hostel Verified">
+                <Select size="large">
+                  <Select.Option value={true}>✓ Verified</Select.Option>
+                  <Select.Option value={false}>Not Verified</Select.Option>
+                </Select>
               </Form.Item>
             </Col>
           </Row>

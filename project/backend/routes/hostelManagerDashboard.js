@@ -81,7 +81,11 @@ router.get('/hostels', auth, async (req, res) => {
 // Add hostel
 router.post('/hostels', auth, requireKYC, upload.any(), async (req, res) => {
   try {
+    const manager = await HostelManager.findById(req.user.id);
     const hostelData = { ...req.body };
+    
+    // Auto-verify hostel if manager's KYC is verified
+    hostelData.verified = manager.kyc.status === 'verified';
     
     // Handle JSON fields
     ['amenities', 'rules'].forEach(field => {
