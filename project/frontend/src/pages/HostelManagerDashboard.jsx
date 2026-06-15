@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Row, Col, Card, Statistic, Alert, Button, List, Typography, Skeleton } from 'antd';
 import { hostelManagerAPI } from '../services/api';
 import { useHostelManager } from '../contexts/HostelManagerContext';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
-import { FiHome, FiStar, FiMessageSquare, FiCheckCircle, FiAlertCircle, FiClock, FiTrendingUp, FiEye, FiUsers, FiDollarSign, FiArrowRight } from 'react-icons/fi';
+import { 
+  FiHome, FiStar, FiMessageSquare, FiCheckCircle, 
+  FiAlertCircle, FiClock, FiTrendingUp, FiEye, 
+  FiArrowRight, FiFileText, FiShield
+} from 'react-icons/fi';
+
+const { Title, Text } = Typography;
 
 const HostelManagerDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -12,271 +19,279 @@ const HostelManagerDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res = await hostelManagerAPI.getDashboard();
+        setStats(res.data);
+      } catch (error) {
+        console.error('Dashboard sync failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchDashboard();
   }, []);
 
-  const fetchDashboard = async () => {
-    try {
-      const res = await hostelManagerAPI.getDashboard();
-      setStats(res.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+  const kycStatus = manager?.kyc?.status || 'pending';
+
+  // --------------------------------------------------------------------------
+  // MEMOIZED CONFIGURATIONS (Prevents array reallocation on re-renders)
+  // --------------------------------------------------------------------------
+
+  const kycAlertProps = useMemo(() => {
+    const configs = {
+      verified: {
+        type: 'success',
+        icon: <FiCheckCircle size={20} />,
+        title: 'Account Verified',
+        message: 'Your business account is fully verified. You have unrestricted access to all platform features.',
+        color: 'border-emerald-200 bg-emerald-50 text-emerald-800'
+      },
+      submitted: {
+        type: 'info',
+        icon: <FiClock size={20} />,
+        title: 'Verification Under Review',
+        message: 'Your KYC documents are currently being reviewed by our compliance team. Expected resolution: 24-48 hours.',
+        color: 'border-blue-200 bg-blue-50 text-blue-800'
+      },
+      rejected: {
+        type: 'error',
+        icon: <FiAlertCircle size={20} />,
+        title: 'Verification Rejected',
+        message: manager?.kyc?.rejectionReason || 'Your previous document submission did not meet our compliance standards. Please review and resubmit.',
+        action: <Button type="primary" danger onClick={() => navigate('/hostel-manager/kyc')}>Resubmit Documents</Button>,
+        color: 'border-red-200 bg-red-50 text-red-800'
+      },
+      pending: {
+        type: 'warning',
+        icon: <FiShield size={20} />,
+        title: 'Action Required: Verify Your Business',
+        message: 'You must complete the KYC verification process before listing properties or accepting bookings.',
+        action: <Button type="primary" className="bg-amber-500 hover:bg-amber-600 border-0" onClick={() => navigate('/hostel-manager/kyc')}>Start Verification</Button>,
+        color: 'border-amber-200 bg-amber-50 text-amber-800'
+      }
+    };
+    return configs[kycStatus] || configs.pending;
+  }, [kycStatus, manager?.kyc?.rejectionReason, navigate]);
+
+  const statCards = useMemo(() => [
+    {
+      title: 'Active Properties',
+      value: stats?.totalHostels || 0,
+      icon: <FiHome className="text-blue-600" size={24} />,
+      bg: 'bg-blue-50',
+      trend: '+12%',
+      isPositive: true
+    },
+    {
+      title: 'Total Reviews',
+      value: stats?.totalReviews || 0,
+      icon: <FiMessageSquare className="text-indigo-600" size={24} />,
+      bg: 'bg-indigo-50',
+      trend: '+8%',
+      isPositive: true
+    },
+    {
+      title: 'Average Rating',
+      value: stats?.avgRating || '0.0',
+      suffix: '/ 5',
+      icon: <FiStar className="text-amber-500" size={24} />,
+      bg: 'bg-amber-50',
+      trend: '+0.3',
+      isPositive: true
+    },
+    {
+      title: 'Profile Views',
+      value: '1,248',
+      icon: <FiEye className="text-emerald-600" size={24} />,
+      bg: 'bg-emerald-50',
+      trend: '+24%',
+      isPositive: true
     }
-  };
+  ], [stats]);
+
+  const quickActions = useMemo(() => [
+    {
+      title: 'List New Property',
+      description: 'Add a new hostel or PG to your portfolio',
+      icon: <FiHome size={20} />,
+      link: '/hostel-manager/hostels/add',
+      color: 'text-blue-600 bg-blue-50 border-blue-100',
+      enabled: kycStatus === 'verified'
+    },
+    {
+      title: 'Manage Listings',
+      description: 'Update pricing, availability, and details',
+      icon: <FiFileText size={20} />,
+      link: '/hostel-manager/hostels',
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-100',
+      enabled: true
+    },
+    {
+      title: 'Review Feedback',
+      description: 'Read and respond to guest reviews',
+      icon: <FiMessageSquare size={20} />,
+      link: '/hostel-manager/reviews',
+      color: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+      enabled: true
+    },
+    {
+      title: 'Compliance & KYC',
+      description: 'Update business documents and identity',
+      icon: <FiShield size={20} />,
+      link: '/hostel-manager/kyc',
+      color: 'text-slate-600 bg-slate-100 border-slate-200',
+      enabled: true
+    }
+  ], [kycStatus]);
+
+  // --------------------------------------------------------------------------
+  // RENDER
+  // --------------------------------------------------------------------------
 
   if (loading) {
     return (
       <HostelManagerLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 font-medium">Loading dashboard...</p>
-          </div>
+        <div className="space-y-6">
+          <Skeleton active paragraph={{ rows: 2 }} />
+          <Row gutter={16}>
+            {[1, 2, 3, 4].map(i => (
+              <Col xs={24} sm={12} lg={6} key={i}><Card><Skeleton active paragraph={{ rows: 1 }} /></Card></Col>
+            ))}
+          </Row>
         </div>
       </HostelManagerLayout>
     );
   }
 
-  const kycStatus = manager?.kyc?.status;
-  const needsKYC = kycStatus === 'pending' || kycStatus === 'rejected';
-
-  const getKYCAlert = () => {
-    if (kycStatus === 'verified') {
-      return {
-        type: 'success',
-        icon: <FiCheckCircle className="w-6 h-6" />,
-        title: 'KYC Verified',
-        message: 'Your account is fully verified. You can now manage your properties seamlessly.',
-        action: null,
-        gradient: 'from-green-500 to-emerald-600'
-      };
-    }
-    if (kycStatus === 'submitted') {
-      return {
-        type: 'info',
-        icon: <FiClock className="w-6 h-6" />,
-        title: 'KYC Under Review',
-        message: "Your KYC documents are being verified. You'll be notified once approved (24-48 hours).",
-        action: null,
-        gradient: 'from-blue-500 to-indigo-600'
-      };
-    }
-    if (kycStatus === 'rejected') {
-      return {
-        type: 'error',
-        icon: <FiAlertCircle className="w-6 h-6" />,
-        title: 'KYC Rejected',
-        message: manager?.kyc?.rejectionReason || 'Please resubmit your KYC documents.',
-        action: { label: 'Resubmit KYC', link: '/hostel-manager/kyc' },
-        gradient: 'from-red-500 to-rose-600'
-      };
-    }
-    return {
-      type: 'warning',
-      icon: <FiAlertCircle className="w-6 h-6" />,
-      title: 'KYC Verification Required',
-      message: 'Complete your KYC to start adding and managing hostels on our platform.',
-      action: { label: 'Complete KYC', link: '/hostel-manager/kyc' },
-      gradient: 'from-yellow-500 to-orange-600'
-    };
-  };
-
-  const kycAlert = getKYCAlert();
-
-  const statCards = [
-    {
-      title: 'Total Properties',
-      value: stats?.totalHostels || 0,
-      icon: <FiHome className="w-8 h-8" />,
-      gradient: 'from-blue-500 to-indigo-600',
-      bgGradient: 'from-blue-50 to-indigo-50',
-      change: '+12%',
-      changeType: 'positive'
-    },
-    {
-      title: 'Total Reviews',
-      value: stats?.totalReviews || 0,
-      icon: <FiMessageSquare className="w-8 h-8" />,
-      gradient: 'from-purple-500 to-pink-600',
-      bgGradient: 'from-purple-50 to-pink-50',
-      change: '+8%',
-      changeType: 'positive'
-    },
-    {
-      title: 'Average Rating',
-      value: stats?.avgRating || '0.0',
-      icon: <FiStar className="w-8 h-8" />,
-      gradient: 'from-yellow-500 to-orange-600',
-      bgGradient: 'from-yellow-50 to-orange-50',
-      suffix: '⭐',
-      change: '+0.3',
-      changeType: 'positive'
-    },
-    {
-      title: 'Total Views',
-      value: '1.2K',
-      icon: <FiEye className="w-8 h-8" />,
-      gradient: 'from-green-500 to-emerald-600',
-      bgGradient: 'from-green-50 to-emerald-50',
-      change: '+24%',
-      changeType: 'positive'
-    }
-  ];
-
-  const quickActions = [
-    {
-      title: 'Add New Property',
-      description: 'List a new hostel or PG on the platform',
-      icon: <FiHome className="w-6 h-6" />,
-      link: '/hostel-manager/hostels/add',
-      gradient: 'from-blue-500 to-indigo-600',
-      enabled: kycStatus === 'verified'
-    },
-    {
-      title: 'Manage Properties',
-      description: 'View and edit your existing listings',
-      icon: <FiHome className="w-6 h-6" />,
-      link: '/hostel-manager/hostels',
-      gradient: 'from-purple-500 to-pink-600',
-      enabled: true
-    },
-    {
-      title: 'View Reviews',
-      description: 'Check customer feedback and ratings',
-      icon: <FiMessageSquare className="w-6 h-6" />,
-      link: '/hostel-manager/reviews',
-      gradient: 'from-orange-500 to-red-600',
-      enabled: true
-    },
-    {
-      title: 'KYC Status',
-      description: 'Manage your verification documents',
-      icon: <FiCheckCircle className="w-6 h-6" />,
-      link: '/hostel-manager/kyc',
-      gradient: 'from-green-500 to-teal-600',
-      enabled: true
-    }
-  ];
-
   return (
     <HostelManagerLayout>
-      <div className="space-y-6">
-        {/* KYC Alert Banner */}
-        <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${kycAlert.gradient} p-1 shadow-xl`}>
-          <div className="bg-white rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className={`p-3 rounded-xl bg-gradient-to-r ${kycAlert.gradient} text-white shadow-lg`}>
-                {kycAlert.icon}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">{kycAlert.title}</h3>
-                <p className="text-gray-600 mb-3">{kycAlert.message}</p>
-                {kycAlert.action && (
-                  <Link
-                    to={kycAlert.action.link}
-                    className={`inline-flex items-center gap-2 bg-gradient-to-r ${kycAlert.gradient} text-white px-5 py-2.5 rounded-xl hover:shadow-lg transition-all font-medium`}
-                  >
-                    {kycAlert.action.label}
-                    <FiArrowRight />
-                  </Link>
-                )}
-              </div>
+      <div className="space-y-8 pb-8">
+        
+        {/* Compliance Banner */}
+        <div className={`p-5 rounded-xl border ${kycAlertProps.color} flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm`}>
+          <div className="flex items-start gap-4">
+            <div className="mt-1">{kycAlertProps.icon}</div>
+            <div>
+              <h3 className="font-bold text-base m-0 leading-tight">{kycAlertProps.title}</h3>
+              <p className="text-sm mt-1 mb-0 opacity-90">{kycAlertProps.message}</p>
             </div>
           </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-          {statCards.map((stat, index) => (
-            <div
-              key={index}
-              className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100"
-            >
-              <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-50`}></div>
-              <div className="relative p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-r ${stat.gradient} text-white shadow-lg group-hover:scale-110 transition-transform`}>
-                    {stat.icon}
-                  </div>
-                  {stat.change && (
-                    <span className={`flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-lg ${
-                      stat.changeType === 'positive' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      <FiTrendingUp className="w-3 h-3" />
-                      {stat.change}
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-gray-600 text-sm font-medium mb-2">{stat.title}</h3>
-                <p className="text-4xl font-bold text-gray-900">
-                  {stat.value}
-                  {stat.suffix && <span className="text-2xl ml-1">{stat.suffix}</span>}
-                </p>
-              </div>
+          {kycAlertProps.action && (
+            <div className="flex-shrink-0 w-full sm:w-auto">
+              {kycAlertProps.action}
             </div>
-          ))}
+          )}
         </div>
 
-        {/* Quick Actions */}
+        {/* Primary Metrics Grid */}
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            {quickActions.map((action, index) => (
-              <Link
-                key={index}
-                to={action.link}
-                className={`group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 ${
-                  !action.enabled ? 'opacity-60 cursor-not-allowed' : ''
-                }`}
-                onClick={(e) => !action.enabled && e.preventDefault()}
-              >
-                <div className="p-6">
-                  <div className={`inline-flex p-4 rounded-xl bg-gradient-to-r ${action.gradient} text-white shadow-lg mb-4 group-hover:scale-110 transition-transform`}>
-                    {action.icon}
+          <Title level={4} className="!mb-4 text-slate-800">Business Overview</Title>
+          <Row gutter={[16, 16]}>
+            {statCards.map((stat, index) => (
+              <Col xs={24} sm={12} xl={6} key={index}>
+                <Card bordered={false} className="shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`p-3 rounded-xl ${stat.bg}`}>
+                      {stat.icon}
+                    </div>
+                    {stat.trend && (
+                      <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-md ${
+                        stat.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                      }`}>
+                        <FiTrendingUp size={12} />
+                        {stat.trend}
+                      </span>
+                    )}
                   </div>
-                  <h4 className="text-lg font-bold text-gray-900 mb-2">{action.title}</h4>
-                  <p className="text-sm text-gray-600 mb-4">{action.description}</p>
-                  <div className="flex items-center text-blue-600 font-medium text-sm group-hover:gap-2 gap-1 transition-all">
-                    <span>Go to page</span>
-                    <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                  <Text className="text-slate-500 font-medium">{stat.title}</Text>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="text-3xl font-extrabold text-slate-900 leading-none">{stat.value}</span>
+                    {stat.suffix && <span className="text-sm font-bold text-slate-400">{stat.suffix}</span>}
                   </div>
-                </div>
-                {!action.enabled && (
-                  <div className="absolute inset-0 bg-gray-900/10 backdrop-blur-[1px] flex items-center justify-center">
-                    <span className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-lg">
-                      KYC Required
-                    </span>
-                  </div>
-                )}
-              </Link>
+                </Card>
+              </Col>
             ))}
-          </div>
+          </Row>
         </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <h3 className="text-2xl font-bold text-gray-900">Recent Activity</h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {[1, 2, 3].map((_, index) => (
-                <div key={index} className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">New review received</p>
-                    <p className="text-sm text-gray-500">2 hours ago</p>
-                  </div>
-                  <FiArrowRight className="text-gray-400" />
-                </div>
+        {/* Action Center & Activity Feed */}
+        <Row gutter={[24, 24]}>
+          
+          {/* Quick Actions */}
+          <Col xs={24} xl={14}>
+            <Title level={4} className="!mb-4 text-slate-800">Workspace</Title>
+            <Row gutter={[16, 16]}>
+              {quickActions.map((action, index) => (
+                <Col xs={24} sm={12} key={index}>
+                  <Link 
+                    to={action.enabled ? action.link : '#'}
+                    onClick={(e) => !action.enabled && e.preventDefault()}
+                    className="block h-full"
+                  >
+                    <Card 
+                      hoverable={action.enabled}
+                      className={`h-full border border-slate-200 shadow-sm transition-all transform-gpu ${
+                        action.enabled ? 'hover:-translate-y-1 hover:border-slate-300' : 'opacity-60 cursor-not-allowed bg-slate-50'
+                      }`}
+                      bodyStyle={{ padding: '20px' }}
+                    >
+                      <div className="flex flex-col h-full">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center border mb-4 ${action.color}`}>
+                          {action.icon}
+                        </div>
+                        <h4 className="text-base font-bold text-slate-900 mb-1">{action.title}</h4>
+                        <p className="text-sm text-slate-500 mb-4 flex-grow">{action.description}</p>
+                        
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                          {action.enabled ? (
+                            <span className="text-sm font-bold text-blue-600 flex items-center gap-1 group">
+                              Access tool <FiArrowRight className="transition-transform group-hover:translate-x-1" />
+                            </span>
+                          ) : (
+                            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100">
+                              Requires KYC
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                </Col>
               ))}
-            </div>
-          </div>
-        </div>
+            </Row>
+          </Col>
+
+          {/* Activity Feed */}
+          <Col xs={24} xl={10}>
+            <Card 
+              title={<span className="text-lg font-bold text-slate-800">Recent Activity</span>} 
+              bordered={false} 
+              className="shadow-sm h-full"
+              bodyStyle={{ padding: '0 20px 20px 20px' }}
+            >
+              <List
+                itemLayout="horizontal"
+                dataSource={[1, 2, 3]} // Mock data for now
+                renderItem={(item, index) => (
+                  <List.Item className="py-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 px-2 rounded-lg transition-colors cursor-pointer group">
+                    <List.Item.Meta
+                      avatar={
+                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                          {index + 1}
+                        </div>
+                      }
+                      title={<span className="font-semibold text-slate-800">New review published</span>}
+                      description={<span className="text-xs text-slate-500">2 hours ago • Property {index + 1}</span>}
+                    />
+                    <FiArrowRight className="text-slate-300 group-hover:text-blue-500 transition-colors" />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+
+        </Row>
       </div>
     </HostelManagerLayout>
   );

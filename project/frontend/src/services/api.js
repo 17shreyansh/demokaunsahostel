@@ -188,6 +188,8 @@ export const hostelManagerAPI = {
   logout: () => api.post('/hostel-manager/auth/logout'),
   getMe: () => api.get('/hostel-manager/auth/me'),
   submitKYC: (formData) => uploadAPI.post('/hostel-manager/auth/kyc', formData),
+  updateProfile: (data) => api.put('/hostel-manager/auth/profile', data),
+  changePassword: (data) => api.put('/hostel-manager/auth/password', data),
   
   // Dashboard
   getDashboard: () => api.get('/hostel-manager/dashboard'),

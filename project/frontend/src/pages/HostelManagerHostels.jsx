@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Row, Col, Card, Button, Tag, Spin, Empty, Statistic, Tooltip, message, Modal } from 'antd';
+import { 
+  FiPlus, FiEdit2, FiTrash2, FiMapPin, FiHome, 
+  FiCheckCircle, FiAlertCircle, FiXCircle 
+} from 'react-icons/fi';
 import { hostelManagerAPI } from '../services/api';
 import { useHostelManager } from '../contexts/HostelManagerContext';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
-import { FiPlus, FiEdit2, FiTrash2, FiMapPin, FiDollarSign, FiStar } from 'react-icons/fi';
+
+const { confirm } = Modal;
 
 const HostelManagerHostels = () => {
   const [hostels, setHostels] = useState([]);
@@ -11,217 +17,256 @@ const HostelManagerHostels = () => {
   const { manager } = useHostelManager();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchHostels();
-  }, []);
+  // --------------------------------------------------------------------------
+  // NETWORK & STATE MANAGEMENT
+  // --------------------------------------------------------------------------
 
-  const fetchHostels = async () => {
-    setLoading(true);
+  const fetchHostels = useCallback(async (abortSignal) => {
     try {
-      const res = await hostelManagerAPI.getHostels();
-      setHostels(res.data.hostels);
+      setLoading(true);
+      const res = await hostelManagerAPI.getHostels({ signal: abortSignal });
+      if (!abortSignal?.aborted) {
+        setHostels(res.data?.hostels || []);
+      }
     } catch (error) {
-      console.error(error);
-      if (error.response?.status === 403) {
-        navigate('/hostel-manager/dashboard');
+      if (error.name !== 'CanceledError') {
+        message.error('Failed to load properties');
+        if (error.response?.status === 403) {
+          navigate('/hostel-manager/dashboard');
+        }
       }
     } finally {
-      setLoading(false);
+      if (!abortSignal?.aborted) {
+        setLoading(false);
+      }
     }
-  };
+  }, [navigate]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this hostel?')) return;
-    
-    try {
-      await hostelManagerAPI.deleteHostel(id);
-      setHostels(hostels.filter(h => h._id !== id));
-      alert('Hostel deleted successfully');
-    } catch (error) {
-      alert('Failed to delete hostel');
-    }
-  };
+  useEffect(() => {
+    const abortController = new AbortController();
+    fetchHostels(abortController.signal);
+    return () => abortController.abort();
+  }, [fetchHostels]);
 
-  const getImageUrl = (imagePath) => {
+  // Optimistic UI Deletion
+  const handleDelete = useCallback((id) => {
+    confirm({
+      title: 'Delete Property',
+      content: 'Are you sure you want to permanently delete this property? This action cannot be undone.',
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        const originalHostels = [...hostels];
+        setHostels(prev => prev.filter(h => h._id !== id)); // Optimistic remove
+        
+        try {
+          await hostelManagerAPI.deleteHostel(id);
+          message.success('Property deleted successfully');
+        } catch (error) {
+          setHostels(originalHostels); // Revert on failure
+          message.error('Failed to delete property. Please try again.');
+        }
+      }
+    });
+  }, [hostels]);
+
+  // --------------------------------------------------------------------------
+  // MEMOIZED DERIVED STATE
+  // --------------------------------------------------------------------------
+
+  const stats = useMemo(() => ({
+    total: hostels.length,
+    available: hostels.filter(h => h.availability === 'Available').length,
+    limited: hostels.filter(h => h.availability === 'Limited').length,
+    full: hostels.filter(h => h.availability === 'Full').length
+  }), [hostels]);
+
+  const getImageUrl = useCallback((imagePath) => {
     if (!imagePath) return null;
     if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/uploads/')) {
-      return `${import.meta.env.VITE_BACKEND_URL}${imagePath}`;
-    }
+    if (imagePath.startsWith('/uploads/')) return `${import.meta.env.VITE_BACKEND_URL}${imagePath}`;
     return `${import.meta.env.VITE_BACKEND_URL}/uploads/${imagePath}`;
-  };
+  }, []);
 
-  if (loading) {
-    return (
-      <HostelManagerLayout>
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading your hostels...</p>
-          </div>
-        </div>
-      </HostelManagerLayout>
-    );
-  }
+  // --------------------------------------------------------------------------
+  // RENDER
+  // --------------------------------------------------------------------------
 
   return (
     <HostelManagerLayout>
-      <div className="space-y-6">
-        {/* Header Stats */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">My Properties</h2>
-              <p className="text-gray-600">Manage all your hostel listings in one place</p>
-            </div>
-            {manager?.kyc?.status === 'verified' && (
-              <Link
-                to="/hostel-manager/hostels/add"
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg hover:scale-105 transition-all font-medium"
-              >
-                <FiPlus className="w-5 h-5" />
-                <span>Add New Property</span>
-              </Link>
-            )}
+      <div className="pb-8">
+        
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl font-extrabold text-slate-900 m-0 leading-tight">Property Portfolio</h1>
+            <p className="text-sm font-medium text-slate-500 mt-1 mb-0">Manage and monitor all your listings</p>
           </div>
           
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50">
-              <p className="text-sm text-gray-600 mb-1">Total Properties</p>
-              <p className="text-2xl font-bold text-gray-900">{hostels.length}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50">
-              <p className="text-sm text-gray-600 mb-1">Available</p>
-              <p className="text-2xl font-bold text-green-700">
-                {hostels.filter(h => h.availability === 'Available').length}
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-50 to-orange-50">
-              <p className="text-sm text-gray-600 mb-1">Limited</p>
-              <p className="text-2xl font-bold text-yellow-700">
-                {hostels.filter(h => h.availability === 'Limited').length}
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-red-50 to-rose-50">
-              <p className="text-sm text-gray-600 mb-1">Full</p>
-              <p className="text-2xl font-bold text-red-700">
-                {hostels.filter(h => h.availability === 'Full').length}
-              </p>
-            </div>
-          </div>
+          {manager?.kyc?.status === 'verified' ? (
+            <Button 
+              type="primary" 
+              icon={<FiPlus />} 
+              size="large"
+              onClick={() => navigate('/hostel-manager/hostels/add')}
+              className="bg-slate-900 hover:bg-slate-800 shadow-lg hover:shadow-xl transition-all transform-gpu hover:-translate-y-0.5"
+            >
+              Add New Property
+            </Button>
+          ) : (
+            <Tooltip title="Complete KYC verification to add properties">
+              <Button size="large" disabled icon={<FiPlus />}>
+                Add New Property
+              </Button>
+            </Tooltip>
+          )}
         </div>
 
-        {hostels.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
+        {/* Statistics Cards (Ant Design Native) */}
+        <Row gutter={[16, 16]} className="mb-8">
+          <Col xs={12} md={6}>
+            <Card bordered={false} className="shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title={<span className="text-slate-500 font-medium">Total Properties</span>} 
+                value={stats.total} 
+                prefix={<FiHome className="text-blue-500 mr-2" />} 
+              />
+            </Card>
+          </Col>
+          <Col xs={12} md={6}>
+            <Card bordered={false} className="shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title={<span className="text-slate-500 font-medium">Available</span>} 
+                value={stats.available} 
+                valueStyle={{ color: '#52c41a' }}
+                prefix={<FiCheckCircle className="mr-2" />} 
+              />
+            </Card>
+          </Col>
+          <Col xs={12} md={6}>
+            <Card bordered={false} className="shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title={<span className="text-slate-500 font-medium">Limited</span>} 
+                value={stats.limited} 
+                valueStyle={{ color: '#faad14' }}
+                prefix={<FiAlertCircle className="mr-2" />} 
+              />
+            </Card>
+          </Col>
+          <Col xs={12} md={6}>
+            <Card bordered={false} className="shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title={<span className="text-slate-500 font-medium">Full</span>} 
+                value={stats.full} 
+                valueStyle={{ color: '#ff4d4f' }}
+                prefix={<FiXCircle className="mr-2" />} 
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Property Grid */}
+        <Spin spinning={loading} size="large">
+          {hostels.length === 0 && !loading ? (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                <FiHome className="w-8 h-8 text-slate-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">No Properties Yet</h3>
+              <p className="text-slate-500 mb-6 max-w-md mx-auto">
+                You haven't added any properties to your portfolio. Start listing to attract verified students.
+              </p>
+              {manager?.kyc?.status === 'verified' && (
+                <Button 
+                  type="primary" 
+                  icon={<FiPlus />} 
+                  onClick={() => navigate('/hostel-manager/hostels/add')}
+                  className="bg-blue-600"
+                >
+                  Create First Listing
+                </Button>
+              )}
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">No Properties Yet</h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              You haven't added any hostels yet. Start by adding your first property to the platform.
-            </p>
-            {manager?.kyc?.status === 'verified' ? (
-              <Link
-                to="/hostel-manager/hostels/add"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:shadow-lg hover:scale-105 transition-all font-medium"
-              >
-                <FiPlus className="w-5 h-5" />
-                <span>Add Your First Property</span>
-              </Link>
-            ) : (
-              <div className="inline-block bg-yellow-50 border border-yellow-200 text-yellow-800 px-6 py-3 rounded-xl">
-                <p className="font-medium">Complete KYC verification to add properties</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {hostels.map((hostel) => (
-              <div
-                key={hostel._id}
-                className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden"
-              >
-                {/* Image */}
-                <div className="relative h-56 overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300">
-                  {hostel.images?.[0] ? (
-                    <img
-                      src={getImageUrl(hostel.images[0])}
-                      alt={hostel.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg className="w-20 h-20 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
+          ) : (
+            <Row gutter={[24, 24]}>
+              {hostels.map((hostel) => (
+                <Col xs={24} sm={12} lg={8} xl={6} key={hostel._id}>
+                  <Card
+                    hoverable
+                    className="h-full overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform-gpu hover:-translate-y-1 will-change-transform border-slate-200"
+                    bodyStyle={{ padding: '20px' }}
+                    cover={
+                      <div className="h-48 bg-slate-100 relative group overflow-hidden">
+                        {hostel.images?.[0] ? (
+                          <img 
+                            src={getImageUrl(hostel.images[0])} 
+                            alt={hostel.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-300">
+                            <FiHome size={40} />
+                          </div>
+                        )}
+                        {/* Price Tag Overlay */}
+                        <div className="absolute bottom-3 right-3 bg-slate-900/85 backdrop-blur-md text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg border border-white/10">
+                          ₹{Number(hostel.price || 0).toLocaleString()}
+                          <span className="text-[10px] font-medium text-slate-300 ml-1">/{hostel.priceType || 'mo'}</span>
+                        </div>
+                      </div>
+                    }
+                    actions={[
+                      <Tooltip title="Edit Details">
+                        <Button 
+                          type="text" 
+                          icon={<FiEdit2 />} 
+                          onClick={() => navigate(`/hostel-manager/hostels/edit/${hostel._id}`)}
+                          className="text-slate-500 hover:text-blue-600"
+                        />
+                      </Tooltip>,
+                      <Tooltip title="Delete Property">
+                        <Button 
+                          type="text" 
+                          danger 
+                          icon={<FiTrash2 />} 
+                          onClick={() => handleDelete(hostel._id)} 
+                        />
+                      </Tooltip>
+                    ]}
+                  >
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <h3 className="font-bold text-slate-900 text-lg m-0 truncate" title={hostel.name}>
+                        {hostel.name}
+                      </h3>
+                      <Tag 
+                        color={
+                          hostel.availability === 'Available' ? 'success' : 
+                          hostel.availability === 'Limited' ? 'warning' : 'error'
+                        }
+                        className="m-0 border-0 font-semibold"
+                      >
+                        {hostel.availability || 'Available'}
+                      </Tag>
                     </div>
-                  )}
-                  
-                  {/* Availability Badge */}
-                  <div className="absolute top-4 right-4">
-                    <span className={`px-3 py-1.5 text-xs font-bold rounded-full backdrop-blur-md shadow-lg ${
-                      hostel.availability === 'Available'
-                        ? 'bg-green-500/90 text-white'
-                        : hostel.availability === 'Limited'
-                        ? 'bg-yellow-500/90 text-white'
-                        : 'bg-red-500/90 text-white'
-                    }`}>
-                      {hostel.availability || 'Available'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-6">
-                  <h3 className="font-bold text-xl text-gray-900 mb-2 line-clamp-1">{hostel.name}</h3>
-                  
-                  <div className="flex items-center gap-2 text-gray-600 text-sm mb-3">
-                    <FiMapPin className="w-4 h-4 flex-shrink-0" />
-                    <span className="line-clamp-1">{hostel.location}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <FiDollarSign className="w-5 h-5 text-green-600" />
-                      <span className="text-2xl font-bold text-gray-900">
-                        ₹{hostel.price?.toLocaleString()}
-                      </span>
-                      <span className="text-sm text-gray-500">/{hostel.priceType || 'month'}</span>
+                    
+                    <div className="flex items-center gap-1.5 text-slate-500 text-sm mb-3 truncate" title={hostel.location}>
+                      <FiMapPin className="flex-shrink-0" />
+                      <span className="truncate">{hostel.location}</span>
                     </div>
-                    <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
-                      <FiStar className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-semibold text-gray-900">{hostel.rating || '0.0'}</span>
+                    
+                    <div className="flex items-center gap-1 text-sm font-bold bg-slate-50 w-max px-2 py-1 rounded-md border border-slate-100">
+                      <span className="text-yellow-500">★</span>
+                      <span className="text-slate-700">{hostel.rating || 'New'}</span>
                     </div>
-                  </div>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
+        </Spin>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <Link
-                      to={`/hostel-manager/hostels/edit/${hostel._id}`}
-                      className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 rounded-xl hover:shadow-lg hover:scale-105 transition-all font-medium text-sm"
-                    >
-                      <FiEdit2 className="w-4 h-4" />
-                      <span>Edit</span>
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(hostel._id)}
-                      className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 text-white py-2.5 rounded-xl hover:shadow-lg hover:scale-105 transition-all font-medium text-sm"
-                    >
-                      <FiTrash2 className="w-4 h-4" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </HostelManagerLayout>
   );

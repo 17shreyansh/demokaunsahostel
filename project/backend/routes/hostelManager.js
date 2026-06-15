@@ -78,6 +78,50 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+// Update profile
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+    const manager = await HostelManager.findById(req.user.id);
+    
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found', code: 'MANAGER_NOT_FOUND' });
+    }
+
+    if (name) manager.name = name;
+    if (phone) manager.phone = phone;
+    
+    await manager.save();
+    res.json({ message: 'Profile updated successfully', success: true });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Change password
+router.put('/password', auth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const manager = await HostelManager.findById(req.user.id);
+    
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found', code: 'MANAGER_NOT_FOUND' });
+    }
+
+    const isMatch = await manager.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    manager.password = newPassword;
+    await manager.save();
+    
+    res.json({ message: 'Password changed successfully', success: true });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // Submit KYC
 router.post('/kyc', auth, upload.fields([
   { name: 'panCard', maxCount: 1 },

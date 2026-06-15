@@ -43,6 +43,8 @@ const HostelManagerHostels = lazy(() => import('./pages/HostelManagerHostels'))
 const HostelManagerHostelForm = lazy(() => import('./pages/HostelManagerHostelForm'))
 const HostelManagerReviews = lazy(() => import('./pages/HostelManagerReviews'))
 const AdminHostelManagers = lazy(() => import('./pages/AdminHostelManagers'))
+const HostelManagerProfile = lazy(() => import('./pages/HostelManagerProfile'))
+const HostelManagerSettings = lazy(() => import('./pages/HostelManagerSettings'))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -162,6 +164,8 @@ function App() {
                 {/* Hostel Manager Routes */}
                 <Route path="/hostel-manager/auth" element={<HostelManagerAuth />} />
                 <Route path="/hostel-manager/dashboard" element={<HostelManagerProtectedRoute><HostelManagerDashboard /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/profile" element={<HostelManagerProtectedRoute><HostelManagerProfile /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/settings" element={<HostelManagerProtectedRoute><HostelManagerSettings /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/kyc" element={<HostelManagerProtectedRoute><HostelManagerKYC /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/hostels" element={<HostelManagerProtectedRoute><HostelManagerHostels /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/hostels/add" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />

@@ -1,49 +1,91 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Row, Col, Card, Statistic, Tag, List, Typography, Skeleton, Segmented, Avatar } from 'antd';
+import { 
+  FiMessageSquare, FiCheckCircle, FiClock, FiStar, 
+  FiUser, FiCalendar 
+} from 'react-icons/fi';
 import { hostelManagerAPI } from '../services/api';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
-import { FiStar, FiUser, FiCalendar, FiMessageSquare, FiCheckCircle, FiClock } from 'react-icons/fi';
+
+const { Title, Text } = Typography;
+
+/* -------------------------------------------------------------------------- */
+/* STATIC ASSETS                                                              */
+/* -------------------------------------------------------------------------- */
+
+const STARS = [1, 2, 3, 4, 5];
+
+/* -------------------------------------------------------------------------- */
+/* MAIN COMPONENT                                                             */
+/* -------------------------------------------------------------------------- */
 
 const HostelManagerReviews = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
-    fetchReviews();
+  // --------------------------------------------------------------------------
+  // NETWORK & LIFECYCLE
+  // --------------------------------------------------------------------------
+
+  const fetchReviews = useCallback(async (abortSignal) => {
+    try {
+      setLoading(true);
+      const res = await hostelManagerAPI.getReviews({ signal: abortSignal });
+      if (!abortSignal?.aborted) {
+        setReviews(res.data?.reviews || []);
+      }
+    } catch (error) {
+      if (error.name !== 'CanceledError') {
+        console.error('Failed to fetch reviews:', error);
+      }
+    } finally {
+      if (!abortSignal?.aborted) {
+        setLoading(false);
+      }
+    }
   }, []);
 
-  const fetchReviews = async () => {
-    try {
-      const res = await hostelManagerAPI.getReviews();
-      setReviews(res.data.reviews);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const abortController = new AbortController();
+    fetchReviews(abortController.signal);
+    return () => abortController.abort();
+  }, [fetchReviews]);
 
-  const filteredReviews = filter === 'all' 
-    ? reviews 
-    : reviews.filter(r => filter === 'approved' ? r.isApproved : !r.isApproved);
+  // --------------------------------------------------------------------------
+  // STRICT DATA MEMOIZATION (Zero layout thrashing on re-renders)
+  // --------------------------------------------------------------------------
 
-  const stats = {
-    total: reviews.length,
-    approved: reviews.filter(r => r.isApproved).length,
-    pending: reviews.filter(r => !r.isApproved).length,
-    avgRating: reviews.length > 0 
-      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-      : '0.0'
-  };
+  const stats = useMemo(() => {
+    const total = reviews.length;
+    const approved = reviews.filter(r => r.isApproved).length;
+    const pending = total - approved;
+    const avgRating = total > 0 
+      ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / total).toFixed(1) 
+      : '0.0';
+
+    return { total, approved, pending, avgRating };
+  }, [reviews]);
+
+  const filteredReviews = useMemo(() => {
+    if (filter === 'all') return reviews;
+    return reviews.filter(r => filter === 'approved' ? r.isApproved : !r.isApproved);
+  }, [reviews, filter]);
+
+  // --------------------------------------------------------------------------
+  // RENDER
+  // --------------------------------------------------------------------------
 
   if (loading) {
     return (
       <HostelManagerLayout>
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading reviews...</p>
-          </div>
+        <div className="space-y-8 pb-8">
+          <Row gutter={16}>
+            {[1, 2, 3, 4].map(i => (
+              <Col xs={24} sm={12} lg={6} key={i}><Card><Skeleton active paragraph={{ rows: 1 }} /></Card></Col>
+            ))}
+          </Row>
+          <Card><Skeleton active paragraph={{ rows: 4 }} /></Card>
         </div>
       </HostelManagerLayout>
     );
@@ -51,151 +93,142 @@ const HostelManagerReviews = () => {
 
   return (
     <HostelManagerLayout>
-      <div className="space-y-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <FiMessageSquare className="text-white text-xl" />
-              </div>
-            </div>
-            <p className="text-gray-600 text-sm mb-1">Total Reviews</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                <FiCheckCircle className="text-white text-xl" />
-              </div>
-            </div>
-            <p className="text-gray-600 text-sm mb-1">Approved</p>
-            <p className="text-3xl font-bold text-green-700">{stats.approved}</p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center">
-                <FiClock className="text-white text-xl" />
-              </div>
-            </div>
-            <p className="text-gray-600 text-sm mb-1">Pending</p>
-            <p className="text-3xl font-bold text-yellow-700">{stats.pending}</p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                <FiStar className="text-white text-xl" />
-              </div>
-            </div>
-            <p className="text-gray-600 text-sm mb-1">Avg Rating</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.avgRating} ⭐</p>
-          </div>
+      <div className="space-y-8 pb-8">
+        
+        {/* Header Section */}
+        <div>
+          <Title level={3} className="!m-0 text-slate-900">Review Management</Title>
+          <Text type="secondary" className="font-medium text-slate-500">Monitor and track feedback across all your properties.</Text>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-          <div className="flex gap-3 mb-6">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-6 py-2.5 rounded-xl font-medium transition-all ${
-                filter === 'all'
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              All Reviews ({stats.total})
-            </button>
-            <button
-              onClick={() => setFilter('approved')}
-              className={`px-6 py-2.5 rounded-xl font-medium transition-all ${
-                filter === 'approved'
-                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Approved ({stats.approved})
-            </button>
-            <button
-              onClick={() => setFilter('pending')}
-              className={`px-6 py-2.5 rounded-xl font-medium transition-all ${
-                filter === 'pending'
-                  ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Pending ({stats.pending})
-            </button>
+        {/* Statistics Cards */}
+        <Row gutter={[16, 16]}>
+          <Col xs={12} lg={6}>
+            <Card bordered={false} className="shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title={<span className="text-slate-500 font-medium">Total Reviews</span>} 
+                value={stats.total} 
+                prefix={<FiMessageSquare className="text-blue-500 mr-2" />} 
+              />
+            </Card>
+          </Col>
+          <Col xs={12} lg={6}>
+            <Card bordered={false} className="shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title={<span className="text-slate-500 font-medium">Approved</span>} 
+                value={stats.approved} 
+                valueStyle={{ color: '#10b981' }}
+                prefix={<FiCheckCircle className="mr-2" />} 
+              />
+            </Card>
+          </Col>
+          <Col xs={12} lg={6}>
+            <Card bordered={false} className="shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title={<span className="text-slate-500 font-medium">Pending Moderation</span>} 
+                value={stats.pending} 
+                valueStyle={{ color: '#f59e0b' }}
+                prefix={<FiClock className="mr-2" />} 
+              />
+            </Card>
+          </Col>
+          <Col xs={12} lg={6}>
+            <Card bordered={false} className="shadow-sm hover:shadow-md transition-shadow">
+              <Statistic 
+                title={<span className="text-slate-500 font-medium">Average Rating</span>} 
+                value={stats.avgRating} 
+                suffix="/ 5.0"
+                prefix={<FiStar className="text-yellow-500 mr-2" />} 
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Review List Section */}
+        <Card 
+          bordered={false} 
+          className="shadow-sm border border-slate-100"
+          bodyStyle={{ padding: 0 }}
+        >
+          {/* Filtering Controls */}
+          <div className="p-6 border-b border-slate-100 bg-slate-50/50 rounded-t-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <Segmented 
+              options={[
+                { label: `All Reviews (${stats.total})`, value: 'all' },
+                { label: `Approved (${stats.approved})`, value: 'approved' },
+                { label: `Pending (${stats.pending})`, value: 'pending' },
+              ]}
+              value={filter}
+              onChange={setFilter}
+              size="large"
+              className="shadow-sm font-medium"
+            />
           </div>
 
-          {filteredReviews.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiMessageSquare className="text-gray-400 text-3xl" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">No Reviews Yet</h3>
-              <p className="text-gray-600">
-                {filter === 'all' 
-                  ? "You don't have any reviews yet."
-                  : filter === 'approved'
-                  ? "No approved reviews yet."
-                  : "No pending reviews."}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredReviews.map((review) => (
-                <div
-                  key={review._id}
-                  className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-xl text-gray-900 mb-1">
-                        {review.hostel?.name}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <FiUser className="w-4 h-4" />
-                          <span>{review.user?.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FiCalendar className="w-4 h-4" />
-                          <span>{new Date(review.createdAt).toLocaleDateString()}</span>
-                        </div>
+          {/* Ant Design List Engine */}
+          <List
+            dataSource={filteredReviews}
+            locale={{ emptyText: <div className="py-12 text-slate-400">No reviews found for this filter.</div> }}
+            renderItem={(review) => (
+              <List.Item className="p-6 border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors block">
+                
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-3">
+                  
+                  {/* Property & User Info */}
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg text-slate-900 mb-1">
+                      {review.hostel?.name || 'Unknown Property'}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <Avatar size="small" className="bg-slate-200 text-slate-600 font-bold">
+                          {review.user?.name?.charAt(0).toUpperCase() || 'U'}
+                        </Avatar>
+                        <span>{review.user?.name || 'Anonymous User'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 border-l pl-4 border-slate-200">
+                        <FiCalendar className="text-slate-400" />
+                        <span>{new Date(review.createdAt || new Date()).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-lg">
-                        {[...Array(5)].map((_, i) => (
+                  </div>
+
+                  {/* Rating & Status Badges */}
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-2">
+                    <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded-md shadow-sm">
+                      <div className="flex gap-0.5">
+                        {STARS.map((star) => (
                           <FiStar
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                            key={star}
+                            className={`w-3.5 h-3.5 ${
+                              star <= (review.rating || 0) ? 'text-yellow-500 fill-current' : 'text-slate-200'
                             }`}
                           />
                         ))}
-                        <span className="ml-2 font-semibold text-gray-900">{review.rating}.0</span>
                       </div>
-                      <span
-                        className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                          review.isApproved
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-yellow-100 text-yellow-700'
-                        }`}
-                      >
-                        {review.isApproved ? '✓ Approved' : '⏳ Pending'}
-                      </span>
+                      <span className="ml-1.5 font-bold text-slate-800">{Number(review.rating || 0).toFixed(1)}</span>
                     </div>
+                    
+                    <Tag 
+                      color={review.isApproved ? 'success' : 'warning'}
+                      className="m-0 font-bold tracking-wide uppercase text-[10px]"
+                    >
+                      {review.isApproved ? 'Approved' : 'Pending'}
+                    </Tag>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                  
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+
+                {/* Review Content */}
+                <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-sm text-slate-700 leading-relaxed">
+                  {review.comment || 'No written feedback provided.'}
+                </div>
+                
+              </List.Item>
+            )}
+          />
+        </Card>
+
       </div>
     </HostelManagerLayout>
   );
