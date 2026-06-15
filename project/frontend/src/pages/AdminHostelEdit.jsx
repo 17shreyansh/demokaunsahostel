@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import { 
   SaveOutlined, ArrowLeftOutlined, UploadOutlined, PlusOutlined, 
   DeleteOutlined, EnvironmentOutlined, InfoCircleOutlined, LayoutOutlined,
-  ImageOutlined, StarOutlined
+  PictureOutlined, StarOutlined
 } from '@ant-design/icons';
 import { hostelAPI } from '../services/api';
 import { invalidateData } from '../utils/stateManager';
@@ -480,7 +480,7 @@ const AdminHostelEdit = () => {
             
             <Col xs={24} xl={12}>
               <Card 
-                title={<span className="flex items-center gap-2"><ImageOutlined className="text-pink-500" /> Media Gallery</span>}
+                title={<span className="flex items-center gap-2"><PictureOutlined className="text-pink-500" /> Media Gallery</span>}
                 bordered={false} className="shadow-sm h-full"
               >
                 <Form.Item name="images" label="Property Photos" extra="Supported: JPG, PNG, WebP. Max 10 images.">
