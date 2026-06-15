@@ -75,10 +75,14 @@ const HostelManagerHostelForm = () => {
     name: '', description: '', location: '', address: '', price: '', priceType: 'month', sessionPrice: '',
     amenities: [], rules: '', gender: 'Co-ed', type: 'PG', availableBeds: '', securityDeposit: '',
     capacity: '', checkIn: '', contactPersonName: '', jobTitle: '', phone: '', videoTourUrl: '',
-    availability: 'Available', rating: ''
+    availability: 'Available', rating: '', verified: false, coordinates: '',
+    info: [{ title: '', value: '' }],
+    roomTypes: [{ name: '', description: '' }],
+    reviews: [{ name: '', rating: '', comment: '', date: '' }]
   });
   const [images, setImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [profileImage, setProfileImage] = useState(null);
 
   useEffect(() => {
     if (id) fetchHostel();
@@ -118,13 +122,29 @@ const HostelManagerHostelForm = () => {
       } else if (key === 'rules') {
         const items = formData[key].split(',').map(a => a.trim()).filter(Boolean);
         data.append(key, JSON.stringify(items));
-      } else if (formData[key]) {
+      } else if (key === 'info') {
+        const validInfo = formData[key].filter(i => i.title && i.value);
+        data.append(key, JSON.stringify(validInfo));
+      } else if (key === 'roomTypes') {
+        const validRooms = formData[key].filter(r => r.name);
+        data.append(key, JSON.stringify(validRooms));
+      } else if (key === 'coordinates' && formData[key]) {
+        const [lat, lng] = formData[key].split(',').map(c => c.trim());
+        if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+          data.append('mapCoordinates', JSON.stringify({lat: parseFloat(lat), lng: parseFloat(lng)}));
+        }
+      } else if (formData[key] && key !== 'reviews') {
         data.append(key, formData[key]);
       }
     });
 
     // Add new images
     images.forEach(img => data.append('images', img));
+
+    // Add profile image
+    if (profileImage) {
+      data.append('profileImage', profileImage);
+    }
 
     try {
       if (id) {
@@ -305,13 +325,88 @@ const HostelManagerHostelForm = () => {
                 <label className="block text-sm font-medium mb-1">Phone Number</label>
                 <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="+91 9876543210" />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Profile Photo</label>
+                <input type="file" accept="image/*" onChange={(e) => setProfileImage(e.target.files[0])} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                <p className="text-xs text-gray-500 mt-1">Upload contact person photo</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Map Location */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border">
+            <h3 className="text-xl font-semibold mb-4 flex items-center">
+              <span className="bg-teal-100 text-teal-600 w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm">5</span>
+              Map Location
+            </h3>
+            <div>
+              <label className="block text-sm font-medium mb-1">Coordinates (Latitude, Longitude)</label>
+              <input type="text" value={formData.coordinates} onChange={(e) => setFormData({ ...formData, coordinates: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="28.464385, 77.499399" />
+              <p className="text-xs text-gray-500 mt-1">Get coordinates from Google Maps (right-click on map)</p>
+            </div>
+          </div>
+
+          {/* Room Types */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border">
+            <h3 className="text-xl font-semibold mb-4 flex items-center">
+              <span className="bg-cyan-100 text-cyan-600 w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm">6</span>
+              Room Types
+            </h3>
+            <div className="space-y-3">
+              {formData.roomTypes.map((room, idx) => (
+                <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 border rounded-lg bg-gray-50">
+                  <input type="text" value={room.name} onChange={(e) => {
+                    const updated = [...formData.roomTypes];
+                    updated[idx].name = e.target.value;
+                    setFormData({ ...formData, roomTypes: updated });
+                  }} className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Room type (e.g., Single)" />
+                  <div className="flex gap-2">
+                    <input type="text" value={room.description} onChange={(e) => {
+                      const updated = [...formData.roomTypes];
+                      updated[idx].description = e.target.value;
+                      setFormData({ ...formData, roomTypes: updated });
+                    }} className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Description" />
+                    <button type="button" onClick={() => setFormData({ ...formData, roomTypes: formData.roomTypes.filter((_, i) => i !== idx) })} className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">✕</button>
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={() => setFormData({ ...formData, roomTypes: [...formData.roomTypes, { name: '', description: '' }] })} className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 text-gray-600 hover:text-blue-600 transition-colors">+ Add Room Type</button>
+            </div>
+          </div>
+
+          {/* Additional Information */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border">
+            <h3 className="text-xl font-semibold mb-4 flex items-center">
+              <span className="bg-lime-100 text-lime-600 w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm">7</span>
+              Additional Information
+            </h3>
+            <div className="space-y-3">
+              {formData.info.map((item, idx) => (
+                <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 border rounded-lg bg-gray-50">
+                  <input type="text" value={item.title} onChange={(e) => {
+                    const updated = [...formData.info];
+                    updated[idx].title = e.target.value;
+                    setFormData({ ...formData, info: updated });
+                  }} className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Title (e.g., Notice Period)" />
+                  <div className="flex gap-2">
+                    <input type="text" value={item.value} onChange={(e) => {
+                      const updated = [...formData.info];
+                      updated[idx].value = e.target.value;
+                      setFormData({ ...formData, info: updated });
+                    }} className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Value (e.g., 1 month)" />
+                    <button type="button" onClick={() => setFormData({ ...formData, info: formData.info.filter((_, i) => i !== idx) })} className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">✕</button>
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={() => setFormData({ ...formData, info: [...formData.info, { title: '', value: '' }] })} className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 text-gray-600 hover:text-blue-600 transition-colors">+ Add Information</button>
             </div>
           </div>
 
           {/* Amenities & Rules */}
           <div className="bg-white p-6 rounded-xl shadow-sm border">
             <h3 className="text-xl font-semibold mb-4 flex items-center">
-              <span className="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm">5</span>
+              <span className="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm">8</span>
               Amenities & Rules
             </h3>
             
@@ -352,7 +447,7 @@ const HostelManagerHostelForm = () => {
           {/* Images & Video */}
           <div className="bg-white p-6 rounded-xl shadow-sm border">
             <h3 className="text-xl font-semibold mb-4 flex items-center">
-              <span className="bg-pink-100 text-pink-600 w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm">6</span>
+              <span className="bg-pink-100 text-pink-600 w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm">9</span>
               Images & Video Tour
             </h3>
             

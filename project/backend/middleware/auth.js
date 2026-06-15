@@ -22,6 +22,7 @@ const auth = async (req, res, next) => {
     req.admin = { id: decoded.id }; // backward compatibility
     next();
   } catch (error) {
+    console.error('Auth error:', error.message);
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ message: 'Token expired. Please login again.' });
     }

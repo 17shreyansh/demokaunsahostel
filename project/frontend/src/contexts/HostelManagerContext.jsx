@@ -22,6 +22,15 @@ export const HostelManagerProvider = ({ children }) => {
       const res = await hostelManagerAPI.getMe();
       setManager(res.data.manager);
     } catch (error) {
+      // If 404 or manager not found, clear cookies
+      if (error.response?.status === 404 || error.response?.data?.code === 'MANAGER_NOT_FOUND') {
+        console.log('🔴 Invalid token detected - clearing cookies');
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+      }
       setManager(null);
     } finally {
       setLoading(false);
@@ -46,9 +55,32 @@ export const HostelManagerProvider = ({ children }) => {
   };
 
   const submitKYC = async (formData) => {
-    const res = await hostelManagerAPI.submitKYC(formData);
-    await checkAuth();
-    return res.data;
+    try {
+      const res = await hostelManagerAPI.submitKYC(formData);
+      await checkAuth();
+      return res.data;
+    } catch (error) {
+      // If manager not found error, clear cookies and force re-login
+      if (error.response?.status === 404 || error.response?.data?.code === 'MANAGER_NOT_FOUND') {
+        console.log('🔴 Manager not found - clearing auth cookies');
+        
+        // Clear all cookies
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        
+        // Clear state
+        setManager(null);
+        
+        // Redirect to login
+        window.location.href = '/hostel-manager/auth?error=session_expired';
+        
+        throw new Error('Session expired. Please login again.');
+      }
+      throw error;
+    }
   };
 
   return (

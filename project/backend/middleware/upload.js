@@ -22,13 +22,16 @@ const fileFilter = (req, file, cb) => {
     'image/png',
     'image/gif',
     'image/webp',
-    'image/svg+xml'
+    'image/svg+xml',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   ];
 
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, GIF, WebP, and SVG are allowed.'), false);
+    cb(new Error('Invalid file type. Only images and documents (PDF, DOC, DOCX) are allowed.'), false);
   }
 };
 

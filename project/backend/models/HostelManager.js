@@ -15,6 +15,9 @@ const hostelManagerSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  businessName: {
+    type: String
+  },
   password: {
     type: String,
     required: true
@@ -42,7 +45,14 @@ const hostelManagerSchema = new mongoose.Schema({
     },
     submittedAt: Date,
     verifiedAt: Date,
-    rejectionReason: String
+    rejectedAt: Date,
+    rejectionReason: String,
+    history: [{
+      status: String,
+      timestamp: Date,
+      reason: String,
+      adminId: mongoose.Schema.Types.ObjectId
+    }]
   },
   hostels: [{
     type: mongoose.Schema.Types.ObjectId,

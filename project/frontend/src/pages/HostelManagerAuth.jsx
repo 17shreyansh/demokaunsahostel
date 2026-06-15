@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useHostelManager } from '../contexts/HostelManagerContext';
 import { FiMail, FiLock, FiUser, FiPhone, FiEye, FiEyeOff } from 'react-icons/fi';
 
 const HostelManagerAuth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', businessName: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, signup } = useHostelManager();
+  const { login, signup, manager, loading: authLoading } = useHostelManager();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && manager) {
+      navigate('/hostel-manager/dashboard');
+    }
+  }, [manager, authLoading, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -129,6 +136,22 @@ const HostelManagerAuth = () => {
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="+91 9876543210"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {!isLogin && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Hostel/Business Name</label>
+                  <div className="relative">
+                    <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      value={formData.businessName}
+                      onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      placeholder="Enter hostel or business name (optional)"
                     />
                   </div>
                 </div>

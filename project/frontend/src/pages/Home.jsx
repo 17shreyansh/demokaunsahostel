@@ -144,7 +144,7 @@ const Home = () => {
       <MemoizedSearchSection content={pageContent.search} />
       <MemoizedOurPartners />
       <MemoizedFeaturedHostels hostels={hostels} loading={loading} />
-      <MemoizedServicesSection content={pageContent.services} />
+      {/* <MemoizedServicesSection content={pageContent.services} /> */}
       <MemoizedTestimonialsSection content={pageContent.testimonials} />
     </main>
   );

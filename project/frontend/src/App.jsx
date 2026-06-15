@@ -35,6 +35,7 @@ const BlogList = lazy(() => import('./pages/blog/BlogListPage'))
 const BlogPost = lazy(() => import('./pages/blog/BlogPostPage'))
 const Chatbot = lazy(() => import('./components/Chatbot'))
 const HostelManagerAuth = lazy(() => import('./pages/HostelManagerAuth'))
+const HostelManagerProtectedRoute = lazy(() => import('./components/HostelManagerProtectedRoute'))
 const HostelManagerDashboard = lazy(() => import('./pages/HostelManagerDashboard'))
 const HostelManagerKYC = lazy(() => import('./pages/HostelManagerKYC'))
 const HostelManagerHostels = lazy(() => import('./pages/HostelManagerHostels'))
@@ -157,12 +158,12 @@ function App() {
 
                 {/* Hostel Manager Routes */}
                 <Route path="/hostel-manager/auth" element={<HostelManagerAuth />} />
-                <Route path="/hostel-manager/dashboard" element={<HostelManagerDashboard />} />
-                <Route path="/hostel-manager/kyc" element={<HostelManagerKYC />} />
-                <Route path="/hostel-manager/hostels" element={<HostelManagerHostels />} />
-                <Route path="/hostel-manager/hostels/add" element={<HostelManagerHostelForm />} />
-                <Route path="/hostel-manager/hostels/edit/:id" element={<HostelManagerHostelForm />} />
-                <Route path="/hostel-manager/reviews" element={<HostelManagerReviews />} />
+                <Route path="/hostel-manager/dashboard" element={<HostelManagerProtectedRoute><HostelManagerDashboard /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/kyc" element={<HostelManagerProtectedRoute><HostelManagerKYC /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/hostels" element={<HostelManagerProtectedRoute><HostelManagerHostels /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/hostels/add" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/hostels/edit/:id" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/reviews" element={<HostelManagerProtectedRoute><HostelManagerReviews /></HostelManagerProtectedRoute>} />
               </Routes>
             </Suspense>
             <ScrollToTop />

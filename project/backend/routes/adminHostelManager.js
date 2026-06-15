@@ -34,14 +34,30 @@ router.post('/managers/:id/kyc/approve', auth, adminOnly, async (req, res) => {
   try {
     const Hostel = require('../models/Hostel');
     
-    const manager = await HostelManager.findByIdAndUpdate(
-      req.params.id,
-      { 
-        'kyc.status': 'verified',
-        'kyc.verifiedAt': new Date()
-      },
-      { new: true }
-    ).select('-password');
+    const manager = await HostelManager.findById(req.params.id);
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found' });
+    }
+
+    if (manager.kyc.status !== 'submitted') {
+      return res.status(400).json({ message: 'KYC must be in submitted state to approve' });
+    }
+
+    manager.kyc.status = 'verified';
+    manager.kyc.verifiedAt = new Date();
+    manager.kyc.rejectionReason = null;
+    manager.kyc.rejectedAt = null;
+    
+    // Add to history
+    if (!manager.kyc.history) manager.kyc.history = [];
+    manager.kyc.history.push({
+      status: 'verified',
+      timestamp: new Date(),
+      reason: 'KYC approved by admin',
+      adminId: req.user.id
+    });
+
+    await manager.save();
     
     // Update all hostels owned by this manager to verified
     await Hostel.updateMany(
@@ -60,15 +76,35 @@ router.post('/managers/:id/kyc/reject', auth, adminOnly, async (req, res) => {
   try {
     const Hostel = require('../models/Hostel');
     const { reason } = req.body;
+
+    if (!reason) {
+      return res.status(400).json({ message: 'Rejection reason is required' });
+    }
     
-    const manager = await HostelManager.findByIdAndUpdate(
-      req.params.id,
-      { 
-        'kyc.status': 'rejected',
-        'kyc.rejectionReason': reason
-      },
-      { new: true }
-    ).select('-password');
+    const manager = await HostelManager.findById(req.params.id);
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found' });
+    }
+
+    if (manager.kyc.status !== 'submitted') {
+      return res.status(400).json({ message: 'KYC must be in submitted state to reject' });
+    }
+
+    manager.kyc.status = 'rejected';
+    manager.kyc.rejectionReason = reason;
+    manager.kyc.rejectedAt = new Date();
+    manager.kyc.verifiedAt = null;
+    
+    // Add to history
+    if (!manager.kyc.history) manager.kyc.history = [];
+    manager.kyc.history.push({
+      status: 'rejected',
+      timestamp: new Date(),
+      reason: reason,
+      adminId: req.user.id
+    });
+
+    await manager.save();
     
     // Update all hostels owned by this manager to not verified
     await Hostel.updateMany(
@@ -76,7 +112,7 @@ router.post('/managers/:id/kyc/reject', auth, adminOnly, async (req, res) => {
       { verified: false }
     );
     
-    res.json({ message: 'KYC rejected and hostels unverified', manager, success: true });
+    res.json({ message: 'KYC rejected', manager, success: true });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -84,28 +84,69 @@ router.post('/kyc', auth, upload.fields([
   { name: 'bankProof', maxCount: 1 }
 ]), async (req, res) => {
   try {
+    console.log('KYC submission attempt - User ID from token:', req.user.id);
+    
     const manager = await HostelManager.findById(req.user.id);
     
     if (!manager) {
-      return res.status(404).json({ message: 'Manager not found' });
+      console.error('KYC Error: Manager not found for ID:', req.user.id);
+      console.error('This usually means the authentication token is outdated or invalid');
+      return res.status(404).json({ 
+        message: 'Manager not found. Please logout and login again to refresh your session.',
+        code: 'MANAGER_NOT_FOUND'
+      });
+    }
+
+    console.log('Manager found:', manager.name, manager.email);
+
+    // Check if KYC is already submitted or verified
+    if (manager.kyc.status === 'submitted') {
+      return res.status(400).json({ message: 'KYC is already submitted and under review' });
+    }
+    if (manager.kyc.status === 'verified') {
+      return res.status(400).json({ message: 'KYC is already verified' });
     }
 
     const { companyName, companyType, gstNumber, accountNumber, ifscCode, bankName, accountHolderName } = req.body;
     
+    // Validate required fields
+    if (!companyName || !companyType || !gstNumber || !accountNumber || !ifscCode || !bankName || !accountHolderName) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Validate files
+    if (!req.files?.panCard || !req.files?.bankProof) {
+      return res.status(400).json({ message: 'PAN Card and Bank Proof documents are required' });
+    }
+
+    // Update KYC data
     manager.kyc = {
       status: 'submitted',
       companyDetails: { companyName, companyType, gstNumber },
       documents: {
-        panCard: req.files.panCard ? `/uploads/${req.files.panCard[0].filename}` : '',
-        bankProof: req.files.bankProof ? `/uploads/${req.files.bankProof[0].filename}` : ''
+        panCard: `/uploads/${req.files.panCard[0].filename}`,
+        bankProof: `/uploads/${req.files.bankProof[0].filename}`
       },
       bankDetails: { accountNumber, ifscCode, bankName, accountHolderName },
-      submittedAt: new Date()
+      submittedAt: new Date(),
+      verifiedAt: null,
+      rejectedAt: null,
+      rejectionReason: null,
+      history: manager.kyc.history || []
     };
     
+    // Add to history
+    manager.kyc.history.push({
+      status: 'submitted',
+      timestamp: new Date(),
+      reason: 'KYC submitted for review'
+    });
+    
     await manager.save();
+    console.log('✅ KYC submitted successfully for manager:', manager._id);
     res.json({ message: 'KYC submitted successfully', success: true });
   } catch (error) {
+    console.error('KYC submission error:', error);
     res.status(400).json({ message: error.message });
   }
 });
