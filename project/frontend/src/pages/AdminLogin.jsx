@@ -1,150 +1,208 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { authAPI } from '../services/api'
-import { useTheme, ThemeProvider } from '../contexts/ThemeContext'
+import { useState, useCallback, memo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { authAPI } from '../services/api';
+import { useTheme, ThemeProvider } from '../contexts/ThemeContext';
+import { FiUser, FiLock, FiMoon, FiSun, FiShield } from 'react-icons/fi';
+import logo from '../assets/logo.png';
+
+/* -------------------------------------------------------------------------- */
+/* MEMOIZED MICRO-COMPONENTS                                                  */
+/* -------------------------------------------------------------------------- */
+
+// Isolated Input Field ensures keystrokes do NOT re-render the surrounding page layout
+const MemoizedInputField = memo(({ id, name, type, label, value, onChange, icon: Icon, required, placeholder, isDark }) => (
+  <div className="relative group">
+    <label htmlFor={id} className={`block text-sm font-semibold mb-1.5 transition-colors duration-300 ${isDark ? 'text-gray-300 group-focus-within:text-yellow-500' : 'text-gray-700 group-focus-within:text-yellow-600'}`}>
+      {label}
+    </label>
+    <div className="relative">
+      <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-300 ${isDark ? 'text-gray-500 group-focus-within:text-yellow-500' : 'text-gray-400 group-focus-within:text-yellow-600'}`}>
+        <Icon size={18} />
+      </div>
+      <input
+        id={id}
+        name={name}
+        type={type}
+        required={required}
+        value={value}
+        onChange={onChange}
+        className={`block w-full pl-11 pr-4 py-3.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 transition-all duration-300 shadow-sm ${
+          isDark 
+            ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 hover:bg-gray-800' 
+            : 'bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 hover:bg-white'
+        }`}
+        placeholder={placeholder}
+      />
+    </div>
+  </div>
+));
+MemoizedInputField.displayName = 'MemoizedInputField';
+
+/* -------------------------------------------------------------------------- */
+/* MAIN CONTENT COMPONENT                                                     */
+/* -------------------------------------------------------------------------- */
 
 const AdminLoginContent = () => {
-  const { isDark, toggleTheme } = useTheme()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const navigate = useNavigate()
+  const { isDark, toggleTheme } = useTheme();
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = async (values) => {
-    setLoading(true)
-    setError('')
+  // Preserves referential equality to prevent child re-renders
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (error) setError('');
+  }, [error]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      const response = await authAPI.adminLogin(values)
-      // No need to store token - it's in HTTP-only cookie now
-      navigate('/admin/dashboard')
-    } catch (error) {
-      setError(error.response?.data?.message || 'Login failed')
+      await authAPI.adminLogin(formData);
+      // Token is in HTTP-only cookie
+      navigate('/admin/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Authentication failed. Please verify credentials.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} p-4`}>
-      {/* Theme Toggle */}
+    <div className={`relative min-h-screen flex items-center justify-center transition-colors duration-500 overflow-hidden transform-gpu ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
+      
+      {/* GPU-Accelerated Premium Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className={`absolute -top-40 -right-40 w-96 h-96 rounded-full blur-[100px] transform-gpu transition-colors duration-700 ${isDark ? 'bg-yellow-500/10' : 'bg-yellow-400/20'}`}></div>
+        <div className={`absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-[100px] transform-gpu transition-colors duration-700 ${isDark ? 'bg-blue-600/10' : 'bg-blue-900/10'}`}></div>
+      </div>
+
+      {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
-        className={`fixed top-4 right-4 p-3 rounded-full transition-colors ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'} shadow-lg`}
+        className={`fixed top-6 right-6 p-3.5 rounded-full backdrop-blur-md shadow-lg transition-all duration-300 transform-gpu hover:scale-110 z-50 ${
+          isDark ? 'bg-gray-800/80 text-yellow-400 hover:bg-gray-700' : 'bg-white/80 text-gray-700 hover:bg-gray-100'
+        }`}
+        aria-label="Toggle Theme"
       >
-        {isDark ? (
-          <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-        ) : (
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-          </svg>
-        )}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={isDark ? 'dark' : 'light'}
+            initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+            exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+            transition={{ duration: 0.2 }}
+          >
+            {isDark ? <FiSun size={20} /> : <FiMoon size={20} />}
+          </motion.div>
+        </AnimatePresence>
       </button>
 
-      <div className={`w-full max-w-md transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl shadow-2xl border p-8`}>
-        <div className="text-center mb-8">
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-blue-600' : 'bg-blue-600'}`}>
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
+      <motion.div 
+        className="max-w-md w-full relative z-10 px-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <div className={`backdrop-blur-2xl p-8 sm:p-10 rounded-3xl shadow-2xl border transition-colors duration-500 ${
+          isDark ? 'bg-slate-800/80 border-slate-700/50' : 'bg-white/80 border-white/60'
+        }`}>
+          
+          {/* Header */}
+          <div className="text-center mb-8">
+            <Link to="/" className="inline-block mb-5 transform-gpu hover:scale-105 transition-transform">
+              <div className="bg-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2">
+                <img src={logo} alt="KaunsaHostel" className="h-8 object-contain" />
+                <div className="w-px h-5 bg-gray-200"></div>
+                <span className="text-gray-900 font-bold text-sm">Admin</span>
+              </div>
+            </Link>
+            <h2 className={`text-3xl font-extrabold tracking-tight mb-2 transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Admin Portal
+            </h2>
+            <p className={`text-sm font-medium transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              Secure access to hostel management
+            </p>
           </div>
-          <h1 className={`text-2xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Provider Login</h1>
-          <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Access your hostel management dashboard</p>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
-          </div>
-        )}
-
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          const formData = new FormData(e.target)
-          handleSubmit({
-            username: formData.get('username'),
-            password: formData.get('password')
-          })
-        }} className="space-y-6">
-          <div>
-            <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              Username
-            </label>
-            <div className="relative">
-              <svg className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <input
-                type="text"
-                name="username"
-                required
-                className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                placeholder="Enter your username"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              Password
-            </label>
-            <div className="relative">
-              <svg className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <input
-                type="password"
-                name="password"
-                required
-                className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Signing in...</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                </svg>
-                <span>Sign In</span>
-              </>
+          
+          {/* Error Handling */}
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                className={`border-l-4 p-4 rounded-r-xl overflow-hidden ${
+                  isDark ? 'bg-red-500/10 border-red-500 text-red-200' : 'bg-red-50 border-red-500 text-red-700'
+                }`}
+              >
+                <div className="flex items-center">
+                  <span className="text-xl mr-3 flex-shrink-0">⚠️</span>
+                  <p className="text-sm font-medium">{error}</p>
+                </div>
+              </motion.div>
             )}
-          </button>
-        </form>
+          </AnimatePresence>
 
-        <div className={`mt-6 p-4 rounded-lg transition-colors ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-          <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'} text-center`}>
-            <strong>Demo Credentials:</strong><br />
-            Username: <code className={`px-1 py-0.5 rounded text-xs ${isDark ? 'bg-gray-600' : 'bg-gray-200'}`}>admin</code><br />
-            Password: <code className={`px-1 py-0.5 rounded text-xs ${isDark ? 'bg-gray-600' : 'bg-gray-200'}`}>admin123</code>
-          </p>
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <MemoizedInputField
+              id="username" name="username" type="text" label="Administrator Username"
+              icon={FiUser} required={true} isDark={isDark}
+              value={formData.username} onChange={handleChange}
+              placeholder="Enter your username"
+            />
+
+            <MemoizedInputField
+              id="password" name="password" type="password" label="Master Password"
+              icon={FiLock} required={true} isDark={isDark}
+              value={formData.password} onChange={handleChange}
+              placeholder="Enter your password"
+            />
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full flex justify-center py-4 px-4 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-70 transition-all duration-300 shadow-lg hover:shadow-xl transform-gpu hover:-translate-y-0.5 will-change-transform"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-gray-900" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Authenticating...
+                  </span>
+                ) : (
+                  'Secure Login'
+                )}
+              </button>
+            </div>
+          </form>
+
+
+          
         </div>
-      </div>
+      </motion.div>
     </div>
-  )
-}
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* ROOT WRAPPER                                                               */
+/* -------------------------------------------------------------------------- */
 
 const AdminLogin = () => {
   return (
     <ThemeProvider>
       <AdminLoginContent />
     </ThemeProvider>
-  )
-}
+  );
+};
 
-export default AdminLogin
+export default AdminLogin;

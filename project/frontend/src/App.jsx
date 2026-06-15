@@ -9,6 +9,7 @@ import AdminLayout from './layouts/AdminLayout'
 import { AdminProvider } from './contexts/AdminContext'
 import { UserProvider } from './contexts/UserContext'
 import { HostelManagerProvider } from './contexts/HostelManagerContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import LoadingSpinner from './components/common/LoadingSpinner'
 
 // Lazy load pages
@@ -119,9 +120,11 @@ function App() {
                 <Route path="/admin" element={<AdminLogin />} />
                 <Route path="/admin/*" element={
                   <ProtectedRoute>
-                    <AdminProvider>
-                      <AdminLayout />
-                    </AdminProvider>
+                    <ThemeProvider>
+                      <AdminProvider>
+                        <AdminLayout />
+                      </AdminProvider>
+                    </ThemeProvider>
                   </ProtectedRoute>
                 }>
                   <Route path="dashboard" element={<AdminDashboard />} />

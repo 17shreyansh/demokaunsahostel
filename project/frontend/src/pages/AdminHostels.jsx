@@ -1,276 +1,278 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { hostelAPI } from '../services/api'
-import { useTheme } from '../contexts/ThemeContext'
-import { stateManager, invalidateData } from '../utils/stateManager'
-import { forceRefresh } from '../utils/cacheManager'
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { hostelAPI } from '../services/api';
+import { stateManager, invalidateData } from '../utils/stateManager';
+import { forceRefresh } from '../utils/cacheManager';
+import { 
+  Row, Col, Card, Button, Input, Tag, Spin, message, Empty, Tooltip, Statistic 
+} from 'antd';
+import { 
+  FiPlus, FiRefreshCw, FiEdit2, FiEye, FiTrash2, FiHome, 
+  FiCheckCircle, FiAlertCircle, FiXCircle 
+} from 'react-icons/fi';
+
+const { Search } = Input;
 
 const AdminHostels = () => {
-  const navigate = useNavigate()
-  const { isDark } = useTheme()
-  const [filteredHostels, setFilteredHostels] = useState([])
-  const [searchText, setSearchText] = useState('')
+  const navigate = useNavigate();
+  const [hostels, setHostels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  const [hostels, setHostels] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [lastUpdated, setLastUpdated] = useState(null)
-
-  const fetchHostels = async (force = false) => {
+  // Safe Network Fetching
+  const fetchHostels = useCallback(async (force = false, abortSignal) => {
     try {
-      setLoading(true)
-      console.log(`Fetching hostels at ${new Date().toISOString()}, force: ${force}`)
-      if (force) {
-        hostelAPI.clearCache() // Clear cache for forced refresh
-        console.log('Cache cleared')
+      setLoading(true);
+      if (force) hostelAPI.clearCache();
+      
+      const response = await hostelAPI.getAll({ signal: abortSignal });
+      
+      if (!abortSignal?.aborted) {
+        setHostels(response.data?.hostels || response.data || []);
+        setLastUpdated(new Date());
       }
-      const response = await hostelAPI.getAll()
-      console.log('Fetched hostels count:', response.data?.hostels?.length || response.data?.length || 0)
-      console.log('First hostel description:', response.data?.hostels?.[0]?.description || response.data?.[0]?.description)
-      setHostels(response.data.hostels || response.data || [])
-      setLastUpdated(new Date())
     } catch (error) {
-      console.error('Failed to fetch hostels:', error)
-      setHostels([])
+      if (error.name !== 'CanceledError') {
+        console.error('Failed to fetch hostels:', error);
+        message.error('Failed to load properties');
+      }
     } finally {
-      setLoading(false)
+      if (!abortSignal?.aborted) {
+        setLoading(false);
+      }
     }
-  }
+  }, []);
 
   useEffect(() => {
-    fetchHostels()
-    return stateManager.subscribe('hostels', () => fetchHostels(true))
-  }, [])
+    const abortController = new AbortController();
+    fetchHostels(false, abortController.signal);
 
-  useEffect(() => {
-    setFilteredHostels(hostels || [])
-  }, [hostels])
+    const unsubscribe = stateManager.subscribe('hostels', () => fetchHostels(true));
 
-  const handleAdd = () => {
-    navigate('/admin/hostels/new')
-  }
+    return () => {
+      abortController.abort();
+      unsubscribe();
+    };
+  }, [fetchHostels]);
 
-  const handleEdit = (record) => {
-    navigate(`/admin/hostels/${record._id}`)
-  }
+  // Derived State (Eliminates the need for a separate filteredHostels state)
+  const filteredHostels = useMemo(() => {
+    if (!searchText) return hostels;
+    const lowercasedSearch = searchText.toLowerCase();
+    return hostels.filter(hostel => 
+      hostel.name?.toLowerCase().includes(lowercasedSearch) ||
+      hostel.location?.toLowerCase().includes(lowercasedSearch)
+    );
+  }, [hostels, searchText]);
 
-  const handleView = (record) => {
-    window.open(`/hostel/${record.slug || record._id}`, '_blank')
-  }
+  const stats = useMemo(() => ({
+    total: hostels.length || 0,
+    available: hostels.filter(h => h.availability === 'Available').length || 0,
+    limited: hostels.filter(h => h.availability === 'Limited').length || 0,
+    full: hostels.filter(h => h.availability === 'Full').length || 0
+  }), [hostels]);
+
+  // Actions
+  const handleAdd = () => navigate('/admin/hostels/new');
+  const handleEdit = (record) => navigate(`/admin/hostels/${record._id}`);
+  const handleView = (record) => window.open(`/hostel/${record.slug || record._id}`, '_blank');
 
   const handleDelete = async (id) => {
+    const originalHostels = [...hostels];
+    
+    // Optimistic update
+    setHostels(prev => prev.filter(h => h._id !== id));
+    
     try {
-      // Optimistic update
-      const originalHostels = hostels
-      setHostels(prev => prev.filter(h => h._id !== id))
-      setFilteredHostels(prev => prev.filter(h => h._id !== id))
-      
-      await hostelAPI.delete(id)
-      
-      // Trigger global refresh
-      invalidateData('homepage')
-      invalidateData('dashboard')
-      alert('Property deleted successfully')
+      await hostelAPI.delete(id);
+      invalidateData('homepage');
+      invalidateData('dashboard');
+      message.success('Property deleted successfully');
     } catch (error) {
       // Revert on error
-      setHostels(originalHostels)
-      setFilteredHostels(originalHostels)
-      alert('Failed to delete property')
+      setHostels(originalHostels);
+      message.error('Failed to delete property');
     }
-  }
+  };
 
-  const handleSearch = (value) => {
-    setSearchText(value)
-    if (!value) {
-      setFilteredHostels(hostels || [])
-    } else {
-      const filtered = hostels?.filter(hostel => 
-        hostel.name?.toLowerCase().includes(value.toLowerCase()) ||
-        hostel.location?.toLowerCase().includes(value.toLowerCase())
-      ) || []
-      setFilteredHostels(filtered)
-    }
-  }
-
-  useEffect(() => {
-    setFilteredHostels(hostels)
-  }, [hostels])
-
-
-
-  const stats = {
-    total: hostels?.length || 0,
-    available: hostels?.filter(h => h.availability === 'Available').length || 0,
-    limited: hostels?.filter(h => h.availability === 'Limited').length || 0,
-    full: hostels?.filter(h => h.availability === 'Full').length || 0
-  }
+  const handleForceRefresh = () => {
+    forceRefresh();
+    hostelAPI.clearCache();
+    fetchHostels(true);
+  };
 
   return (
-    <div className={`transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>My Properties</h1>
-            {lastUpdated && (
-              <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                Last updated: {lastUpdated.toLocaleTimeString()}
-              </p>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <button 
-              onClick={() => {
-                forceRefresh()
-                hostelAPI.clearCache()
-                fetchHostels(true)
-              }}
-              className={`px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
-                isDark 
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-              } shadow-lg hover:shadow-xl`}
-            >
-              🔄 Force Refresh
-            </button>
-            <button 
-              onClick={handleAdd}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                isDark 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              } shadow-lg hover:shadow-xl`}
-            >
-              <span className="mr-2">+</span>
-              Add New Property
-            </button>
-          </div>
+    <div className="pb-8">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 m-0 leading-tight">My Properties</h1>
+          {lastUpdated && (
+            <p className="text-sm text-slate-500 mt-1">
+              Last synced: {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
         </div>
+        <div className="flex gap-3">
+          <Button 
+            icon={<FiRefreshCw />} 
+            onClick={handleForceRefresh}
+            loading={loading}
+          >
+            Force Sync
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<FiPlus />} 
+            onClick={handleAdd}
+            className="bg-blue-600"
+          >
+            Add Property
+          </Button>
+        </div>
+      </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
-            <p className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Properties</p>
-            <p className={`text-2xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
-          </div>
-          <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
-            <p className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Available</p>
-            <p className="text-2xl font-bold text-green-500">{stats.available}</p>
-          </div>
-          <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
-            <p className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Limited</p>
-            <p className="text-2xl font-bold text-yellow-500">{stats.limited}</p>
-          </div>
-          <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
-            <p className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Full</p>
-            <p className="text-2xl font-bold text-red-500">{stats.full}</p>
-          </div>
-        </div>
+      {/* Statistics Cards */}
+      <Row gutter={[16, 16]} className="mb-8">
+        <Col xs={12} md={6}>
+          <Card bordered={false} className="shadow-sm">
+            <Statistic 
+              title="Total Properties" 
+              value={stats.total} 
+              prefix={<FiHome className="text-blue-500 mr-2" />} 
+            />
+          </Card>
+        </Col>
+        <Col xs={12} md={6}>
+          <Card bordered={false} className="shadow-sm">
+            <Statistic 
+              title="Available" 
+              value={stats.available} 
+              valueStyle={{ color: '#52c41a' }}
+              prefix={<FiCheckCircle className="mr-2" />} 
+            />
+          </Card>
+        </Col>
+        <Col xs={12} md={6}>
+          <Card bordered={false} className="shadow-sm">
+            <Statistic 
+              title="Limited" 
+              value={stats.limited} 
+              valueStyle={{ color: '#faad14' }}
+              prefix={<FiAlertCircle className="mr-2" />} 
+            />
+          </Card>
+        </Col>
+        <Col xs={12} md={6}>
+          <Card bordered={false} className="shadow-sm">
+            <Statistic 
+              title="Full" 
+              value={stats.full} 
+              valueStyle={{ color: '#ff4d4f' }}
+              prefix={<FiXCircle className="mr-2" />} 
+            />
+          </Card>
+        </Col>
+      </Row>
 
-        {/* Search */}
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search properties by name or location..."
-            value={searchText}
-            onChange={(e) => handleSearch(e.target.value)}
-            className={`w-full max-w-md px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-          />
-        </div>
+      {/* Search Bar */}
+      <div className="mb-6 max-w-md">
+        <Search
+          placeholder="Search properties by name or location..."
+          allowClear
+          onChange={(e) => setSearchText(e.target.value)}
+          size="large"
+          className="shadow-sm"
+        />
       </div>
 
       {/* Properties Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-        {(filteredHostels || []).map((hostel) => (
-          <div key={hostel._id} className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl border shadow-sm hover:shadow-lg`}>
-            <div className="h-32 sm:h-40 md:h-48 bg-gray-200 dark:bg-gray-700 rounded-t-xl overflow-hidden">
-              {hostel.images?.[0] ? (
-                <img 
-                  src={`${import.meta.env.VITE_BACKEND_URL}/uploads/${hostel.images[0]}`} 
-                  alt={hostel.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <svg className={`w-12 h-12 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-              )}
-            </div>
-            <div className="p-3 sm:p-4">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2 gap-1 sm:gap-0">
-                <h3 className={`font-semibold text-sm sm:text-base transition-colors ${isDark ? 'text-white' : 'text-gray-900'} truncate`}>{hostel.name}</h3>
-                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full self-start ${
-                  hostel.availability === 'Available' 
-                    ? isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-800'
-                    : hostel.availability === 'Limited' 
-                    ? isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-100 text-yellow-800'
-                    : isDark ? 'bg-red-900/50 text-red-400' : 'bg-red-100 text-red-800'
-                }`}>
-                  {hostel.availability}
-                </span>
-              </div>
-              <p className={`text-xs sm:text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2 truncate`}>{hostel.location}</p>
-              <div className={`text-base sm:text-lg font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-3 sm:mb-4`}>
-                Rs. {Number(hostel.price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/{hostel.priceType || 'month'}
-              </div>
-              
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-                <div className="flex items-center space-x-1 sm:space-x-2">
-                  <button
-                    onClick={() => handleEdit(hostel)}
-                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                    title="Edit"
-                  >
-                    <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => handleView(hostel)}
-                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                    title="View"
-                  >
-                    <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (window.confirm('Are you sure you want to delete this property?')) {
-                        handleDelete(hostel._id)
-                      }
-                    }}
-                    className={`p-1.5 sm:p-2 rounded-lg transition-colors hover:bg-red-100 dark:hover:bg-red-900/50`}
-                    title="Delete"
-                  >
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <span className="text-yellow-400 text-sm">★</span>
-                  <span className={`text-xs sm:text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {hostel.rating || '4.5'}
-                  </span>
-                </div>
-              </div>
-            </div>
+      <Spin spinning={loading} size="large">
+        {filteredHostels.length === 0 && !loading ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-16">
+            <Empty 
+              description={<span className="text-slate-500 font-medium">No properties found</span>} 
+            />
           </div>
-        ))}
-      </div>
-
-      {(!filteredHostels || filteredHostels.length === 0) && !loading && (
-        <div className={`text-center py-12 transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-          <p>No properties found</p>
-        </div>
-      )}
+        ) : (
+          <Row gutter={[24, 24]}>
+            {filteredHostels.map((hostel) => (
+              <Col xs={24} sm={12} lg={8} xl={6} key={hostel._id}>
+                <Card
+                  hoverable
+                  className="h-full overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                  cover={
+                    <div className="h-48 bg-slate-100 relative group">
+                      {hostel.images?.[0] ? (
+                        <img 
+                          src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${hostel.images[0]}`} 
+                          alt={hostel.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                          <FiHome size={48} />
+                        </div>
+                      )}
+                      {/* Price Badge Overlay */}
+                      <div className="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-sm text-white px-3 py-1 rounded-lg font-semibold border border-white/10 shadow-lg">
+                        ₹{Number(hostel.price || 0).toLocaleString()}/{hostel.priceType || 'mo'}
+                      </div>
+                    </div>
+                  }
+                  actions={[
+                    <Tooltip title="Edit Property">
+                      <Button type="text" icon={<FiEdit2 />} onClick={() => handleEdit(hostel)} />
+                    </Tooltip>,
+                    <Tooltip title="View Live">
+                      <Button type="text" icon={<FiEye />} onClick={() => handleView(hostel)} />
+                    </Tooltip>,
+                    <Tooltip title="Delete">
+                      <Button 
+                        type="text" 
+                        danger 
+                        icon={<FiTrash2 />} 
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+                            handleDelete(hostel._id);
+                          }
+                        }} 
+                      />
+                    </Tooltip>
+                  ]}
+                >
+                  <div className="flex justify-between items-start mb-2 gap-2">
+                    <h3 className="font-bold text-slate-900 text-lg m-0 truncate" title={hostel.name}>
+                      {hostel.name}
+                    </h3>
+                    <Tag 
+                      color={
+                        hostel.availability === 'Available' ? 'success' : 
+                        hostel.availability === 'Limited' ? 'warning' : 'error'
+                      }
+                      className="m-0 border-0"
+                    >
+                      {hostel.availability}
+                    </Tag>
+                  </div>
+                  
+                  <p className="text-slate-500 text-sm mb-3 truncate" title={hostel.location}>
+                    {hostel.location}
+                  </p>
+                  
+                  <div className="flex items-center gap-1 text-sm font-medium">
+                    <span className="text-yellow-500">★</span>
+                    <span className="text-slate-600">{hostel.rating || 'New'}</span>
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+      </Spin>
     </div>
-  )
-}
+  );
+};
 
-export default AdminHostels
+export default AdminHostels;
