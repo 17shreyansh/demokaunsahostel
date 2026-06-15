@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useHostelManager } from '../contexts/HostelManagerContext';
 import { 
-  FiHome, FiBuilding, FiStar, FiUser, FiLogOut, FiMenu, FiX, 
+  FiHome, FiStar, FiUser, FiLogOut, FiMenu, FiX, 
   FiCheckCircle, FiAlertCircle, FiClock, FiBell, FiSettings,
   FiChevronDown, FiGrid, FiBarChart2
 } from 'react-icons/fi';
@@ -38,7 +38,7 @@ const HostelManagerLayout = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/hostel-manager/dashboard', icon: FiGrid, badge: null },
-    { name: 'My Properties', href: '/hostel-manager/hostels', icon: FiBuilding, badge: manager?.hostels?.length || 0 },
+    { name: 'My Properties', href: '/hostel-manager/hostels', icon: FiHome, badge: manager?.hostels?.length || 0 },
     { name: 'Reviews', href: '/hostel-manager/reviews', icon: FiStar, badge: null },
     { name: 'KYC Status', href: '/hostel-manager/kyc', icon: FiCheckCircle, badge: getKYCStatusBadge() },
   ];

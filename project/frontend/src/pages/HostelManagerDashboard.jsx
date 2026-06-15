@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { hostelManagerAPI } from '../services/api';
 import { useHostelManager } from '../contexts/HostelManagerContext';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
 import { FiHome, FiStar, FiMessageSquare, FiCheckCircle, FiAlertCircle, FiClock, FiTrendingUp, FiEye, FiUsers, FiDollarSign, FiArrowRight } from 'react-icons/fi';
@@ -17,7 +17,7 @@ const HostelManagerDashboard = () => {
 
   const fetchDashboard = async () => {
     try {
-      const res = await axios.get('/api/hostel-manager/dashboard', { withCredentials: true });
+      const res = await hostelManagerAPI.getDashboard();
       setStats(res.data);
     } catch (error) {
       console.error(error);

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { hostelManagerAPI } from '../services/api';
 
 const HostelManagerContext = createContext();
 
@@ -19,7 +19,7 @@ export const HostelManagerProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const res = await axios.get('/api/hostel-manager/auth/me', { withCredentials: true });
+      const res = await hostelManagerAPI.getMe();
       setManager(res.data.manager);
     } catch (error) {
       setManager(null);
@@ -29,27 +29,24 @@ export const HostelManagerProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const res = await axios.post('/api/hostel-manager/auth/login', { email, password }, { withCredentials: true });
+    const res = await hostelManagerAPI.login({ email, password });
     setManager(res.data.manager);
     return res.data;
   };
 
   const signup = async (data) => {
-    const res = await axios.post('/api/hostel-manager/auth/signup', data, { withCredentials: true });
+    const res = await hostelManagerAPI.signup(data);
     setManager(res.data.manager);
     return res.data;
   };
 
   const logout = async () => {
-    await axios.post('/api/hostel-manager/auth/logout', {}, { withCredentials: true });
+    await hostelManagerAPI.logout();
     setManager(null);
   };
 
   const submitKYC = async (formData) => {
-    const res = await axios.post('/api/hostel-manager/auth/kyc', formData, { 
-      withCredentials: true,
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const res = await hostelManagerAPI.submitKYC(formData);
     await checkAuth();
     return res.data;
   };

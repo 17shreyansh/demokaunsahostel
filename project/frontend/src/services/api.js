@@ -181,4 +181,25 @@ export const pageAPI = {
   getAllPageContent: () => api.get('/page-content')
 }
 
+export const hostelManagerAPI = {
+  // Auth
+  signup: (data) => api.post('/hostel-manager/auth/signup', data),
+  login: (credentials) => api.post('/hostel-manager/auth/login', credentials),
+  logout: () => api.post('/hostel-manager/auth/logout'),
+  getMe: () => api.get('/hostel-manager/auth/me'),
+  submitKYC: (formData) => uploadAPI.post('/hostel-manager/auth/kyc', formData),
+  
+  // Dashboard
+  getDashboard: () => api.get('/hostel-manager/dashboard'),
+  
+  // Hostels
+  getHostels: () => api.get('/hostel-manager/hostels'),
+  createHostel: (formData) => uploadAPI.post('/hostel-manager/hostels', formData),
+  updateHostel: (id, formData) => uploadAPI.put(`/hostel-manager/hostels/${id}`, formData),
+  deleteHostel: (id) => api.delete(`/hostel-manager/hostels/${id}`),
+  
+  // Reviews
+  getReviews: () => api.get('/hostel-manager/reviews')
+}
+
 export default api

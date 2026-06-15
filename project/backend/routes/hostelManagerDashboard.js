@@ -49,18 +49,25 @@ const requireKYC = async (req, res, next) => {
 router.get('/dashboard', auth, async (req, res) => {
   try {
     const manager = await HostelManager.findById(req.user.id).populate('hostels');
-    const totalHostels = manager.hostels.length;
-    const totalReviews = await Review.countDocuments({ hostel: { $in: manager.hostels } });
-    const avgRating = manager.hostels.reduce((sum, h) => sum + (h.rating || 0), 0) / (totalHostels || 1);
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found' });
+    }
+    
+    const totalHostels = manager.hostels?.length || 0;
+    const totalReviews = await Review.countDocuments({ hostel: { $in: manager.hostels || [] } });
+    const avgRating = totalHostels > 0
+      ? (manager.hostels.reduce((sum, h) => sum + (h.rating || 0), 0) / totalHostels)
+      : 0;
     
     res.json({
       totalHostels,
       totalReviews,
       avgRating: avgRating.toFixed(1),
-      kycStatus: manager.kyc.status,
+      kycStatus: manager.kyc?.status || 'pending',
       success: true
     });
   } catch (error) {
+    console.error('Dashboard error:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -209,13 +216,18 @@ router.delete('/hostels/:id', auth, requireKYC, async (req, res) => {
 router.get('/reviews', auth, async (req, res) => {
   try {
     const manager = await HostelManager.findById(req.user.id);
-    const reviews = await Review.find({ hostel: { $in: manager.hostels } })
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found' });
+    }
+    
+    const reviews = await Review.find({ hostel: { $in: manager.hostels || [] } })
       .populate('hostel', 'name')
       .populate('user', 'name email')
       .sort('-createdAt');
     
-    res.json({ reviews, success: true });
+    res.json({ reviews: reviews || [], success: true });
   } catch (error) {
+    console.error('Get reviews error:', error);
     res.status(500).json({ message: error.message });
   }
 });

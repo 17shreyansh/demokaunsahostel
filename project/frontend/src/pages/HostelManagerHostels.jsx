@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { hostelManagerAPI } from '../services/api';
 import { useHostelManager } from '../contexts/HostelManagerContext';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
 import { FiPlus, FiEdit2, FiTrash2, FiMapPin, FiDollarSign, FiStar } from 'react-icons/fi';
@@ -18,7 +18,7 @@ const HostelManagerHostels = () => {
   const fetchHostels = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/hostel-manager/hostels', { withCredentials: true });
+      const res = await hostelManagerAPI.getHostels();
       setHostels(res.data.hostels);
     } catch (error) {
       console.error(error);
@@ -34,7 +34,7 @@ const HostelManagerHostels = () => {
     if (!window.confirm('Are you sure you want to delete this hostel?')) return;
     
     try {
-      await axios.delete(`/api/hostel-manager/hostels/${id}`, { withCredentials: true });
+      await hostelManagerAPI.deleteHostel(id);
       setHostels(hostels.filter(h => h._id !== id));
       alert('Hostel deleted successfully');
     } catch (error) {

@@ -131,25 +131,25 @@ const Header = memo(() => {
 
   return (
     <header id="home" className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50 transform-gpu">
-      <nav className="container mx-auto px-6 py-3 flex justify-between items-center">
+      <nav className="container mx-auto px-3 sm:px-4 md:px-6 py-2 md:py-3 flex justify-between items-center">
 
-        <Link to="/" className="flex items-center group">
+        <Link to="/" className="flex items-center group flex-shrink-0">
           {/* GPU Acceleration for smooth hover scaling */}
           <img 
             src={logo} 
             alt="KaunsaHostel Logo" 
-            className="h-11 transition-transform duration-300 transform-gpu group-hover:scale-105 will-change-transform" 
+            className="h-8 sm:h-9 md:h-10 transition-transform duration-300 transform-gpu group-hover:scale-105 will-change-transform" 
           />
         </Link>
         
-        <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+        <div className="hidden md:flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2 flex-1 justify-center">
           {NAV_LINKS.map(({ path, label, exact }) => {
             const isActive = checkIsActive(path, exact);
             return (
               <Link 
                 key={`desktop-${path}`}
                 to={path} 
-                className={`nav-link font-semibold px-4 py-2 rounded-xl transition-all duration-300 ${
+                className={`nav-link font-semibold px-2 lg:px-3 xl:px-4 py-2 rounded-xl transition-all duration-300 text-sm lg:text-base ${
                   isActive 
                     ? 'text-gray-900 bg-yellow-50 border border-yellow-200/50 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -161,34 +161,36 @@ const Header = memo(() => {
           })}
         </div>
         
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-2 lg:gap-3 xl:gap-4 flex-shrink-0">
           {phoneNumber && (
-            <a href={`tel:${phoneNumber.replace(/\s/g, '')}`} className="flex items-center bg-gray-900 text-white font-semibold py-2.5 px-5 rounded-xl hover:bg-gray-800 transition-all duration-300 transform-gpu hover:-translate-y-0.5 shadow-md">
-              <svg className="w-4 h-4 mr-2 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <a href={`tel:${phoneNumber.replace(/\s/g, '')}`} className="flex items-center bg-gray-900 text-white font-semibold py-2 lg:py-2.5 px-3 lg:px-4 xl:px-5 rounded-xl hover:bg-gray-800 transition-all duration-300 transform-gpu hover:-translate-y-0.5 shadow-md text-xs lg:text-sm xl:text-base">
+              <svg className="w-3 h-3 lg:w-4 lg:h-4 mr-1.5 lg:mr-2 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
               </svg>
-              {phoneNumber}
+              <span className="hidden lg:inline">{phoneNumber}</span>
+              <span className="lg:hidden">Call</span>
             </a>
           )}
           
-          <div className="h-6 w-px bg-gray-200 mx-1"></div>
+          <div className="h-6 w-px bg-gray-200"></div>
 
           {user ? (
             <UserDropdown user={user} />
           ) : (
-            <Link to="/user/auth" className="px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 transform-gpu hover:-translate-y-0.5 shadow-md hover:shadow-lg">
+            <Link to="/user/auth" className="px-3 lg:px-4 xl:px-5 py-2 lg:py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 transform-gpu hover:-translate-y-0.5 shadow-md hover:shadow-lg text-xs lg:text-sm xl:text-base">
               Sign In
             </Link>
           )}
         </div>
 
-        <div className="md:hidden">
+        <div className="md:hidden flex-shrink-0">
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="text-gray-600 hover:text-yellow-600 focus:outline-none p-2 rounded-xl hover:bg-yellow-50 transition-all duration-300"
+            className="text-gray-600 hover:text-yellow-600 focus:outline-none p-1.5 sm:p-2 rounded-xl hover:bg-yellow-50 transition-all duration-300"
+            aria-label="Toggle menu"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}></path>
             </svg>
           </button>
         </div>
@@ -200,9 +202,9 @@ const Header = memo(() => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-100 overflow-hidden"
+            className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-100 overflow-hidden shadow-lg"
           >
-            <div className="px-6 pt-4 pb-6 space-y-2">
+            <div className="px-4 sm:px-6 pt-3 pb-4 sm:pt-4 sm:pb-6 space-y-2 max-h-[80vh] overflow-y-auto">
               {user && (
                 <div className="mb-4 pb-4 border-b border-gray-100 flex items-center gap-3">
                    <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center text-gray-900 font-bold text-lg shadow-sm">

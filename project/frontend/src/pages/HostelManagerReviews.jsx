@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { hostelManagerAPI } from '../services/api';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
 import { FiStar, FiUser, FiCalendar, FiMessageSquare, FiCheckCircle, FiClock } from 'react-icons/fi';
 
@@ -14,7 +14,7 @@ const HostelManagerReviews = () => {
 
   const fetchReviews = async () => {
     try {
-      const res = await axios.get('/api/hostel-manager/reviews', { withCredentials: true });
+      const res = await hostelManagerAPI.getReviews();
       setReviews(res.data.reviews);
     } catch (error) {
       console.error(error);
