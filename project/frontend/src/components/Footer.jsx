@@ -59,12 +59,7 @@ const Footer = () => {
                   Register Your Hostel
                 </Link>
               </li>
-              <li>
-                <Link to="/hostel-manager/auth?mode=login" className="text-gray-300 hover:text-yellow-custom hover:translate-x-1 transition-all duration-200 flex items-center group">
-                  <span className="w-2 h-2 bg-yellow-custom rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  Manager Login
-                </Link>
-              </li>
+             
             </ul>
             <p className="text-gray-400 text-sm mt-6 leading-relaxed">
               List your hostel and reach thousands of students looking for accommodation.
