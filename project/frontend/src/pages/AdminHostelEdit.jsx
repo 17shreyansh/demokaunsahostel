@@ -4,7 +4,7 @@ import { invalidateData } from '../utils/stateManager'
 import { forceRefresh } from '../utils/cacheManager'
 import {
   Card, Form, Input, Select, Upload, Button, Space, message, 
-  Row, Col, Divider, Typography, InputNumber, Tag, DatePicker
+  Row, Col, Divider, Typography, InputNumber, Tag, DatePicker, Checkbox
 } from 'antd'
 import dayjs from 'dayjs'
 import {
@@ -18,6 +18,90 @@ import NearbyPlacesSelector from '../components/NearbyPlacesSelector.jsx'
 
 const { Title, Text } = Typography
 const { TextArea } = Input
+
+// Amenities options
+const AMENITIES_OPTIONS = [
+  // Food & Meal Services
+  { label: '4 Time Meal', value: '4 Time Meal' },
+  { label: 'Lunch Deliver to college', value: 'Lunch Deliver to college' },
+  
+  // Basic Services
+  { label: 'Laundry', value: 'Laundry' },
+  { label: 'WiFi', value: 'wifi' },
+  { label: 'Housekeeping', value: 'Housekeeping' },
+  { label: 'Gym', value: 'Gym' },
+  { label: 'Transportation', value: 'Transportation' },
+  
+  // Common Areas
+  { label: 'DIning/Mess Area', value: 'DIning/Mess Area' },
+  { label: 'Terrace Access', value: 'Terrace Access' },
+  { label: 'Indoor games', value: 'indoor games' },
+  { label: 'Outdoor games', value: 'Outdoor games' },
+  
+  // Furniture
+  { label: 'Bed with storage', value: 'Bed with storage' },
+  { label: 'Bed without Storage', value: 'Bed without Storage' },
+  { label: 'Wardrobe/Almirah', value: 'Wardrobe/Almirah' },
+  { label: 'AC', value: 'AC' },
+  { label: 'Cooler', value: 'Cooler' },
+  { label: 'Fan', value: 'Fan' },
+  { label: 'Study Table', value: 'Study Table' },
+  { label: 'Chair', value: 'Chair' },
+  { label: 'Mirror', value: 'Mirror' },
+  { label: 'Curtain', value: 'Curtain' },
+  
+  // Appliances & Utilities
+  { label: 'Watercooler', value: 'Watercooler' },
+  { label: 'Common Washing Machine', value: 'Common Washing Machine' },
+  { label: 'Common Fridge', value: 'Common Fridge' },
+  { label: 'Common Induction', value: 'Common Induction' },
+  { label: 'Geyser', value: 'Geyser' },
+  
+  // Balcony & Bathroom
+  { label: 'Attached Balcony', value: 'Attached Balcony' },
+  { label: 'Common Balcony', value: 'Common Balcony' },
+  { label: 'Attached washroom', value: 'Attached washroom' },
+  { label: 'Common/Shared washroom', value: 'Common/Shared washroom' },
+  { label: 'Indian Toilet', value: 'Indian Toilet' },
+  { label: 'Western Toilet', value: 'Western Toilet' },
+  
+  // Security & Safety
+  { label: 'Visitor Management', value: 'Visitor Management' },
+  { label: 'First AId Kit', value: 'First AId Kit' },
+  { label: 'Fire Safety/ Extinguisher', value: 'Fire Safety/ Extinguisher' },
+  { label: 'Warden', value: 'Warden' },
+  { label: 'Security Guard', value: 'Security Guard' },
+  { label: 'Elevator/Lift', value: 'Elevator/Lift' },
+  { label: 'Power Backup', value: 'Power Backup' },
+  { label: 'CCTV Surveillance', value: 'CCTV Surveillance' },
+  
+  // Additional Facilities
+  { label: 'Study Room / Library', value: 'Study Room / Library' },
+  { label: 'Two wheeler Parking', value: 'Two wheeler Parking' },
+  { label: 'Four wheeler Parking', value: 'Four wheeler Parking' },
+  { label: 'Vending Machine', value: 'Vending Machine' },
+]
+
+// Amenities Checkbox Component
+const AmenitiesCheckbox = ({ value = [], onChange }) => {
+  const handleChange = (checkedValues) => {
+    onChange?.(checkedValues)
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+      <Checkbox.Group value={value} onChange={handleChange} className="w-full">
+        {AMENITIES_OPTIONS.map((amenity) => (
+          <div key={amenity.value} className="py-1">
+            <Checkbox value={amenity.value}>
+              <span className="text-sm">{amenity.label}</span>
+            </Checkbox>
+          </div>
+        ))}
+      </Checkbox.Group>
+    </div>
+  )
+}
 
 const AdminHostelEdit = () => {
   const { id } = useParams()
@@ -572,16 +656,11 @@ const AdminHostelEdit = () => {
           }
           className="shadow-lg border-0 rounded-xl overflow-hidden"
         >
-          <Form.Item name="amenities" label="Amenities">
-            <Select
-              mode="tags"
-              size="large"
-              placeholder="Add amenities"
-              style={{ width: '100%' }}
-            />
+          <Form.Item name="amenities" label="Select Amenities">
+            <AmenitiesCheckbox />
           </Form.Item>
           
-          <Form.Item name="rules" label="Rules">
+          <Form.Item name="rules" label="Rules (comma-separated)">
             <Select
               mode="tags"
               size="large"

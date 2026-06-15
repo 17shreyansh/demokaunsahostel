@@ -4,13 +4,76 @@ import axios from 'axios';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
 import { FiSave, FiX, FiUpload, FiCheck } from 'react-icons/fi';
 
+// Amenities options
+const AMENITIES_OPTIONS = [
+  // Food & Meal Services
+  { label: '4 Time Meal', value: '4 Time Meal' },
+  { label: 'Lunch Deliver to college', value: 'Lunch Deliver to college' },
+  
+  // Basic Services
+  { label: 'Laundry', value: 'Laundry' },
+  { label: 'WiFi', value: 'wifi' },
+  { label: 'Housekeeping', value: 'Housekeeping' },
+  { label: 'Gym', value: 'Gym' },
+  { label: 'Transportation', value: 'Transportation' },
+  
+  // Common Areas
+  { label: 'DIning/Mess Area', value: 'DIning/Mess Area' },
+  { label: 'Terrace Access', value: 'Terrace Access' },
+  { label: 'Indoor games', value: 'indoor games' },
+  { label: 'Outdoor games', value: 'Outdoor games' },
+  
+  // Furniture
+  { label: 'Bed with storage', value: 'Bed with storage' },
+  { label: 'Bed without Storage', value: 'Bed without Storage' },
+  { label: 'Wardrobe/Almirah', value: 'Wardrobe/Almirah' },
+  { label: 'AC', value: 'AC' },
+  { label: 'Cooler', value: 'Cooler' },
+  { label: 'Fan', value: 'Fan' },
+  { label: 'Study Table', value: 'Study Table' },
+  { label: 'Chair', value: 'Chair' },
+  { label: 'Mirror', value: 'Mirror' },
+  { label: 'Curtain', value: 'Curtain' },
+  
+  // Appliances & Utilities
+  { label: 'Watercooler', value: 'Watercooler' },
+  { label: 'Common Washing Machine', value: 'Common Washing Machine' },
+  { label: 'Common Fridge', value: 'Common Fridge' },
+  { label: 'Common Induction', value: 'Common Induction' },
+  { label: 'Geyser', value: 'Geyser' },
+  
+  // Balcony & Bathroom
+  { label: 'Attached Balcony', value: 'Attached Balcony' },
+  { label: 'Common Balcony', value: 'Common Balcony' },
+  { label: 'Attached washroom', value: 'Attached washroom' },
+  { label: 'Common/Shared washroom', value: 'Common/Shared washroom' },
+  { label: 'Indian Toilet', value: 'Indian Toilet' },
+  { label: 'Western Toilet', value: 'Western Toilet' },
+  
+  // Security & Safety
+  { label: 'Visitor Management', value: 'Visitor Management' },
+  { label: 'First AId Kit', value: 'First AId Kit' },
+  { label: 'Fire Safety/ Extinguisher', value: 'Fire Safety/ Extinguisher' },
+  { label: 'Warden', value: 'Warden' },
+  { label: 'Security Guard', value: 'Security Guard' },
+  { label: 'Elevator/Lift', value: 'Elevator/Lift' },
+  { label: 'Power Backup', value: 'Power Backup' },
+  { label: 'CCTV Surveillance', value: 'CCTV Surveillance' },
+  
+  // Additional Facilities
+  { label: 'Study Room / Library', value: 'Study Room / Library' },
+  { label: 'Two wheeler Parking', value: 'Two wheeler Parking' },
+  { label: 'Four wheeler Parking', value: 'Four wheeler Parking' },
+  { label: 'Vending Machine', value: 'Vending Machine' },
+]
+
 const HostelManagerHostelForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '', description: '', location: '', address: '', price: '', priceType: 'month', sessionPrice: '',
-    amenities: '', rules: '', gender: 'Co-ed', type: 'PG', availableBeds: '', securityDeposit: '',
+    amenities: [], rules: '', gender: 'Co-ed', type: 'PG', availableBeds: '', securityDeposit: '',
     capacity: '', checkIn: '', contactPersonName: '', jobTitle: '', phone: '', videoTourUrl: '',
     availability: 'Available', rating: ''
   });
@@ -28,7 +91,7 @@ const HostelManagerHostelForm = () => {
       setFormData({
         name: h.name || '', description: h.description || '', location: h.location || '',
         address: h.contactInfo?.address || '', price: h.price || '', priceType: h.priceType || 'month',
-        sessionPrice: h.sessionPrice || '', amenities: h.amenities?.join(', ') || '',
+        sessionPrice: h.sessionPrice || '', amenities: h.amenities || [],
         rules: h.rules?.join(', ') || '', gender: h.gender || 'Co-ed', type: h.type || 'PG',
         availableBeds: h.availableBeds || '', securityDeposit: h.securityDeposit || '',
         capacity: h.capacity || '', checkIn: h.checkIn || '',
@@ -50,7 +113,9 @@ const HostelManagerHostelForm = () => {
     
     // Add all form fields
     Object.keys(formData).forEach(key => {
-      if (['amenities', 'rules'].includes(key)) {
+      if (key === 'amenities') {
+        data.append(key, JSON.stringify(formData[key]));
+      } else if (key === 'rules') {
         const items = formData[key].split(',').map(a => a.trim()).filter(Boolean);
         data.append(key, JSON.stringify(items));
       } else if (formData[key]) {
@@ -252,8 +317,29 @@ const HostelManagerHostelForm = () => {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Amenities (comma-separated)</label>
-                <input type="text" value={formData.amenities} onChange={(e) => setFormData({ ...formData, amenities: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="WiFi, AC, Meals, Laundry, Security" />
+                <label className="block text-sm font-medium mb-3">Select Amenities</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+                  {AMENITIES_OPTIONS.map((amenity) => (
+                    <label key={amenity.value} className="flex items-start space-x-2 cursor-pointer hover:bg-white p-2 rounded transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.amenities.includes(amenity.value)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({ ...formData, amenities: [...formData.amenities, amenity.value] })
+                          } else {
+                            setFormData({ ...formData, amenities: formData.amenities.filter(a => a !== amenity.value) })
+                          }
+                        }}
+                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm select-none">{amenity.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {formData.amenities.length} amenities selected
+                </p>
               </div>
 
               <div>
