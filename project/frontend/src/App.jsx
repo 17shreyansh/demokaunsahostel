@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AdminLayout from './layouts/AdminLayout'
 import { AdminProvider } from './contexts/AdminContext'
 import { UserProvider } from './contexts/UserContext'
+import { HostelManagerProvider } from './contexts/HostelManagerContext'
 import LoadingSpinner from './components/common/LoadingSpinner'
 
 // Lazy load pages
@@ -33,6 +34,13 @@ const AdminBlogEditor = lazy(() => import('./pages/blog/AdminBlogEditor'))
 const BlogList = lazy(() => import('./pages/blog/BlogListPage'))
 const BlogPost = lazy(() => import('./pages/blog/BlogPostPage'))
 const Chatbot = lazy(() => import('./components/Chatbot'))
+const HostelManagerAuth = lazy(() => import('./pages/HostelManagerAuth'))
+const HostelManagerDashboard = lazy(() => import('./pages/HostelManagerDashboard'))
+const HostelManagerKYC = lazy(() => import('./pages/HostelManagerKYC'))
+const HostelManagerHostels = lazy(() => import('./pages/HostelManagerHostels'))
+const HostelManagerHostelForm = lazy(() => import('./pages/HostelManagerHostelForm'))
+const HostelManagerReviews = lazy(() => import('./pages/HostelManagerReviews'))
+const AdminHostelManagers = lazy(() => import('./pages/AdminHostelManagers'))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -48,10 +56,11 @@ function App() {
   return (
     <HelmetProvider>
       <UserProvider>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <div className="App">
-            <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
-              <Routes>
+        <HostelManagerProvider>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <div className="App">
+              <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
+                <Routes>
                 {/* Public Routes with Header/Footer */}
                 <Route path="/" element={
                   <>
@@ -121,6 +130,7 @@ function App() {
                   <Route path="nearbyplaces" element={<AdminNearbyPlaces />} />
                   <Route path="leads" element={<AdminLeads />} />
                   <Route path="users" element={<AdminUsers />} />
+                  <Route path="managers" element={<AdminHostelManagers />} />
                   <Route path="reviews" element={<AdminReviews />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="page-content" element={<AdminPageContent />} />
@@ -144,6 +154,15 @@ function App() {
                     <Footer />
                   </>
                 } />
+
+                {/* Hostel Manager Routes */}
+                <Route path="/hostel-manager/auth" element={<HostelManagerAuth />} />
+                <Route path="/hostel-manager/dashboard" element={<HostelManagerDashboard />} />
+                <Route path="/hostel-manager/kyc" element={<HostelManagerKYC />} />
+                <Route path="/hostel-manager/hostels" element={<HostelManagerHostels />} />
+                <Route path="/hostel-manager/hostels/add" element={<HostelManagerHostelForm />} />
+                <Route path="/hostel-manager/hostels/edit/:id" element={<HostelManagerHostelForm />} />
+                <Route path="/hostel-manager/reviews" element={<HostelManagerReviews />} />
               </Routes>
             </Suspense>
             <ScrollToTop />
@@ -152,6 +171,7 @@ function App() {
             </Suspense>
           </div>
         </Router>
+        </HostelManagerProvider>
       </UserProvider>
     </HelmetProvider>
   )

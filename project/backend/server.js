@@ -28,6 +28,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hostel_en
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/hostel-manager/auth', require('./routes/hostelManager'));
+app.use('/api/hostel-manager', require('./routes/hostelManagerDashboard'));
+app.use('/api/admin', require('./routes/adminHostelManager'));
 app.use('/api/hostels', require('./routes/hostels'));
 app.use('/api/enquiries', require('./routes/enquiries'));
 app.use('/api/leads', require('./routes/leads'));

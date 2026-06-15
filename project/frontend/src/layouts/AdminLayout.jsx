@@ -35,6 +35,7 @@ const AdminLayoutContent = () => {
     { key: 'dashboard', label: 'Dashboard', icon: FiHome },
     { key: 'hostels', label: 'My Properties', icon: FiGrid },
     { key: 'users', label: 'Users', icon: FiUsers },
+    { key: 'managers', label: 'Hostel Managers', icon: FiUsers },
     { key: 'reviews', label: 'Reviews', icon: FiStar },
     { key: 'blog', label: 'Blog Posts', icon: FiFileText },
     { key: 'nearbyplaces', label: 'Nearby Places', icon: FiMessageSquare },
@@ -55,6 +56,7 @@ const AdminLayoutContent = () => {
     const path = location.pathname
     if (path.includes('/hostels')) return ['hostels']
     if (path.includes('/users')) return ['users']
+    if (path.includes('/managers')) return ['managers']
     if (path.includes('/reviews')) return ['reviews']
     if (path.includes('/blog')) return ['blog']
     if (path.includes('/nearbyplaces')) return ['nearbyplaces']
@@ -70,6 +72,7 @@ const AdminLayoutContent = () => {
     if (path.includes('/hostels/') && path.split('/').length > 3) return 'Edit Property'
     if (path.includes('/hostels')) return 'My Properties'
     if (path.includes('/users')) return 'User Management'
+    if (path.includes('/managers')) return 'Hostel Manager Management'
     if (path.includes('/reviews')) return 'Review Management'
     if (path.includes('/blog/new')) return 'Create Blog Post'
     if (path.includes('/blog/edit')) return 'Edit Blog Post'
