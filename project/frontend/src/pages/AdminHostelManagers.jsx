@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FiCheck, FiX, FiEye, FiClock, FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi';
+import { Check, X, Eye, Clock, CheckCircle2, XCircle, AlertCircle, Loader2, FileText, Building2, Landmark, User, ShieldAlert } from 'lucide-react';
 
 const AdminHostelManagers = () => {
   const [managers, setManagers] = useState([]);
@@ -11,6 +11,9 @@ const AdminHostelManagers = () => {
   const [rejectionModal, setRejectionModal] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
+  // --------------------------------------------------------------------------
+  // BUSINESS LOGIC (Unchanged)
+  // --------------------------------------------------------------------------
   useEffect(() => {
     fetchData();
   }, []);
@@ -73,13 +76,37 @@ const AdminHostelManagers = () => {
     }
   };
 
+  // --------------------------------------------------------------------------
+  // UI HELPERS
+  // --------------------------------------------------------------------------
+  const getKycBadge = (status) => {
+    const styles = {
+      verified: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+      submitted: 'bg-amber-50 text-amber-700 ring-amber-600/20',
+      rejected: 'bg-rose-50 text-rose-700 ring-rose-600/20'
+    };
+    const icons = {
+      verified: <CheckCircle2 size={14} />,
+      submitted: <Clock size={14} />,
+      rejected: <XCircle size={14} />
+    };
+    
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md ring-1 ring-inset capitalize ${styles[status] || 'bg-gray-50 text-gray-700 ring-gray-600/20'}`}>
+        {icons[status]}
+        {status}
+      </span>
+    );
+  };
+
+  // --------------------------------------------------------------------------
+  // RENDER
+  // --------------------------------------------------------------------------
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading managers...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[80vh] bg-[#FAFAFA]">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-4" />
+        <p className="text-sm font-medium text-gray-500">Loading managers...</p>
       </div>
     );
   }
@@ -87,130 +114,141 @@ const AdminHostelManagers = () => {
   const displayList = selectedTab === 'all' ? managers : pendingKYC;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-gray-900">Hostel Owner Management</h2>
-        <p className="text-gray-600 mt-1">Manage hostel owners and review KYC submissions</p>
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto bg-[#FAFAFA] min-h-screen font-sans">
+      
+      {/* Header */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold tracking-tight text-gray-900">Hostel Owner Management</h2>
+        <p className="text-sm text-gray-500 mt-1">Manage hostel owners and review KYC submissions.</p>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex gap-4 mb-6">
-        <button 
-          onClick={() => setSelectedTab('all')} 
-          className={`px-6 py-3 rounded-lg font-semibold transition ${
-            selectedTab === 'all' 
-              ? 'bg-blue-600 text-white shadow-lg' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow'
-          }`}
-        >
-          All Owners ({managers.length})
-        </button>
-        <button 
-          onClick={() => setSelectedTab('pending')} 
-          className={`px-6 py-3 rounded-lg font-semibold transition relative ${
-            selectedTab === 'pending' 
-              ? 'bg-yellow-600 text-white shadow-lg' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow'
-          }`}
-        >
-          Pending KYC ({pendingKYC.length})
-          {pendingKYC.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+      {/* Sleek Segmented Control Tabs */}
+      <div className="flex mb-6">
+        <div className="inline-flex bg-gray-100/80 p-1 rounded-lg border border-gray-200/60">
+          <button 
+            onClick={() => setSelectedTab('all')} 
+            className={`flex items-center px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+              selectedTab === 'all' 
+                ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-900/5' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            All Owners
+            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${selectedTab === 'all' ? 'bg-gray-100' : 'bg-gray-200/50'}`}>
+              {managers.length}
+            </span>
+          </button>
+          <button 
+            onClick={() => setSelectedTab('pending')} 
+            className={`flex items-center px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none relative ${
+              selectedTab === 'pending' 
+                ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-900/5' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Pending KYC
+            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${selectedTab === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-gray-200/50'}`}>
               {pendingKYC.length}
             </span>
-          )}
-        </button>
+            {pendingKYC.length > 0 && selectedTab !== 'pending' && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* Main Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50/50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC Status</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hostels</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Status</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">Owner</th>
+                <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">Contact</th>
+                <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">KYC Status</th>
+                <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">Hostels</th>
+                <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">Account Status</th>
+                <th className="px-6 py-3.5 text-right font-semibold text-gray-900 tracking-tight">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-100 bg-white">
               {displayList.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                    <FiAlertCircle className="mx-auto text-4xl mb-2 text-gray-400" />
-                    <p>No owners found</p>
+                  <td colSpan="6" className="px-6 py-16 text-center text-gray-500">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 border border-gray-100">
+                        <AlertCircle className="text-gray-400" size={24} />
+                      </div>
+                      <p className="font-medium text-gray-900">No owners found</p>
+                      <p className="text-xs text-gray-500 mt-1">There are currently no records in this view.</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 displayList.map((manager) => (
-                  <tr key={manager._id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="font-medium text-gray-900">{manager.name}</div>
-                        <div className="text-sm text-gray-500">ID: {manager._id.slice(-6)}</div>
+                  <tr key={manager._id} className="hover:bg-gray-50/80 transition-colors group">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 font-semibold text-sm">
+                          {manager.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">{manager.name}</div>
+                          <div className="text-xs text-gray-500 font-mono">ID: {manager._id.slice(-6)}</div>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm">
-                        <div className="text-gray-900">{manager.email}</div>
-                        <div className="text-gray-500">{manager.phone}</div>
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-gray-900 font-medium">{manager.email}</div>
+                      <div className="text-gray-500 text-xs mt-0.5">{manager.phone}</div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${
-                        manager.kyc.status === 'verified' ? 'bg-green-100 text-green-800' :
-                        manager.kyc.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
-                        manager.kyc.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {manager.kyc.status === 'verified' && <FiCheckCircle />}
-                        {manager.kyc.status === 'submitted' && <FiClock />}
-                        {manager.kyc.status === 'rejected' && <FiXCircle />}
-                        {manager.kyc.status.toUpperCase()}
-                      </span>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getKycBadge(manager.kyc.status)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {manager.hostels?.length || 0} hostels
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-600 font-medium">
+                      {manager.hostels?.length || 0} listings
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <button 
                         onClick={() => toggleStatus(manager._id)} 
-                        className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full transition ${
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md ring-1 ring-inset transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
                           manager.isActive 
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                            : 'bg-red-100 text-red-800 hover:bg-red-200'
+                            ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 hover:bg-emerald-100' 
+                            : 'bg-gray-50 text-gray-600 ring-gray-500/20 hover:bg-gray-100'
                         }`}
+                        title={manager.isActive ? "Deactivate Account" : "Activate Account"}
                       >
-                        {manager.isActive ? <><FiCheck /> Active</> : <><FiX /> Inactive</>}
+                        {manager.isActive ? <><Check size={14} /> Active</> : <><X size={14} /> Suspended</>}
                       </button>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => setSelectedManager(manager)} 
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1"
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          title="View Details"
                         >
-                          <FiEye /> View
+                          <Eye size={18} />
                         </button>
+                        
                         {manager.kyc.status === 'submitted' && (
                           <>
                             <button 
                               onClick={() => handleApprove(manager._id)} 
-                              className="text-green-600 hover:text-green-800 font-medium text-sm flex items-center gap-1"
+                              className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              title="Approve KYC"
                             >
-                              <FiCheck /> Approve
+                              <Check size={18} />
                             </button>
                             <button 
                               onClick={() => {
                                 setRejectionModal(manager);
                                 setRejectionReason('');
                               }} 
-                              className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center gap-1"
+                              className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500"
+                              title="Reject KYC"
                             >
-                              <FiX /> Reject
+                              <X size={18} />
                             </button>
                           </>
                         )}
@@ -226,160 +264,201 @@ const AdminHostelManagers = () => {
 
       {/* Manager Details Modal */}
       {selectedManager && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setSelectedManager(null)}>
-          <div className="bg-white rounded-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-start mb-6">
+        <div 
+          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200" 
+          onClick={() => setSelectedManager(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div 
+            className="bg-white rounded-2xl p-6 sm:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200 animate-in zoom-in-95 duration-200 custom-scrollbar" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-8 pb-4 border-b border-gray-100">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">Owner Details</h3>
-                <p className="text-gray-500 text-sm mt-1">Complete profile and KYC information</p>
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900">Owner Profile & KYC</h3>
+                <p className="text-gray-500 text-sm mt-1">Review applicant details and verified documents.</p>
               </div>
-              <button onClick={() => setSelectedManager(null)} className="text-gray-400 hover:text-gray-600">
-                <FiX className="text-2xl" />
+              <button 
+                onClick={() => setSelectedManager(null)} 
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+              >
+                <X size={20} />
               </button>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
+              
               {/* Basic Info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-bold text-gray-900 mb-3">Basic Information</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+              <section>
+                <h4 className="flex items-center gap-2 font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">
+                  <User size={16} className="text-blue-500" /> Personal Details
+                </h4>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 bg-gray-50/50 border border-gray-100 rounded-xl p-5">
                   <div>
-                    <span className="text-gray-500">Name:</span>
-                    <p className="font-medium">{selectedManager.name}</p>
+                    <dt className="text-xs font-medium text-gray-500 mb-1">Full Name</dt>
+                    <dd className="text-sm font-semibold text-gray-900">{selectedManager.name}</dd>
                   </div>
                   <div>
-                    <span className="text-gray-500">Email:</span>
-                    <p className="font-medium">{selectedManager.email}</p>
+                    <dt className="text-xs font-medium text-gray-500 mb-1">Email Address</dt>
+                    <dd className="text-sm font-semibold text-gray-900">{selectedManager.email}</dd>
                   </div>
                   <div>
-                    <span className="text-gray-500">Phone:</span>
-                    <p className="font-medium">{selectedManager.phone}</p>
+                    <dt className="text-xs font-medium text-gray-500 mb-1">Phone Number</dt>
+                    <dd className="text-sm font-semibold text-gray-900">{selectedManager.phone}</dd>
                   </div>
                   <div>
-                    <span className="text-gray-500">KYC Status:</span>
-                    <p className="font-medium capitalize">{selectedManager.kyc.status}</p>
+                    <dt className="text-xs font-medium text-gray-500 mb-1">KYC Status</dt>
+                    <dd className="text-sm font-semibold text-gray-900">{getKycBadge(selectedManager.kyc.status)}</dd>
                   </div>
-                </div>
-              </div>
+                </dl>
+              </section>
               
               {selectedManager.kyc.status !== 'pending' && (
                 <>
                   {/* Company Details */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-bold text-gray-900 mb-3">Company Details</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                  <section>
+                    <h4 className="flex items-center gap-2 font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">
+                      <Building2 size={16} className="text-purple-500" /> Business Information
+                    </h4>
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 bg-gray-50/50 border border-gray-100 rounded-xl p-5">
                       <div>
-                        <span className="text-gray-500">Company Name:</span>
-                        <p className="font-medium">{selectedManager.kyc.companyDetails?.companyName || 'N/A'}</p>
+                        <dt className="text-xs font-medium text-gray-500 mb-1">Company Name</dt>
+                        <dd className="text-sm font-semibold text-gray-900">{selectedManager.kyc.companyDetails?.companyName || 'Not Provided'}</dd>
                       </div>
                       <div>
-                        <span className="text-gray-500">Company Type:</span>
-                        <p className="font-medium capitalize">{selectedManager.kyc.companyDetails?.companyType || 'N/A'}</p>
+                        <dt className="text-xs font-medium text-gray-500 mb-1">Entity Type</dt>
+                        <dd className="text-sm font-semibold text-gray-900 capitalize">{selectedManager.kyc.companyDetails?.companyType || 'Not Provided'}</dd>
                       </div>
-                      <div className="col-span-2">
-                        <span className="text-gray-500">GST Number:</span>
-                        <p className="font-medium font-mono">{selectedManager.kyc.companyDetails?.gstNumber || 'N/A'}</p>
+                      <div className="col-span-1 sm:col-span-2">
+                        <dt className="text-xs font-medium text-gray-500 mb-1">GST Number</dt>
+                        <dd className="text-sm font-semibold text-gray-900 font-mono tracking-wide">{selectedManager.kyc.companyDetails?.gstNumber || 'Not Provided'}</dd>
                       </div>
-                    </div>
-                  </div>
+                    </dl>
+                  </section>
                   
+                  {/* Bank Details */}
+                  <section>
+                    <h4 className="flex items-center gap-2 font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">
+                      <Landmark size={16} className="text-emerald-500" /> Banking Information
+                    </h4>
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 bg-gray-50/50 border border-gray-100 rounded-xl p-5">
+                      <div className="col-span-1 sm:col-span-2">
+                        <dt className="text-xs font-medium text-gray-500 mb-1">Account Holder Name</dt>
+                        <dd className="text-sm font-semibold text-gray-900">{selectedManager.kyc.bankDetails?.accountHolderName || 'Not Provided'}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs font-medium text-gray-500 mb-1">Account Number</dt>
+                        <dd className="text-sm font-semibold text-gray-900 font-mono tracking-wide">{selectedManager.kyc.bankDetails?.accountNumber || 'Not Provided'}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs font-medium text-gray-500 mb-1">IFSC Code</dt>
+                        <dd className="text-sm font-semibold text-gray-900 font-mono tracking-wide">{selectedManager.kyc.bankDetails?.ifscCode || 'Not Provided'}</dd>
+                      </div>
+                      <div className="col-span-1 sm:col-span-2 pt-2 border-t border-gray-200">
+                        <dt className="text-xs font-medium text-gray-500 mb-1">Bank Name</dt>
+                        <dd className="text-sm font-semibold text-gray-900">{selectedManager.kyc.bankDetails?.bankName || 'Not Provided'}</dd>
+                      </div>
+                    </dl>
+                  </section>
+
                   {/* Documents */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-bold text-gray-900 mb-3">Documents</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 bg-white rounded border">
-                        <span className="font-medium">PAN Card</span>
-                        {selectedManager.kyc.documents?.panCard ? (
+                  <section>
+                    <h4 className="flex items-center gap-2 font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">
+                      <FileText size={16} className="text-amber-500" /> Verification Documents
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* PAN Card */}
+                      <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-gray-50 rounded-lg">
+                            <FileText size={20} className="text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">PAN Card</p>
+                            <p className="text-xs text-gray-500">{selectedManager.kyc.documents?.panCard ? 'Uploaded' : 'Missing'}</p>
+                          </div>
+                        </div>
+                        {selectedManager.kyc.documents?.panCard && (
                           <a 
                             href={`http://localhost:5000${selectedManager.kyc.documents.panCard}`} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="text-blue-600 hover:underline text-sm flex items-center gap-1"
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            title="View Document"
                           >
-                            <FiEye /> View Document
+                            <Eye size={18} />
                           </a>
-                        ) : (
-                          <span className="text-gray-400 text-sm">Not uploaded</span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-white rounded border">
-                        <span className="font-medium">Bank Proof</span>
-                        {selectedManager.kyc.documents?.bankProof ? (
+
+                      {/* Bank Proof */}
+                      <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-gray-50 rounded-lg">
+                            <Landmark size={20} className="text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">Bank Proof</p>
+                            <p className="text-xs text-gray-500">{selectedManager.kyc.documents?.bankProof ? 'Uploaded' : 'Missing'}</p>
+                          </div>
+                        </div>
+                        {selectedManager.kyc.documents?.bankProof && (
                           <a 
                             href={`http://localhost:5000${selectedManager.kyc.documents.bankProof}`} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="text-blue-600 hover:underline text-sm flex items-center gap-1"
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            title="View Document"
                           >
-                            <FiEye /> View Document
+                            <Eye size={18} />
                           </a>
-                        ) : (
-                          <span className="text-gray-400 text-sm">Not uploaded</span>
                         )}
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Bank Details */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-bold text-gray-900 mb-3">Bank Details</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="col-span-2">
-                        <span className="text-gray-500">Account Holder:</span>
-                        <p className="font-medium">{selectedManager.kyc.bankDetails?.accountHolderName || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Account Number:</span>
-                        <p className="font-medium font-mono">{selectedManager.kyc.bankDetails?.accountNumber || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">IFSC Code:</span>
-                        <p className="font-medium font-mono">{selectedManager.kyc.bankDetails?.ifscCode || 'N/A'}</p>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="text-gray-500">Bank Name:</span>
-                        <p className="font-medium">{selectedManager.kyc.bankDetails?.bankName || 'N/A'}</p>
-                      </div>
-                    </div>
-                  </div>
+                  </section>
 
                   {/* Rejection Reason if rejected */}
                   {selectedManager.kyc.status === 'rejected' && selectedManager.kyc.rejectionReason && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <h4 className="font-bold text-red-900 mb-2">Rejection Reason</h4>
-                      <p className="text-red-800 text-sm">{selectedManager.kyc.rejectionReason}</p>
+                    <div className="bg-rose-50 border border-rose-200 rounded-xl p-5 mt-6">
+                      <h4 className="flex items-center gap-2 font-semibold text-rose-900 mb-2">
+                        <ShieldAlert size={16} /> Prior Rejection Reason
+                      </h4>
+                      <p className="text-rose-800 text-sm leading-relaxed">{selectedManager.kyc.rejectionReason}</p>
                     </div>
                   )}
                 </>
               )}
               
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-100">
                 {selectedManager.kyc.status === 'submitted' && (
                   <>
                     <button 
                       onClick={() => handleApprove(selectedManager._id)} 
-                      className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold flex items-center justify-center gap-2 transition"
+                      className="flex-1 bg-gray-900 text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 font-medium text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
                     >
-                      <FiCheck /> Approve KYC
+                      <Check size={16} /> Approve Verification
                     </button>
                     <button 
                       onClick={() => {
                         setRejectionModal(selectedManager);
                         setSelectedManager(null);
                       }} 
-                      className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-semibold flex items-center justify-center gap-2 transition"
+                      className="flex-1 bg-white border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-50 font-medium text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2"
                     >
-                      <FiX /> Reject KYC
+                      <X size={16} /> Reject Application
                     </button>
                   </>
                 )}
-                <button 
-                  onClick={() => setSelectedManager(null)} 
-                  className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 font-semibold transition"
-                >
-                  Close
-                </button>
+                {selectedManager.kyc.status !== 'submitted' && (
+                  <button 
+                    onClick={() => setSelectedManager(null)} 
+                    className="w-full sm:w-auto bg-white border border-gray-300 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-50 font-medium text-sm active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 ml-auto"
+                  >
+                    Close Profile
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -388,18 +467,34 @@ const AdminHostelManagers = () => {
 
       {/* Rejection Modal */}
       {rejectionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setRejectionModal(null)}>
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Reject KYC Application</h3>
-            <p className="text-gray-600 mb-4">Please provide a clear reason for rejection. The owner will use this to correct and resubmit.</p>
+        <div 
+          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-[60] animate-in fade-in duration-200" 
+          onClick={() => setRejectionModal(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div 
+            className="bg-white rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-xl border border-gray-200 animate-in zoom-in-95 duration-200" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
+                <ShieldAlert size={20} />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">Reject Application</h3>
+            </div>
+            <p className="text-gray-500 text-sm mb-6 mt-2">
+              Please provide a clear reason for rejection. The owner will use this feedback to correct and resubmit their documents.
+            </p>
             
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Rejection Reason *</label>
+              <label htmlFor="rejectionReason" className="block text-sm font-medium text-gray-700 mb-2">Reason for Rejection <span className="text-rose-500">*</span></label>
               <textarea
+                id="rejectionReason"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="E.g., PAN card image is not clear, GST number verification failed, bank details do not match..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                placeholder="E.g., PAN card image is blurred, GST verification failed..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-colors resize-none text-sm outline-none"
                 rows="4"
                 required
               />
@@ -408,16 +503,16 @@ const AdminHostelManagers = () => {
             <div className="flex gap-3">
               <button 
                 onClick={() => setRejectionModal(null)} 
-                className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 font-semibold transition"
+                className="flex-1 bg-white border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-50 font-medium text-sm active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleReject} 
                 disabled={!rejectionReason.trim()}
-                className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition"
+                className="flex-1 bg-rose-600 text-white px-4 py-2.5 rounded-lg hover:bg-rose-700 disabled:opacity-50 disabled:bg-rose-600 disabled:cursor-not-allowed font-medium text-sm active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
               >
-                Reject KYC
+                Confirm Rejection
               </button>
             </div>
           </div>

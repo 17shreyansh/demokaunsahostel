@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import InteractiveMap from '../components/InteractiveMap'
+import { MapPin, Plus, Edit2, Trash2, X, Map, Loader2 } from 'lucide-react'
 
 const AdminNearbyPlaces = () => {
   const { isDark } = useTheme()
@@ -120,7 +121,6 @@ const AdminNearbyPlaces = () => {
 
   const handleCoordinatesChange = (value) => {
     setCoordinatesInput(value)
-    // Parse coordinates and update map
     const coords = value.split(',')
     if (coords.length === 2) {
       const lat = parseFloat(coords[0].trim())
@@ -146,187 +146,253 @@ const AdminNearbyPlaces = () => {
   }
 
   return (
-    <div className={`transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
-      <div className="mb-8">
+    <div className={`min-h-screen p-4 sm:p-6 lg:p-8 transition-colors duration-300 font-sans ${isDark ? 'bg-[#0A0A0A]' : 'bg-[#FAFAFA]'}`}>
+      
+      {/* Header Section */}
+      <div className="max-w-[1600px] mx-auto mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Nearby Places Management</h1>
-            <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage IT Parks, Offices & Educational Institutions</p>
+            <h1 className={`text-2xl font-semibold tracking-tight transition-colors mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Nearby Places
+            </h1>
+            <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              Manage POIs, IT Parks, and Educational Institutions for distance calculation.
+            </p>
           </div>
           <button 
             onClick={handleAdd}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-              isDark 
-                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-            } shadow-lg hover:shadow-xl`}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] shadow-sm flex-shrink-0"
           >
-            <span className="mr-2">+</span>
+            <Plus size={18} />
             Add New Place
           </button>
         </div>
       </div>
 
-      {/* Places Table */}
-      <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl border shadow-sm overflow-hidden`}>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-              <tr>
-                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Name</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Category</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Type</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Actions</th>
-              </tr>
-            </thead>
-            <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
-              {places.map((place) => (
-                <tr key={place._id} className={`transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {place.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {getCategoryLabel(place.category)}
-                    </span>
-                  </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
-                    {place.type}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => handleEdit(place)}
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(place._id)}
-                      className="px-3 py-1 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-700 text-white transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Places Table Container */}
+      <div className={`max-w-[1600px] mx-auto transition-all duration-300 rounded-2xl border shadow-sm overflow-hidden flex flex-col min-h-[400px] ${
+        isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+      }`}>
         
-        {places.length === 0 && !loading && (
-          <div className={`text-center py-12 transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            </svg>
-            <p>No places found</p>
+        {loading ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-12">
+            <Loader2 className={`w-8 h-8 animate-spin mb-4 ${isDark ? 'text-blue-500' : 'text-blue-600'}`} />
+            <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Loading places...</p>
+          </div>
+        ) : places.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-16">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 border ${
+              isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-100'
+            }`}>
+              <Map size={32} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
+            </div>
+            <h3 className={`text-base font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>No places found</h3>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Add a new place to start populating the map.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y text-sm transition-colors duration-300 border-collapse" style={{ borderColor: isDark ? '#1f2937' : '#e5e7eb' }}>
+              <thead className={isDark ? 'bg-gray-900/50' : 'bg-gray-50/50'}>
+                <tr>
+                  <th className={`px-6 py-3.5 text-left font-semibold tracking-tight ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>Name</th>
+                  <th className={`px-6 py-3.5 text-left font-semibold tracking-tight ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>Category</th>
+                  <th className={`px-6 py-3.5 text-left font-semibold tracking-tight ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>Type</th>
+                  <th className={`px-6 py-3.5 text-right font-semibold tracking-tight ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>Actions</th>
+                </tr>
+              </thead>
+              <tbody className={`divide-y transition-colors duration-300 ${isDark ? 'divide-gray-800 bg-gray-900' : 'divide-gray-100 bg-white'}`}>
+                {places.map((place) => (
+                  <tr key={place._id} className={`group transition-colors ${isDark ? 'hover:bg-gray-800/50' : 'hover:bg-gray-50'}`}>
+                    <td className={`px-6 py-4 whitespace-nowrap font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                      <div className="flex items-center gap-3">
+                        <MapPin size={16} className={isDark ? 'text-gray-600' : 'text-gray-400'} />
+                        {place.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-md ring-1 ring-inset ${
+                        isDark 
+                          ? 'bg-blue-500/10 text-blue-400 ring-blue-500/20' 
+                          : 'bg-blue-50 text-blue-700 ring-blue-600/20'
+                      }`}>
+                        {getCategoryLabel(place.category)}
+                      </span>
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {place.type}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleEdit(place)}
+                          className={`p-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2 ${
+                            isDark 
+                              ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-800 focus:ring-blue-500' 
+                              : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50 focus:ring-blue-500'
+                          }`}
+                          title="Edit Place"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(place._id)}
+                          className={`p-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2 ${
+                            isDark 
+                              ? 'text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 focus:ring-rose-500' 
+                              : 'text-gray-400 hover:text-rose-600 hover:bg-rose-50 focus:ring-rose-500'
+                          }`}
+                          title="Delete Place"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
 
       {/* Modal */}
       {modalVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {editingPlace ? 'Edit Place' : 'Add New Place'}
+        <div 
+          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200"
+          onClick={() => setModalVisible(false)}
+        >
+          <div 
+            className={`rounded-2xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl border animate-in zoom-in-95 duration-200 ${
+              isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6 pb-4 border-b transition-colors" style={{ borderColor: isDark ? '#1f2937' : '#f3f4f6' }}>
+              <h2 className={`text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {editingPlace ? 'Edit Property Location' : 'Add New Location'}
               </h2>
               <button
                 onClick={() => setModalVisible(false)}
-                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 ${
+                  isDark ? 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 focus:ring-gray-700' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:ring-gray-200'
+                }`}
               >
-                <svg className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-                  Name
+                <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Location Name
                 </label>
                 <input
                   type="text"
                   name="name"
                   required
                   defaultValue={editingPlace?.name || ''}
-                  placeholder="Enter place name"
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  placeholder="e.g., DLF Cyber City"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 ${
+                    isDark 
+                      ? 'bg-gray-950 border-gray-800 text-white placeholder-gray-600 focus:bg-black' 
+                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white'
+                  }`}
                 />
               </div>
               
-              <div>
-                <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-                  Category
-                </label>
-                <select
-                  name="category"
-                  required
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                >
-                  <option value="">Select category</option>
-                  {Object.keys(categories).map(category => (
-                    <option key={category} value={category}>{getCategoryLabel(category)}</option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Category
+                  </label>
+                  <select
+                    name="category"
+                    required
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 appearance-none ${
+                      isDark 
+                        ? 'bg-gray-950 border-gray-800 text-white focus:bg-black' 
+                        : 'bg-gray-50 border-gray-200 text-gray-900 focus:bg-white'
+                    }`}
+                  >
+                    <option value="">Select category</option>
+                    {Object.keys(categories).map(category => (
+                      <option key={category} value={category}>{getCategoryLabel(category)}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Type / Specialty
+                  </label>
+                  <select
+                    name="type"
+                    required
+                    defaultValue={editingPlace?.type || ''}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 appearance-none ${
+                      isDark 
+                        ? 'bg-gray-950 border-gray-800 text-white focus:bg-black' 
+                        : 'bg-gray-50 border-gray-200 text-gray-900 focus:bg-white'
+                    }`}
+                  >
+                    <option value="">Select type</option>
+                    {selectedCategory && categories[selectedCategory] && categories[selectedCategory].map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               
-              <div>
-                <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-                  Type
-                </label>
-                <select
-                  name="type"
-                  required
-                  defaultValue={editingPlace?.type || ''}
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                >
-                  <option value="">Select type</option>
-                  {selectedCategory && categories[selectedCategory] && categories[selectedCategory].map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-                  Coordinates (Latitude, Longitude)
+              <div className="pt-2">
+                <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  GPS Coordinates
                 </label>
                 <input
                   type="text"
                   value={coordinatesInput}
                   onChange={(e) => handleCoordinatesChange(e.target.value)}
-                  placeholder="28.6139, 77.2090"
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4`}
+                  placeholder="e.g., 28.6139, 77.2090"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 mb-3 ${
+                    isDark 
+                      ? 'bg-gray-950 border-gray-800 text-white placeholder-gray-600 focus:bg-black' 
+                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white'
+                  }`}
                 />
-                <div className="text-sm text-gray-500 mb-4">Click on the map to set coordinates or enter manually</div>
-                <InteractiveMap
-                  coordinates={mapCoordinates}
-                  onCoordinatesChange={(coords) => {
-                    setMapCoordinates(coords)
-                    setCoordinatesInput(`${coords.lat}, ${coords.lng}`)
-                  }}
-                />
+                
+                <div className={`text-xs font-medium mb-3 flex items-center gap-1.5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                  <MapPin size={14} /> Click the map below to drop a pin automatically.
+                </div>
+                
+                <div className={`rounded-xl overflow-hidden border ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+                  <InteractiveMap
+                    coordinates={mapCoordinates}
+                    onCoordinatesChange={(coords) => {
+                      setMapCoordinates(coords)
+                      setCoordinatesInput(`${coords.lat}, ${coords.lng}`)
+                    }}
+                  />
+                </div>
               </div>
               
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6 transition-colors" style={{ borderColor: isDark ? '#1f2937' : '#f3f4f6' }}>
                 <button
                   type="button"
                   onClick={() => setModalVisible(false)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'}`}
+                  className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-colors focus:outline-none focus:ring-2 ${
+                    isDark 
+                      ? 'bg-gray-800 hover:bg-gray-700 text-white focus:ring-gray-700' 
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-200'
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-xl transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                  {editingPlace ? 'Update' : 'Create'}
+                  {editingPlace ? 'Save Changes' : 'Create Location'}
                 </button>
               </div>
             </form>

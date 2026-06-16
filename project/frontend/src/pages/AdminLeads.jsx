@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { leadAPI } from '../services/api'
-import { useTheme } from '../contexts/ThemeContext'
 import { useRefreshableData, invalidateAllData } from '../hooks/useRefreshableData'
+import { 
+  RefreshCw, Mail, Phone, Building2, 
+  Calendar, Eye, X, MessageSquare, Loader2, ListFilter
+} from 'lucide-react'
 
 const AdminLeads = () => {
-  const { isDark } = useTheme()
   const [selectedLead, setSelectedLead] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
 
@@ -17,14 +19,16 @@ const AdminLeads = () => {
   const updateStatus = async (id, status) => {
     try {
       await leadAPI.updateStatus(id, status)
-      alert('Status updated successfully')
       invalidateAllData()
+      
+      // Update modal state if open
+      if (selectedLead && selectedLead._id === id) {
+        setSelectedLead(prev => ({ ...prev, status }))
+      }
     } catch (error) {
       alert('Failed to update status')
     }
   }
-
-
 
   const stats = {
     total: leads?.length || 0,
@@ -34,63 +38,83 @@ const AdminLeads = () => {
   }
 
   const tabItems = [
-    { key: 'all', label: 'All Leads' },
+    { key: 'all', label: 'All Requests' },
     { key: 'enquiry', label: 'Enquiries' },
     { key: 'contact', label: 'Contact Forms' }
   ]
 
+  // FIXED: Now returns actual JSX (<span>) instead of a raw text string!
+  const getStatusBadge = (status) => {
+    const styles = {
+      'New': 'bg-orange-50 text-orange-700 ring-orange-600/20',
+      'Contacted': 'bg-blue-50 text-blue-700 ring-blue-600/20',
+      'Qualified': 'bg-purple-50 text-purple-700 ring-purple-600/20',
+      'Converted': 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+      'Closed': 'bg-gray-50 text-gray-700 ring-gray-600/20',
+    }
+    
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold ring-1 ring-inset ${styles[status] || styles['New']}`}>
+        {status}
+      </span>
+    )
+  }
+
   return (
-    <div className={`transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto font-sans bg-[#FAFAFA]">
+      
+      {/* Header */}
       <div className="mb-8">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Booking Requests</h1>
-            <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage student enquiries and booking requests</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-900 mb-1">
+              Booking Requests
+            </h1>
+            <p className="text-sm text-gray-500">
+              Manage student enquiries, contact forms, and booking requests.
+            </p>
           </div>
           <button 
             onClick={() => invalidateAllData()}
-            className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-              isDark 
-                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-            } shadow-lg hover:shadow-xl`}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] shadow-sm flex-shrink-0 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 focus:ring-gray-200"
           >
-            🔄 Refresh
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            Refresh Data
           </button>
         </div>
       </div>
 
-      {/* Statistics Cards */}
+      {/* Flat Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
-          <p className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Requests</p>
-          <p className={`text-2xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
+        <div className="rounded-2xl p-5 border shadow-sm bg-white border-gray-200">
+          <p className="text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Total Requests</p>
+          <p className="text-2xl font-bold tracking-tight text-gray-900">{stats.total}</p>
         </div>
-        <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
-          <p className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>New</p>
-          <p className="text-2xl font-bold text-orange-500">{stats.new}</p>
+        <div className="rounded-2xl p-5 border shadow-sm bg-white border-gray-200">
+          <p className="text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">New</p>
+          <p className="text-2xl font-bold tracking-tight text-orange-500">{stats.new}</p>
         </div>
-        <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
-          <p className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Contacted</p>
-          <p className="text-2xl font-bold text-blue-500">{stats.contacted}</p>
+        <div className="rounded-2xl p-5 border shadow-sm bg-white border-gray-200">
+          <p className="text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Contacted</p>
+          <p className="text-2xl font-bold tracking-tight text-blue-500">{stats.contacted}</p>
         </div>
-        <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-4 border shadow-sm`}>
-          <p className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Converted</p>
-          <p className="text-2xl font-bold text-green-500">{stats.converted}</p>
+        <div className="rounded-2xl p-5 border shadow-sm bg-white border-gray-200">
+          <p className="text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Converted</p>
+          <p className="text-2xl font-bold tracking-tight text-emerald-500">{stats.converted}</p>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="mb-6">
-        <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-          {[{key: 'all', label: 'All Requests'}, {key: 'enquiry', label: 'Enquiries'}, {key: 'contact', label: 'Contact Forms'}].map(tab => (
+      {/* Sleek Segmented Control Filters */}
+      <div className="flex mb-6 overflow-x-auto no-scrollbar pb-2 sm:pb-0">
+        <div className="inline-flex p-1 rounded-lg border flex-shrink-0 bg-gray-100/80 border-gray-200/60">
+          {tabItems.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`flex items-center px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
                 activeTab === tab.key
-                  ? 'bg-blue-600 text-white'
-                  : isDark ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                  ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-900/5'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               {tab.label}
@@ -99,156 +123,209 @@ const AdminLeads = () => {
         </div>
       </div>
 
-      {/* Leads List */}
-      <div className="space-y-4">
-        {leads?.map((lead) => (
-          <div key={lead._id} className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm hover:shadow-lg`}>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  <h3 className={`font-semibold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{lead.name}</h3>
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                    lead.type === 'enquiry' 
-                      ? isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-800'
-                      : isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-800'
-                  }`}>
-                    {lead.type.toUpperCase()}
-                  </span>
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                    lead.status === 'New' 
-                      ? isDark ? 'bg-orange-900/50 text-orange-400' : 'bg-orange-100 text-orange-800'
-                      : lead.status === 'Contacted'
-                      ? isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-800'
-                      : lead.status === 'Converted'
-                      ? isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-800'
-                      : isDark ? 'bg-red-900/50 text-red-400' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {lead.status}
-                  </span>
-                </div>
+      {/* Main Content Area */}
+      {loading && (!leads || leads.length === 0) ? (
+        <div className="flex flex-col items-center justify-center py-20 rounded-2xl border bg-white border-gray-200">
+          <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-600" />
+          <p className="text-sm font-medium text-gray-500">Loading requests...</p>
+        </div>
+      ) : leads?.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 rounded-2xl border bg-white border-gray-200">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 border bg-gray-50 border-gray-100">
+            <ListFilter className="text-gray-400" size={32} />
+          </div>
+          <h3 className="text-base font-medium text-gray-900">No requests found</h3>
+          <p className="text-sm mt-1 text-gray-500">There are no leads matching your current filter.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+          {leads?.map((lead) => (
+            <article 
+              key={lead._id} 
+              className="transition-all duration-300 rounded-2xl border shadow-sm flex flex-col group bg-white border-gray-200 hover:border-gray-300 hover:shadow-md"
+            >
+              <div className="p-5 sm:p-6 flex-1">
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  <div className="flex items-center space-x-2">
-                    <svg className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <span className={`text-sm transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{lead.email}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <svg className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    <span className={`text-sm transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{lead.phone}</span>
+                {/* Header: Name & Badges */}
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                  <h3 className="font-semibold text-lg leading-none text-gray-900">
+                    {lead.name}
+                  </h3>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md ring-1 ring-inset ${
+                      lead.type === 'enquiry' 
+                        ? 'bg-blue-50 text-blue-700 ring-blue-600/20'
+                        : 'bg-purple-50 text-purple-700 ring-purple-600/20'
+                    }`}>
+                      {lead.type}
+                    </span>
+                    {/* JSX Rendering properly now */}
+                    {getStatusBadge(lead.status)}
                   </div>
                 </div>
                 
+                {/* Contact Info Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                    <Mail size={14} className="text-gray-400" />
+                    <span className="truncate" title={lead.email}>{lead.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                    <Phone size={14} className="text-gray-400" />
+                    <span>{lead.phone}</span>
+                  </div>
+                </div>
+                
+                {/* Property Context */}
                 {lead.hostelName && (
-                  <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-                    <strong>Property:</strong> {lead.hostelName}
-                  </p>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium mb-4 bg-gray-50 text-gray-600 border border-gray-100">
+                    <Building2 size={12} className="text-gray-400" />
+                    <span>For: <span className="font-semibold text-gray-900">{lead.hostelName}</span></span>
+                  </div>
                 )}
                 
+                {/* Message Snippet */}
                 {lead.message && (
-                  <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-                    <strong>Message:</strong> {lead.message.substring(0, 100)}{lead.message.length > 100 ? '...' : ''}
-                  </p>
+                  <div className="rounded-xl p-3 text-sm leading-relaxed border bg-gray-50 border-gray-100 text-gray-600">
+                    "{lead.message.substring(0, 100)}{lead.message.length > 100 ? '...' : ''}"
+                  </div>
                 )}
-                
-                <p className={`text-xs transition-colors ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                  {new Date(lead.createdAt).toLocaleDateString()} at {new Date(lead.createdAt).toLocaleTimeString()}
-                </p>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setSelectedLead(lead)}
-                  className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                  title="View Details"
-                >
-                  <svg className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
+              {/* Footer Actions */}
+              <div className="px-5 py-4 border-t flex flex-wrap justify-between items-center gap-3 rounded-b-2xl bg-gray-50/50 border-gray-100">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                  <Calendar size={12} />
+                  {new Date(lead.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
                 
-                <select
-                  value={lead.status}
-                  onChange={(e) => updateStatus(lead._id, e.target.value)}
-                  className={`text-sm px-3 py-1 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-                >
-                  <option value="New">New</option>
-                  <option value="Contacted">Contacted</option>
-                  <option value="Qualified">Qualified</option>
-                  <option value="Converted">Converted</option>
-                  <option value="Closed">Closed</option>
-                </select>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:flex-none">
+                    <select
+                      value={lead.status}
+                      onChange={(e) => updateStatus(lead._id, e.target.value)}
+                      className="w-full appearance-none text-xs font-semibold rounded-lg border pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-colors cursor-pointer bg-white border-gray-300 text-gray-700"
+                    >
+                      <option value="New">New</option>
+                      <option value="Contacted">Contacted</option>
+                      <option value="Qualified">Qualified</option>
+                      <option value="Converted">Converted</option>
+                      <option value="Closed">Closed</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 opacity-70">
+                      <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => setSelectedLead(lead)}
+                    className="p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 flex-shrink-0 text-gray-400 hover:text-blue-600 hover:bg-blue-50 focus:ring-blue-500"
+                    title="View Full Details"
+                  >
+                    <Eye size={18} />
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {(!leads || leads.length === 0) && !loading && (
-        <div className={`text-center py-12 transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          <p>No booking requests found</p>
+            </article>
+          ))}
         </div>
       )}
 
-      {/* Lead Details Modal */}
+      {/* Glassmorphic Lead Details Modal */}
       {selectedLead && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Request Details</h2>
-              <button
-                onClick={() => setSelectedLead(null)}
-                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+        <div 
+          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200"
+          onClick={() => setSelectedLead(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div 
+            className="rounded-2xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl border animate-in zoom-in-95 duration-200 custom-scrollbar bg-white border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex justify-between items-start mb-8 pb-4 border-b border-gray-100">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight text-gray-900">
+                  Request Details
+                </h2>
+                <p className="text-sm mt-1 font-mono text-gray-500">
+                  ID: {selectedLead._id}
+                </p>
+              </div>
+              <button 
+                onClick={() => setSelectedLead(null)} 
+                className="p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:ring-gray-200"
               >
-                <svg className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X size={20} />
               </button>
             </div>
             
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Name</label>
-                  <p className={`transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedLead.name}</p>
-                </div>
-                <div>
-                  <label className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Type</label>
-                  <p className={`transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedLead.type}</p>
-                </div>
-                <div>
-                  <label className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Email</label>
-                  <p className={`transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedLead.email}</p>
-                </div>
-                <div>
-                  <label className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Phone</label>
-                  <p className={`transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedLead.phone}</p>
-                </div>
-              </div>
+            <div className="space-y-6">
               
+              {/* Core Info Grid */}
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 rounded-xl p-5 border bg-gray-50/50 border-gray-100">
+                <div>
+                  <dt className="text-xs font-medium mb-1 text-gray-500">Full Name</dt>
+                  <dd className="text-sm font-semibold text-gray-900">{selectedLead.name}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium mb-1 text-gray-500">Request Type</dt>
+                  <dd className="text-sm font-semibold uppercase text-gray-900">{selectedLead.type}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium mb-1 text-gray-500">Email Address</dt>
+                  <dd className="text-sm font-semibold text-gray-900">{selectedLead.email}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium mb-1 text-gray-500">Phone Number</dt>
+                  <dd className="text-sm font-semibold font-mono text-gray-900">{selectedLead.phone}</dd>
+                </div>
+                <div className="col-span-1 sm:col-span-2 pt-2 border-t border-gray-200">
+                  <dt className="text-xs font-medium mb-1 text-gray-500">Current Status</dt>
+                  {/* JSX Rendering properly now */}
+                  <dd className="mt-1">{getStatusBadge(selectedLead.status)}</dd>
+                </div>
+              </dl>
+              
+              {/* Context & Message */}
               {selectedLead.hostelName && (
                 <div>
-                  <label className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Property</label>
-                  <p className={`transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedLead.hostelName}</p>
+                  <h4 className="text-xs font-medium uppercase tracking-wider mb-2 flex items-center gap-1.5 text-gray-500">
+                    <Building2 size={14} /> Associated Property
+                  </h4>
+                  <div className="p-4 rounded-xl border bg-white border-gray-200 text-gray-900">
+                    <span className="font-semibold">{selectedLead.hostelName}</span>
+                  </div>
                 </div>
               )}
               
               <div>
-                <label className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Message</label>
-                <p className={`transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedLead.message}</p>
+                <h4 className="text-xs font-medium uppercase tracking-wider mb-2 flex items-center gap-1.5 text-gray-500">
+                  <MessageSquare size={14} /> Submitted Message
+                </h4>
+                <div className="p-4 rounded-xl border whitespace-pre-wrap text-sm leading-relaxed bg-gray-50 border-gray-200 text-gray-700">
+                  {selectedLead.message || <span className="italic opacity-50">No message provided.</span>}
+                </div>
               </div>
               
-              <div>
-                <label className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Date</label>
-                <p className={`transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{new Date(selectedLead.createdAt).toLocaleString()}</p>
+              <div className="text-xs font-medium flex items-center gap-1.5 text-gray-400">
+                <Calendar size={14} />
+                Received: {new Date(selectedLead.createdAt).toLocaleString(undefined, { 
+                  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                })}
               </div>
+
+              {/* Action Buttons */}
+              <div className="pt-6 border-t border-gray-100 flex justify-end">
+                <button 
+                  onClick={() => setSelectedLead(null)} 
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-medium text-sm active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-200"
+                >
+                  Close Profile
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

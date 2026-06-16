@@ -556,6 +556,121 @@ const BookingHistoryManager = memo(() => {
 });
 BookingHistoryManager.displayName = 'BookingHistoryManager';
 
+// 5. Booking History Manager
+const BookingHistoryManager = memo(() => {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/visit-bookings/my-bookings`, {
+          credentials: 'include',
+          signal: abortController.signal
+        });
+        const data = await response.json();
+        if (!abortController.signal.aborted) {
+          setBookings(data.bookings || []);
+        }
+      } catch (err) {
+        if (err.name !== 'CanceledError') setError('Failed to load bookings.');
+      } finally {
+        if (!abortController.signal.aborted) setLoading(false);
+      }
+    };
+
+    fetchBookings();
+    return () => abortController.abort();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="p-4 bg-red-50 text-red-600 rounded-xl">{error}</div>;
+  }
+
+  if (bookings.length === 0) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+        <FiMessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+        <h3 className="text-lg font-bold text-gray-900">No bookings yet</h3>
+        <p className="text-gray-500 mt-1">Book a hostel visit to see your booking history here.</p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">My Visit Bookings</h2>
+        <p className="text-gray-500 text-sm">Track your hostel visit bookings and payment history.</p>
+      </div>
+
+      <div className="space-y-4">
+        {bookings.map((booking) => (
+          <motion.div
+            key={booking._id}
+            className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex flex-col md:flex-row justify-between gap-4">
+              <div className="flex gap-4">
+                <img
+                  src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${booking.hostel?.images?.[0]}`}
+                  alt={booking.hostel?.name}
+                  className="w-24 h-24 object-cover rounded-lg"
+                />
+                <div>
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">{booking.hostel?.name}</h3>
+                  <p className="text-gray-500 text-sm mb-2">{booking.hostel?.location}</p>
+                  <p className="text-yellow-600 font-bold">₹{booking.amount}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-start md:items-end gap-2">
+                <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                  booking.paymentStatus === 'completed' ? 'bg-green-100 text-green-700' :
+                  booking.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  Payment: {booking.paymentStatus}
+                </span>
+                <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                  booking.visitStatus === 'completed' ? 'bg-blue-100 text-blue-700' :
+                  booking.visitStatus === 'scheduled' ? 'bg-purple-100 text-purple-700' :
+                  booking.visitStatus === 'cancelled' ? 'bg-red-100 text-red-700' :
+                  'bg-gray-100 text-gray-700'
+                }`}>
+                  Visit: {booking.visitStatus}
+                </span>
+                <p className="text-xs text-gray-400 mt-2">
+                  {new Date(booking.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+            </div>
+
+            {booking.razorpayPaymentId && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-500">Payment ID: {booking.razorpayPaymentId}</p>
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+});
+BookingHistoryManager.displayName = 'BookingHistoryManager';
+
 
 /* -------------------------------------------------------------------------- */
 /* MAIN SHELL COMPONENT                                                       */
@@ -629,6 +744,10 @@ const UserProfile = () => {
               {activeTab === 'profile' ? (
                 <motion.div key="profile" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                   <ProfileSettings user={user} updateUser={updateUser} onLogout={handleLogout} />
+                </motion.div>
+              ) : activeTab === 'bookings' ? (
+                <motion.div key="bookings" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                  <BookingHistoryManager />
                 </motion.div>
               ) : activeTab === 'assignments' ? (
                 <motion.div key="assignments" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>

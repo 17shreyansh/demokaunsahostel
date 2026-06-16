@@ -144,7 +144,11 @@ export const userAPI = {
   getStats: () => api.get('/users/stats'),
   getById: (id) => api.get(`/users/${id}`),
   toggleStatus: (id) => api.patch(`/users/${id}/toggle-status`),
-  delete: (id) => api.delete(`/users/${id}`)
+  delete: (id) => api.delete(`/users/${id}`),
+  assignHostels: (userId, hostelIds) => {
+    clearCache() // Clear cache after assignment update
+    return api.put(`/users/${userId}/assign-hostels`, { hostelIds })
+  }
 }
 
 export const reviewAPI = {

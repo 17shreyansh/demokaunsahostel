@@ -1,21 +1,20 @@
 import { useState, useEffect, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  Card, Form, Input, Select, Upload, Button, Space, message, 
-  Row, Col, InputNumber, DatePicker, Checkbox, Typography, Spin 
+  Form, Input, Select, Upload, message, 
+  InputNumber, DatePicker, Checkbox 
 } from 'antd';
 import dayjs from 'dayjs';
 import { 
-  SaveOutlined, ArrowLeftOutlined, UploadOutlined, PlusOutlined, 
-  DeleteOutlined, EnvironmentOutlined, InfoCircleOutlined, LayoutOutlined,
-  PictureOutlined, StarOutlined
-} from '@ant-design/icons';
+  Save, ArrowLeft, UploadCloud, Plus, 
+  Trash2, MapPin, Info, Layout,
+  Image as ImageIcon, Star, Loader2
+} from 'lucide-react';
 import { hostelAPI } from '../services/api';
 import { invalidateData } from '../utils/stateManager';
 import { forceRefresh } from '../utils/cacheManager';
 import NearbyPlacesSelector from '../components/NearbyPlacesSelector.jsx';
 
-const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 /* -------------------------------------------------------------------------- */
@@ -30,7 +29,7 @@ const AMENITIES_OPTIONS = [
   { label: 'Housekeeping', value: 'Housekeeping' },
   { label: 'Gym', value: 'Gym' },
   { label: 'Transportation', value: 'Transportation' },
-  { label: 'DIning/Mess Area', value: 'DIning/Mess Area' },
+  { label: 'Dining/Mess Area', value: 'DIning/Mess Area' },
   { label: 'Terrace Access', value: 'Terrace Access' },
   { label: 'Indoor games', value: 'indoor games' },
   { label: 'Outdoor games', value: 'Outdoor games' },
@@ -56,7 +55,7 @@ const AMENITIES_OPTIONS = [
   { label: 'Indian Toilet', value: 'Indian Toilet' },
   { label: 'Western Toilet', value: 'Western Toilet' },
   { label: 'Visitor Management', value: 'Visitor Management' },
-  { label: 'First AId Kit', value: 'First AId Kit' },
+  { label: 'First Aid Kit', value: 'First AId Kit' },
   { label: 'Fire Safety/ Extinguisher', value: 'Fire Safety/ Extinguisher' },
   { label: 'Warden', value: 'Warden' },
   { label: 'Security Guard', value: 'Security Guard' },
@@ -74,30 +73,35 @@ const AMENITIES_OPTIONS = [
 /* -------------------------------------------------------------------------- */
 
 const AmenitiesCheckbox = memo(({ value = [], onChange }) => (
-  <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 max-h-64 overflow-y-auto">
+  <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 max-h-[300px] overflow-y-auto custom-scrollbar">
     <Checkbox.Group value={value} onChange={onChange} className="w-full">
-      <Row gutter={[16, 8]}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-4 gap-x-6">
         {AMENITIES_OPTIONS.map((amenity) => (
-          <Col xs={24} sm={12} md={8} xl={6} key={amenity.value}>
-            <Checkbox value={amenity.value}>
-              <span className="text-sm text-slate-700">{amenity.label}</span>
-            </Checkbox>
-          </Col>
+          <Checkbox value={amenity.value} key={amenity.value} className="flex items-center m-0">
+            <span className="text-sm font-medium text-gray-700 ml-1">{amenity.label}</span>
+          </Checkbox>
         ))}
-      </Row>
+      </div>
     </Checkbox.Group>
   </div>
 ));
 AmenitiesCheckbox.displayName = 'AmenitiesCheckbox';
 
-// Isolates Iframe rendering to prevent freezing the main thread on keystrokes
 const MemoizedMapPreview = memo(({ coordinates }) => {
-  if (!coordinates || !coordinates.includes(',')) return null;
+  if (!coordinates || !coordinates.includes(',')) {
+    return (
+      <div className="w-full h-[280px] bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
+        <MapPin size={32} className="mb-2 opacity-50" />
+        <span className="text-sm font-medium">Enter coordinates to preview map</span>
+      </div>
+    );
+  }
+  
   const [lat, lng] = coordinates.split(',').map(c => c.trim());
   if (isNaN(lat) || isNaN(lng)) return null;
 
   return (
-    <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-slate-50 h-[250px] relative">
+    <div className="w-full h-[280px] rounded-xl overflow-hidden border border-gray-200 shadow-inner bg-gray-50 relative group">
       <iframe
         title="Location Preview"
         width="100%"
@@ -106,7 +110,7 @@ const MemoizedMapPreview = memo(({ coordinates }) => {
         src={`http://googleusercontent.com/maps.google.com/5${lat},${lng}&hl=en&z=15&output=embed`}
         allowFullScreen
         loading="lazy"
-        className="absolute inset-0"
+        className="absolute inset-0 transition-opacity duration-300"
       />
     </div>
   );
@@ -128,7 +132,6 @@ const AdminHostelEdit = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [mapCoordinates, setMapCoordinates] = useState({ lat: 28.6139, lng: 77.2090 });
 
-  // Antd optimized watch for map preview without React state thrashing
   const rawCoordinates = Form.useWatch('coordinates', form);
 
   useEffect(() => {
@@ -208,24 +211,21 @@ const AdminHostelEdit = () => {
 
   const handleSubmit = async (values) => {
     setSubmitting(true);
-    const hideLoading = message.loading('Saving property...', 0);
+    const hideLoading = message.loading('Saving property configuration...', 0);
     
     try {
       const formData = new FormData();
       
-      // JSON Payloads
       ['amenities', 'rules', 'nearbyPlaces'].forEach(key => {
         formData.append(key, JSON.stringify(values[key] || (key === 'nearbyPlaces' ? {} : [])));
       });
 
-      // Filtered Arrays
       formData.append('info', JSON.stringify(values.info?.filter(i => i.title && i.value) || []));
       formData.append('roomTypes', JSON.stringify(values.roomTypes?.filter(r => r.name) || []));
       formData.append('reviews', JSON.stringify(values.reviews?.filter(r => r.name && r.comment).map(r => ({
         ...r, date: r.reviewDate ? r.reviewDate.format('YYYY-MM-DD') : r.date
       })) || []));
 
-      // Coordinates
       if (values.coordinates) {
         const coords = values.coordinates.split(',').map(c => c.trim());
         if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
@@ -235,14 +235,12 @@ const AdminHostelEdit = () => {
         formData.append('mapCoordinates', JSON.stringify(mapCoordinates));
       }
 
-      // Basic Text Fields
       Object.keys(values).forEach(key => {
         if (!['amenities', 'rules', 'info', 'nearbyPlaces', 'coordinates', 'roomTypes', 'reviews'].includes(key) && values[key] !== undefined) {
           formData.append(key, values[key]);
         }
       });
 
-      // Images
       const newImages = fileList.filter(file => file.originFileObj);
       const keepImages = fileList.filter(file => file.isExisting && file.status === 'done');
       
@@ -256,7 +254,6 @@ const AdminHostelEdit = () => {
       
       formData.append('finalImages', JSON.stringify([...keepImages.map(f => f.name), ...newImages.map(f => f.name || `new-${Date.now()}`)]));
 
-      // Network Call
       if (id && id !== 'new') {
         await hostelAPI.update(id, formData);
         message.success('Property updated successfully');
@@ -282,333 +279,343 @@ const AdminHostelEdit = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Spin size="large" tip="Loading property details..." />
+      <div className="min-h-[80vh] flex flex-col items-center justify-center bg-[#FAFAFA]">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
+        <p className="text-gray-500 font-medium">Loading property details...</p>
       </div>
     );
   }
 
+  // Common Section Container Component
+  const FormSection = ({ title, icon: Icon, children, className = "" }) => (
+    <section className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden ${className}`}>
+      <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+        <div className="p-2 bg-white rounded-lg shadow-sm border border-gray-100">
+          <Icon size={18} className="text-blue-600" />
+        </div>
+        <h2 className="text-lg font-semibold text-gray-900 tracking-tight">{title}</h2>
+      </div>
+      <div className="p-6">
+        {children}
+      </div>
+    </section>
+  );
+
   return (
-    <div className="pb-12 bg-slate-50 min-h-screen">
+    <div className="pb-16 bg-[#FAFAFA] min-h-screen font-sans text-gray-900">
       
       {/* Sticky Enterprise Header */}
-      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm px-6 py-4 mb-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200 px-4 sm:px-6 py-4 mb-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button 
-              icon={<ArrowLeftOutlined />} 
+            <button 
               onClick={() => navigate('/admin/hostels')}
-              type="text"
-            />
+              className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} />
+            </button>
             <div>
-              <Title level={4} className="!m-0 text-slate-900">
+              <h1 className="text-xl font-semibold tracking-tight text-gray-900 m-0">
                 {id === 'new' ? 'Add New Property' : 'Edit Property Configuration'}
-              </Title>
-              <Text type="secondary" className="text-xs font-medium">Manage listing details, rules, and media.</Text>
+              </h1>
+              <p className="text-sm font-medium text-gray-500 mt-0.5">Manage listing details, rules, and media.</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button onClick={() => navigate('/admin/hostels')} disabled={submitting}>
-              Discard
-            </Button>
-            <Button 
-              type="primary" 
-              icon={<SaveOutlined />}
-              onClick={() => form.submit()}
-              loading={submitting}
+          <div className="flex w-full sm:w-auto items-center gap-3">
+            <button 
+              onClick={() => navigate('/admin/hostels')} 
+              disabled={submitting}
+              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all disabled:opacity-50"
             >
+              Discard
+            </button>
+            <button 
+              onClick={() => form.submit()}
+              disabled={submitting}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
+            >
+              {submitting ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
               Save Configuration
-            </Button>
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Form Container */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6">
         <Form
           id="hostel-form"
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          className="space-y-6"
           requiredMark="optional"
+          // Advanced Tailwind injected styling to force Antd components to look modern
+          className="space-y-8 [&_.ant-form-item-label>label]:font-medium [&_.ant-form-item-label>label]:text-gray-700 [&_.ant-input]:rounded-lg [&_.ant-select-selector]:rounded-lg [&_.ant-input-number]:rounded-lg [&_.ant-input]:border-gray-300 [&_.ant-select-selector]:border-gray-300 [&_.ant-picker]:rounded-lg [&_.ant-picker]:border-gray-300"
         >
+          
           {/* Section 1: Basic Information */}
-          <Card 
-            title={<span className="flex items-center gap-2"><InfoCircleOutlined className="text-blue-500" /> Basic Information</span>}
-            bordered={false} className="shadow-sm"
-          >
-            <Row gutter={24}>
-              <Col xs={24} md={12}>
-                <Form.Item name="name" label="Property Name" rules={[{ required: true, message: 'Required' }]}>
-                  <Input size="large" placeholder="e.g., Sunrise Student Living" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item name="location" label="City / Area" rules={[{ required: true, message: 'Required' }]}>
-                  <Input size="large" placeholder="e.g., Knowledge Park, Greater Noida" />
-                </Form.Item>
-              </Col>
-            </Row>
+          <FormSection title="Basic Information" icon={Info}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+              <Form.Item name="name" label="Property Name" rules={[{ required: true, message: 'Property name is required' }]}>
+                <Input size="large" placeholder="e.g., Sunrise Student Living" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
+              </Form.Item>
+              <Form.Item name="location" label="City / Area" rules={[{ required: true, message: 'Location is required' }]}>
+                <Input size="large" placeholder="e.g., Knowledge Park, Greater Noida" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
+              </Form.Item>
+            </div>
             
-            <Form.Item name="address" label="Full Street Address">
-              <TextArea rows={2} placeholder="Complete address for map routing" />
+            <Form.Item name="address" label="Full Street Address" className="mt-2">
+              <TextArea rows={2} placeholder="Complete address for map routing" className="rounded-lg hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
             </Form.Item>
 
-            <Form.Item name="description" label="Property Description" rules={[{ required: true, message: 'Required' }]}>
-              <TextArea rows={4} placeholder="Describe the atmosphere, community, and key selling points..." />
+            <Form.Item name="description" label="Property Description" rules={[{ required: true, message: 'Description is required' }]} className="mb-0 mt-2">
+              <TextArea rows={4} placeholder="Describe the atmosphere, community, and key selling points..." className="rounded-lg hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
             </Form.Item>
-          </Card>
+          </FormSection>
 
           {/* Section 2: Mapping & Location */}
-          <Card 
-            title={<span className="flex items-center gap-2"><EnvironmentOutlined className="text-emerald-500" /> Location & Mapping</span>}
-            bordered={false} className="shadow-sm"
-          >
-            <Row gutter={24}>
-              <Col xs={24} xl={10}>
+          <FormSection title="Location & Mapping" icon={MapPin}>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              <div className="flex flex-col gap-4">
                 <Form.Item 
                   name="coordinates" 
                   label="GPS Coordinates" 
-                  extra="Format: Latitude, Longitude (e.g., 28.4643, 77.4993)"
+                  extra={<span className="text-xs text-gray-500 mt-1 block">Format: Latitude, Longitude (e.g., 28.4643, 77.4993)</span>}
+                  className="mb-0"
                 >
-                  <Input size="large" placeholder="Paste coordinates from Google Maps" />
+                  <Input size="large" placeholder="Paste coordinates from Google Maps" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
                 </Form.Item>
-                <Form.Item name="nearbyPlaces" label="Points of Interest" className="mb-0">
-                  {/* Assuming NearbyPlacesSelector handles its own internal layout cleanly */}
-                  <NearbyPlacesSelector coordinates={mapCoordinates} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} xl={14}>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 h-full">
-                  <Text strong className="block mb-2 text-slate-600">Map Verification Preview</Text>
-                  <MemoizedMapPreview coordinates={rawCoordinates} />
+                <div className="flex-1 bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+                  <Form.Item name="nearbyPlaces" label="Points of Interest" className="mb-0">
+                    <NearbyPlacesSelector coordinates={mapCoordinates} />
+                  </Form.Item>
                 </div>
-              </Col>
-            </Row>
-          </Card>
+              </div>
+              <div className="flex flex-col h-full">
+                <span className="block mb-2 font-medium text-gray-700">Map Verification Preview</span>
+                <MemoizedMapPreview coordinates={rawCoordinates} />
+              </div>
+            </div>
+          </FormSection>
 
           {/* Section 3: Pricing & Configuration */}
-          <Card 
-            title={<span className="flex items-center gap-2"><LayoutOutlined className="text-purple-500" /> Pricing & Configuration</span>}
-            bordered={false} className="shadow-sm"
-          >
-            <Row gutter={24}>
-              <Col xs={24} md={6}>
-                <Form.Item name="priceType" label="Billing Cycle" rules={[{ required: true }]}>
-                  <Select size="large">
-                    <Select.Option value="month">Per Month</Select.Option>
-                    <Select.Option value="session">Per Session</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item 
-                  noStyle 
-                  shouldUpdate={(prev, curr) => prev.priceType !== curr.priceType}
-                >
-                  {({ getFieldValue }) => (
-                    <Form.Item name="price" label={`Price (per ${getFieldValue('priceType') || 'month'})`} rules={[{ required: true }]}>
-                      <InputNumber size="large" style={{ width: '100%' }} formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
-                    </Form.Item>
-                  )}
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="securityDeposit" label="Security Deposit">
-                  <InputNumber size="large" style={{ width: '100%' }} formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="availability" label="Current Status" rules={[{ required: true }]}>
-                  <Select size="large">
-                    <Select.Option value="Available"><span className="text-green-600 font-medium">● Available</span></Select.Option>
-                    <Select.Option value="Limited"><span className="text-yellow-600 font-medium">● Limited</span></Select.Option>
-                    <Select.Option value="Full"><span className="text-red-600 font-medium">● Full</span></Select.Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={24}>
-              <Col xs={24} md={6}>
-                <Form.Item name="type" label="Property Type">
-                  <Select size="large">
-                    <Select.Option value="PG">PG</Select.Option>
-                    <Select.Option value="Hostel">Hostel</Select.Option>
-                    <Select.Option value="Apartment">Apartment</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="gender" label="Gender Restriction">
-                  <Select size="large">
-                    <Select.Option value="Boys">Boys Only</Select.Option>
-                    <Select.Option value="Girls">Girls Only</Select.Option>
-                    <Select.Option value="Co-ed">Co-ed</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="capacity" label="Total Capacity">
-                  <Input size="large" placeholder="e.g., 50 Students" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="availableBeds" label="Open Beds">
-                  <InputNumber size="large" style={{ width: '100%' }} min={0} />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Card>
-
-          {/* Section 4: Amenities & Media */}
-          <Row gutter={24}>
-            <Col xs={24} xl={12}>
-              <Card 
-                title={<span className="flex items-center gap-2"><StarOutlined className="text-orange-500" /> Amenities & Rules</span>}
-                bordered={false} className="shadow-sm h-full"
+          <FormSection title="Pricing & Configuration" icon={Layout}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4">
+              <Form.Item name="priceType" label="Billing Cycle" rules={[{ required: true }]}>
+                <Select size="large" className="w-full">
+                  <Select.Option value="month">Per Month</Select.Option>
+                  <Select.Option value="session">Per Session</Select.Option>
+                </Select>
+              </Form.Item>
+              
+              <Form.Item 
+                noStyle 
+                shouldUpdate={(prev, curr) => prev.priceType !== curr.priceType}
               >
-                <Form.Item name="amenities" label="Available Amenities" className="mb-6">
-                  <AmenitiesCheckbox />
-                </Form.Item>
-                <Form.Item name="rules" label="House Rules">
-                  <Select mode="tags" size="large" placeholder="Type a rule and press Enter..." style={{ width: '100%' }} />
-                </Form.Item>
-              </Card>
-            </Col>
+                {({ getFieldValue }) => (
+                  <Form.Item name="price" label={`Price (per ${getFieldValue('priceType') || 'month'})`} rules={[{ required: true }]}>
+                    <InputNumber size="large" className="w-full" formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+                  </Form.Item>
+                )}
+              </Form.Item>
+              
+              <Form.Item name="securityDeposit" label="Security Deposit">
+                <InputNumber size="large" className="w-full" formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+              </Form.Item>
+              
+              <Form.Item name="availability" label="Current Status" rules={[{ required: true }]}>
+                <Select size="large" className="w-full">
+                  <Select.Option value="Available"><span className="text-emerald-600 font-semibold">● Available</span></Select.Option>
+                  <Select.Option value="Limited"><span className="text-amber-600 font-semibold">● Limited</span></Select.Option>
+                  <Select.Option value="Full"><span className="text-rose-600 font-semibold">● Full</span></Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item name="type" label="Property Type">
+                <Select size="large" className="w-full">
+                  <Select.Option value="PG">PG</Select.Option>
+                  <Select.Option value="Hostel">Hostel</Select.Option>
+                  <Select.Option value="Apartment">Apartment</Select.Option>
+                </Select>
+              </Form.Item>
+              
+              <Form.Item name="gender" label="Gender Restriction">
+                <Select size="large" className="w-full">
+                  <Select.Option value="Boys">Boys Only</Select.Option>
+                  <Select.Option value="Girls">Girls Only</Select.Option>
+                  <Select.Option value="Co-ed">Co-ed</Select.Option>
+                </Select>
+              </Form.Item>
+              
+              <Form.Item name="capacity" label="Total Capacity">
+                <Input size="large" placeholder="e.g., 50 Students" />
+              </Form.Item>
+              
+              <Form.Item name="availableBeds" label="Open Beds">
+                <InputNumber size="large" className="w-full" min={0} />
+              </Form.Item>
+            </div>
+          </FormSection>
+
+          {/* Section 4: Amenities & Media (Grid) */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <FormSection title="Amenities & Rules" icon={Star} className="h-full">
+              <Form.Item name="amenities" label="Available Amenities" className="mb-6">
+                <AmenitiesCheckbox />
+              </Form.Item>
+              <Form.Item name="rules" label="House Rules" className="mb-0">
+                <Select mode="tags" size="large" placeholder="Type a rule and press Enter..." className="w-full" />
+              </Form.Item>
+            </FormSection>
             
-            <Col xs={24} xl={12}>
-              <Card 
-                title={<span className="flex items-center gap-2"><PictureOutlined className="text-pink-500" /> Media Gallery</span>}
-                bordered={false} className="shadow-sm h-full"
-              >
-                <Form.Item name="images" label="Property Photos" extra="Supported: JPG, PNG, WebP. Max 10 images.">
-                  <Upload
-                    listType="picture-card"
-                    fileList={fileList}
-                    onChange={({ fileList: newFileList }) => setFileList(newFileList)}
-                    beforeUpload={() => false}
-                    multiple
-                    accept="image/*"
-                  >
-                    {fileList.length >= 10 ? null : (
-                      <div className="flex flex-col items-center text-slate-400 hover:text-blue-500 transition-colors">
-                        <UploadOutlined className="text-xl mb-2" />
-                        <span className="text-sm font-medium">Upload</span>
-                      </div>
-                    )}
-                  </Upload>
-                </Form.Item>
-                <Form.Item name="videoTourUrl" label="Virtual Tour (YouTube URL)">
-                  <Input size="large" placeholder="https://www.youtube.com/watch?v=..." />
-                </Form.Item>
-              </Card>
-            </Col>
-          </Row>
+            <FormSection title="Media Gallery" icon={ImageIcon} className="h-full">
+              <Form.Item name="images" label="Property Photos" extra={<span className="text-xs text-gray-500 mt-1 block">Supported: JPG, PNG, WebP. Max 10 images.</span>}>
+                <Upload
+                  listType="picture-card"
+                  fileList={fileList}
+                  onChange={({ fileList: newFileList }) => setFileList(newFileList)}
+                  beforeUpload={() => false}
+                  multiple
+                  accept="image/*"
+                  className="[&_.ant-upload]:!rounded-xl [&_.ant-upload-list-item]:!rounded-xl"
+                >
+                  {fileList.length >= 10 ? null : (
+                    <div className="flex flex-col items-center justify-center text-gray-400 hover:text-blue-500 transition-colors w-full h-full">
+                      <UploadCloud size={24} className="mb-2" />
+                      <span className="text-sm font-medium">Upload</span>
+                    </div>
+                  )}
+                </Upload>
+              </Form.Item>
+              <Form.Item name="videoTourUrl" label="Virtual Tour (YouTube URL)" className="mt-6 mb-0">
+                <Input size="large" placeholder="https://www.youtube.com/watch?v=..." className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
+              </Form.Item>
+            </FormSection>
+          </div>
 
-          {/* Section 5: Dynamic Arrays (Room Types, Custom Info, Reviews) */}
-          <Card title="Room Types Configuration" bordered={false} className="shadow-sm">
+          {/* Section 5: Dynamic Arrays */}
+          <FormSection title="Room Types Configuration" icon={Layout}>
             <Form.List name="roomTypes">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <Row key={key} gutter={16} className="mb-4">
-                      <Col xs={24} md={8}>
-                        <Form.Item {...restField} name={[name, 'name']} className="mb-0">
-                          <Input size="large" placeholder="Room Type (e.g., Single AC)" />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={14}>
-                        <Form.Item {...restField} name={[name, 'description']} className="mb-0">
-                          <Input size="large" placeholder="Brief description of the room..." />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={2} className="flex items-center justify-end">
-                        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(name)} />
-                      </Col>
-                    </Row>
-                  ))}
-                  <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} block>
-                    Add Room Configuration
-                  </Button>
-                </>
-              )}
-            </Form.List>
-          </Card>
-
-          <Card title="Custom Information Fields" bordered={false} className="shadow-sm">
-            <Form.List name="info">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <Row key={key} gutter={16} className="mb-4">
-                      <Col xs={24} md={8}>
-                        <Form.Item {...restField} name={[name, 'title']} className="mb-0">
-                          <Input size="large" placeholder="Field Title (e.g., Notice Period)" />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={14}>
-                        <Form.Item {...restField} name={[name, 'value']} className="mb-0">
-                          <Input size="large" placeholder="Value (e.g., 30 Days)" />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={2} className="flex items-center justify-end">
-                        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(name)} />
-                      </Col>
-                    </Row>
-                  ))}
-                  <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} block>
-                    Add Custom Field
-                  </Button>
-                </>
-              )}
-            </Form.List>
-          </Card>
-
-          <Card title="Manual Review Entry" bordered={false} className="shadow-sm">
-            <Form.List name="reviews">
               {(fields, { add, remove }) => (
                 <div className="space-y-4">
                   {fields.map(({ key, name, ...restField }) => (
-                    <div key={key} className="p-4 border border-slate-200 rounded-xl bg-slate-50 relative">
-                      <Button 
-                        type="text" danger icon={<DeleteOutlined />} 
+                    <div key={key} className="flex flex-col md:flex-row gap-4 items-start md:items-center bg-gray-50 border border-gray-200 rounded-xl p-4 relative group transition-colors hover:border-gray-300">
+                      <div className="flex-1 w-full">
+                        <Form.Item {...restField} name={[name, 'name']} className="mb-0">
+                          <Input size="large" placeholder="Room Type (e.g., Single AC)" className="w-full" />
+                        </Form.Item>
+                      </div>
+                      <div className="flex-[2] w-full">
+                        <Form.Item {...restField} name={[name, 'description']} className="mb-0">
+                          <Input size="large" placeholder="Brief description of the room..." className="w-full" />
+                        </Form.Item>
+                      </div>
+                      <button 
+                        type="button"
                         onClick={() => remove(name)}
-                        className="absolute top-2 right-2"
-                      />
-                      <Row gutter={16}>
-                        <Col xs={24} md={8}>
-                          <Form.Item {...restField} name={[name, 'name']} label="Reviewer Name" rules={[{ required: true }]}>
-                            <Input />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={8}>
-                          <Form.Item {...restField} name={[name, 'rating']} label="Star Rating" rules={[{ required: true }]}>
-                            <InputNumber min={1} max={5} style={{ width: '100%' }} />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={8}>
-                          <Form.Item {...restField} name={[name, 'reviewDate']} label="Date" rules={[{ required: true }]}>
-                            <DatePicker style={{ width: '100%' }} />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                      <Form.Item {...restField} name={[name, 'comment']} label="Review Text" className="mb-0" rules={[{ required: true }]}>
-                        <TextArea rows={2} showCount maxLength={500} />
-                      </Form.Item>
+                        className="absolute -top-3 -right-3 md:relative md:top-0 md:right-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white md:bg-transparent rounded-full md:rounded-lg border md:border-0 border-gray-200 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-sm md:shadow-none"
+                        aria-label="Remove room configuration"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   ))}
-                  <Button type="dashed" onClick={() => add({ rating: 5 })} icon={<PlusOutlined />} block>
-                    Inject Customer Review
-                  </Button>
+                  <button 
+                    type="button" 
+                    onClick={() => add()} 
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                  >
+                    <Plus size={18} /> Add Room Configuration
+                  </button>
                 </div>
               )}
             </Form.List>
-          </Card>
+          </FormSection>
+
+          <FormSection title="Custom Information Fields" icon={Info}>
+            <Form.List name="info">
+              {(fields, { add, remove }) => (
+                <div className="space-y-4">
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div key={key} className="flex flex-col md:flex-row gap-4 items-start md:items-center bg-gray-50 border border-gray-200 rounded-xl p-4 relative transition-colors hover:border-gray-300">
+                      <div className="flex-1 w-full">
+                        <Form.Item {...restField} name={[name, 'title']} className="mb-0">
+                          <Input size="large" placeholder="Field Title (e.g., Notice Period)" className="w-full" />
+                        </Form.Item>
+                      </div>
+                      <div className="flex-[2] w-full">
+                        <Form.Item {...restField} name={[name, 'value']} className="mb-0">
+                          <Input size="large" placeholder="Value (e.g., 30 Days)" className="w-full" />
+                        </Form.Item>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => remove(name)}
+                        className="absolute -top-3 -right-3 md:relative md:top-0 md:right-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white md:bg-transparent rounded-full md:rounded-lg border md:border-0 border-gray-200 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors focus:outline-none shadow-sm md:shadow-none"
+                        aria-label="Remove custom field"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button 
+                    type="button" 
+                    onClick={() => add()} 
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                  >
+                    <Plus size={18} /> Add Custom Field
+                  </button>
+                </div>
+              )}
+            </Form.List>
+          </FormSection>
+
+          <FormSection title="Manual Review Entry" icon={Star}>
+            <Form.List name="reviews">
+              {(fields, { add, remove }) => (
+                <div className="space-y-6">
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div key={key} className="p-5 border border-gray-200 rounded-2xl bg-gray-50 relative group">
+                      <button 
+                        type="button"
+                        onClick={() => remove(name)}
+                        className="absolute top-4 right-4 p-2 text-gray-400 hover:text-rose-600 hover:bg-white rounded-lg transition-colors shadow-sm bg-gray-100 focus:outline-none"
+                        aria-label="Remove review"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 pr-12">
+                        <Form.Item {...restField} name={[name, 'name']} label="Reviewer Name" rules={[{ required: true }]} className="mb-0">
+                          <Input size="large" />
+                        </Form.Item>
+                        <Form.Item {...restField} name={[name, 'rating']} label="Star Rating" rules={[{ required: true }]} className="mb-0">
+                          <InputNumber size="large" min={1} max={5} className="w-full" />
+                        </Form.Item>
+                        <Form.Item {...restField} name={[name, 'reviewDate']} label="Date" rules={[{ required: true }]} className="mb-0">
+                          <DatePicker size="large" className="w-full" />
+                        </Form.Item>
+                      </div>
+                      <Form.Item {...restField} name={[name, 'comment']} label="Review Text" className="mb-0 mt-4" rules={[{ required: true }]}>
+                        <TextArea rows={2} showCount maxLength={500} className="rounded-lg" />
+                      </Form.Item>
+                    </div>
+                  ))}
+                  <button 
+                    type="button" 
+                    onClick={() => add({ rating: 5 })} 
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                  >
+                    <Plus size={18} /> Inject Customer Review
+                  </button>
+                </div>
+              )}
+            </Form.List>
+          </FormSection>
 
         </Form>
-      </div>
+      </main>
     </div>
   );
 };

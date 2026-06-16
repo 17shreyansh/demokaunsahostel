@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
 const Review = require('../models/Review');
+const UserHostelAssignment = require('../models/UserHostelAssignment');
 const auth = require('../middleware/auth');
 const { adminOnly } = require('../middleware/auth');
 
@@ -30,7 +31,24 @@ router.get('/', auth, adminOnly, async (req, res) => {
       .select('-password')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
+
+    // Get assignment counts for each user
+    const userIds = users.map(u => u._id);
+    const assignments = await UserHostelAssignment.aggregate([
+      { $match: { user: { $in: userIds } } },
+      { $group: { _id: '$user', hostels: { $push: '$hostel' } } }
+    ]);
+
+    const assignmentMap = {};
+    assignments.forEach(a => {
+      assignmentMap[a._id.toString()] = a.hostels;
+    });
+
+    users.forEach(user => {
+      user.assignedHostels = assignmentMap[user._id.toString()] || [];
+    });
 
     const total = await User.countDocuments(query);
 
@@ -161,6 +179,50 @@ router.delete('/:id', auth, adminOnly, async (req, res) => {
     res.json({
       success: true,
       message: 'User deleted successfully'
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// Assign hostels to user (bulk operation)
+router.put('/:id/assign-hostels', auth, adminOnly, async (req, res) => {
+  try {
+    const { hostelIds } = req.body;
+    const userId = req.params.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Remove all existing assignments for this user
+    await UserHostelAssignment.deleteMany({ user: userId });
+
+    // Create new assignments
+    if (hostelIds && hostelIds.length > 0) {
+      const assignments = hostelIds.map(hostelId => ({
+        user: userId,
+        hostel: hostelId,
+        assignedBy: req.user.id,
+        canReview: true
+      }));
+
+      await UserHostelAssignment.insertMany(assignments);
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully assigned ${hostelIds.length} hostel(s) to user`,
+      assignedCount: hostelIds.length
     });
 
   } catch (error) {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Form, Input, Select, Switch, Button, Tabs, Space, message, Tag, Card, Statistic, Modal } from 'antd';
-import { SaveOutlined, EyeOutlined, SendOutlined, PlusOutlined } from '@ant-design/icons';
+import { Form, Input, Select, Switch, message } from 'antd';
+import { Save, Eye, Send, Plus, Sparkles, X } from 'lucide-react';
 import TiptapEditor from '../../components/editor/TiptapEditor';
 import axios from 'axios';
 
@@ -18,6 +18,8 @@ export default function BlogEditor() {
   const [tags, setTags] = useState([]);
   const [seoScore, setSeoScore] = useState(null);
   const [autoSaving, setAutoSaving] = useState(false);
+  
+  // Modal States
   const [categoryModal, setCategoryModal] = useState(false);
   const [categoryForm] = Form.useForm();
   const [tagModal, setTagModal] = useState(false);
@@ -26,6 +28,7 @@ export default function BlogEditor() {
   useEffect(() => {
     loadData();
     if (id) loadBlog();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -33,6 +36,7 @@ export default function BlogEditor() {
       if (id && content) autoSave();
     }, 30000);
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, content]);
 
   const loadData = async () => {
@@ -46,7 +50,7 @@ export default function BlogEditor() {
       setCategories(categoriesRes.data.data);
       setTags(tagsRes.data.data);
     } catch (error) {
-      message.error('Failed to load data');
+      message.error('Failed to load metadata');
     }
   };
 
@@ -147,6 +151,7 @@ export default function BlogEditor() {
 
   const generateSEO = async () => {
     try {
+      const hideLoading = message.loading('Analyzing content and generating SEO...', 0);
       const token = localStorage.getItem('adminToken');
       const res = await axios.post('/api/blog/admin/seo/generate', {
         title: form.getFieldValue('title'),
@@ -155,6 +160,7 @@ export default function BlogEditor() {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      hideLoading();
       const { seo, seoScore: score } = res.data.data;
       form.setFieldsValue({
         'seo.title': seo.title,
@@ -163,7 +169,7 @@ export default function BlogEditor() {
         'seo.focusKeyword': seo.focusKeyword
       });
       setSeoScore(score);
-      message.success('SEO generated successfully');
+      message.success('SEO optimization generated');
     } catch (error) {
       message.error('Failed to generate SEO');
     }
@@ -200,135 +206,300 @@ export default function BlogEditor() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{id ? 'Edit Blog Post' : 'Create Blog Post'}</h1>
-        <Space>
-          {autoSaving && <Tag color="blue">Auto-saving...</Tag>}
-          <Button icon={<EyeOutlined />}>Preview</Button>
-          <Button onClick={() => form.submit()} loading={loading} icon={<SaveOutlined />}>Save Draft</Button>
-          {id && (
-            <Button type="primary" onClick={handlePublish} icon={<SendOutlined />}>Publish</Button>
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto bg-[#FAFAFA] min-h-screen font-sans text-gray-900">
+      
+      {/* Flat Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight m-0">
+            {id ? 'Edit Blog Post' : 'Create Blog Post'}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Write, format, and optimize your content.</p>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {autoSaving && (
+            <span className="px-2.5 py-1 bg-blue-100 text-blue-800 text-xs font-bold uppercase tracking-wider">
+              Auto-saving...
+            </span>
           )}
-        </Space>
+          <button 
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50 transition-colors focus:outline-none"
+          >
+            <Eye size={16} /> Preview
+          </button>
+          <button 
+            onClick={() => form.submit()} 
+            disabled={loading}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white border border-gray-900 text-sm font-bold hover:bg-black transition-colors focus:outline-none disabled:opacity-50"
+          >
+            <Save size={16} /> Save Draft
+          </button>
+          {id && (
+            <button 
+              onClick={handlePublish}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white border border-green-600 text-sm font-bold hover:bg-green-700 transition-colors focus:outline-none"
+            >
+              <Send size={16} /> Publish
+            </button>
+          )}
+        </div>
       </div>
 
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2">
-            <Card>
-              <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-                <Input size="large" placeholder="Enter blog title" />
+      <Form 
+        form={form} 
+        layout="vertical" 
+        onFinish={handleSubmit}
+        // Strict Flat Overrides for AntD components
+        className="[&_.ant-form-item-label>label]:font-bold [&_.ant-form-item-label>label]:text-gray-800 [&_.ant-input]:rounded-none [&_.ant-input]:border-gray-300 [&_.ant-input]:shadow-none [&_.ant-select-selector]:rounded-none [&_.ant-select-selector]:border-gray-300 [&_.ant-select-selector]:shadow-none"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Main Content Column */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Flat Content Panel */}
+            <div className="bg-white border border-gray-200 p-6">
+              <Form.Item name="title" label="Post Title" rules={[{ required: true }]}>
+                <Input size="large" placeholder="Enter a compelling title" className="font-medium text-lg px-4 py-3" />
               </Form.Item>
 
-              <Form.Item name="slug" label="Slug">
-                <Input placeholder="auto-generated-from-title" />
+              <Form.Item name="slug" label="URL Slug" extra={<span className="text-xs text-gray-500 font-medium">Leave blank to auto-generate from title.</span>}>
+                <Input placeholder="e.g., my-awesome-post" className="bg-gray-50" />
               </Form.Item>
 
-              <Form.Item label="Content">
-                <TiptapEditor content={content} onChange={setContent} />
+              <Form.Item label="Article Content" className="mb-0">
+                <div className="border border-gray-300 bg-white">
+                  <TiptapEditor content={content} onChange={setContent} />
+                </div>
               </Form.Item>
 
-              <Form.Item name="excerpt" label="Excerpt">
-                <TextArea rows={3} placeholder="Brief description" maxLength={300} showCount />
+              <Form.Item name="excerpt" label="Short Excerpt" className="mt-6 mb-0">
+                <TextArea rows={3} placeholder="A brief summary for blog cards and previews..." maxLength={300} showCount />
               </Form.Item>
-            </Card>
+            </div>
 
-            <Card title="SEO Settings" className="mt-4" extra={<Button onClick={generateSEO}>Generate SEO</Button>}>
+            {/* Flat SEO Panel */}
+            <div className="bg-white border border-gray-200 p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-200 pb-4">
+                <h2 className="text-lg font-bold text-gray-900">SEO Optimization</h2>
+                <button 
+                  type="button"
+                  onClick={generateSEO}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-sm font-bold transition-colors focus:outline-none"
+                >
+                  <Sparkles size={16} /> Auto-Generate SEO
+                </button>
+              </div>
+
               {seoScore && (
-                <div className="mb-4">
-                  <Statistic title="SEO Score" value={seoScore.score} suffix="/ 100" />
-                  <div className="mt-2">
+                <div className="mb-6 p-4 bg-gray-50 border border-gray-200">
+                  <div className="flex items-end gap-3 mb-3">
+                    <span className="text-sm font-bold text-gray-600 uppercase tracking-wider">Current Score:</span>
+                    <span className={`text-2xl font-black leading-none ${
+                      seoScore.score >= 80 ? 'text-green-600' : seoScore.score >= 50 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {seoScore.score} <span className="text-base text-gray-400 font-bold">/ 100</span>
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
                     {seoScore.checks?.map((check, i) => (
-                      <Tag key={i} color={check.status === 'pass' ? 'green' : 'red'}>{check.name}</Tag>
+                      <span key={i} className={`px-2 py-1 text-xs font-bold uppercase tracking-wider border ${
+                        check.status === 'pass' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'
+                      }`}>
+                        {check.name}
+                      </span>
                     ))}
                   </div>
                 </div>
               )}
 
-              <Form.Item name="seo.title" label="SEO Title">
-                <Input placeholder="SEO optimized title" maxLength={60} showCount />
+              <Form.Item name="seo.title" label="Meta Title">
+                <Input placeholder="Optimal length: 50-60 characters" maxLength={60} showCount />
               </Form.Item>
 
               <Form.Item name="seo.description" label="Meta Description">
-                <TextArea rows={3} placeholder="SEO meta description" maxLength={160} showCount />
+                <TextArea rows={3} placeholder="Optimal length: 150-160 characters" maxLength={160} showCount />
               </Form.Item>
 
-              <Form.Item name="seo.keywords" label="Keywords">
-                <Input placeholder="keyword1, keyword2, keyword3" />
-              </Form.Item>
-
-              <Form.Item name="seo.focusKeyword" label="Focus Keyword">
-                <Input placeholder="Primary keyword" />
-              </Form.Item>
-            </Card>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item name="seo.keywords" label="Meta Keywords" className="mb-0">
+                  <Input placeholder="startup, software, guide" />
+                </Form.Item>
+                <Form.Item name="seo.focusKeyword" label="Focus Keyword" className="mb-0">
+                  <Input placeholder="Primary target keyword" />
+                </Form.Item>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <Card title="Publish">
-              <Form.Item name="status" label="Status" initialValue="draft">
-                <Select>
-                  <Option value="draft">Draft</Option>
-                  <Option value="review">Review</Option>
-                  <Option value="published">Published</Option>
+          {/* Sidebar Column */}
+          <div className="space-y-6">
+            
+            {/* Publishing Panel */}
+            <div className="bg-white border border-gray-200 p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 border-b border-gray-200 pb-4">Publishing</h2>
+              
+              <Form.Item name="status" label="Visibility Status" initialValue="draft">
+                <Select size="large">
+                  <Option value="draft">Draft (Hidden)</Option>
+                  <Option value="review">Pending Review</Option>
+                  <Option value="published">Published (Live)</Option>
                 </Select>
               </Form.Item>
 
-              <Form.Item name="isFeatured" label="Featured" valuePropName="checked">
-                <Switch />
-              </Form.Item>
+              {/* Force Switch styling to be flat using arbitrary variants or just let AntD render but contained */}
+              <div className="flex items-center justify-between py-3 border-t border-gray-100">
+                <span className="text-sm font-bold text-gray-800">Feature this post</span>
+                <Form.Item name="isFeatured" valuePropName="checked" className="mb-0">
+                  <Switch className="bg-gray-300" />
+                </Form.Item>
+              </div>
 
-              <Form.Item name="allowComments" label="Allow Comments" valuePropName="checked" initialValue={true}>
-                <Switch />
-              </Form.Item>
-            </Card>
+              <div className="flex items-center justify-between py-3 border-t border-gray-100">
+                <span className="text-sm font-bold text-gray-800">Allow Comments</span>
+                <Form.Item name="allowComments" valuePropName="checked" initialValue={true} className="mb-0">
+                  <Switch className="bg-gray-300" />
+                </Form.Item>
+              </div>
+            </div>
 
-            <Card title="Categories" className="mt-4" extra={<Button size="small" icon={<PlusOutlined />} onClick={() => setCategoryModal(true)}>New</Button>}>
-              <Form.Item name="categories">
-                <Select mode="multiple" placeholder="Select categories">
+            {/* Categories Panel */}
+            <div className="bg-white border border-gray-200 p-6">
+              <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-4">
+                <h2 className="text-lg font-bold text-gray-900">Categories</h2>
+                <button 
+                  type="button"
+                  onClick={() => setCategoryModal(true)}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors"
+                >
+                  <Plus size={14} /> New
+                </button>
+              </div>
+              <Form.Item name="categories" className="mb-0">
+                <Select mode="multiple" size="large" placeholder="Select applicable categories">
                   {categories.map(c => <Option key={c._id} value={c._id}>{c.name}</Option>)}
                 </Select>
               </Form.Item>
-            </Card>
+            </div>
 
-            <Card title="Tags" className="mt-4" extra={<Button size="small" icon={<PlusOutlined />} onClick={() => setTagModal(true)}>New</Button>}>
-              <Form.Item name="tags">
-                <Select mode="multiple" placeholder="Select tags">
+            {/* Tags Panel */}
+            <div className="bg-white border border-gray-200 p-6">
+              <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-4">
+                <h2 className="text-lg font-bold text-gray-900">Tags</h2>
+                <button 
+                  type="button"
+                  onClick={() => setTagModal(true)}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors"
+                >
+                  <Plus size={14} /> New
+                </button>
+              </div>
+              <Form.Item name="tags" className="mb-0">
+                <Select mode="multiple" size="large" placeholder="Add descriptive tags">
                   {tags.map(t => <Option key={t._id} value={t._id}>{t.name}</Option>)}
                 </Select>
               </Form.Item>
-            </Card>
+            </div>
+
           </div>
         </div>
       </Form>
 
-      <Modal title="Create Category" open={categoryModal} onCancel={() => setCategoryModal(false)} onOk={() => categoryForm.submit()}>
-        <Form form={categoryForm} onFinish={handleCreateCategory} layout="vertical">
-          <Form.Item name="name" label="Category Name" rules={[{ required: true }]}>
-            <Input placeholder="Enter category name" />
-          </Form.Item>
-          <Form.Item name="description" label="Description">
-            <TextArea rows={3} placeholder="Category description" />
-          </Form.Item>
-          <Form.Item name="color" label="Color" initialValue="#3B82F6">
-            <Input type="color" />
-          </Form.Item>
-        </Form>
-      </Modal>
+      {/* Flat Custom Modal: Create Category */}
+      {categoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+          <div className="bg-white border border-gray-200 w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Create New Category</h2>
+              <button onClick={() => setCategoryModal(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <Form 
+              form={categoryForm} 
+              onFinish={handleCreateCategory} 
+              layout="vertical"
+              className="[&_.ant-form-item-label>label]:font-bold [&_.ant-form-item-label>label]:text-gray-800 [&_.ant-input]:rounded-none [&_.ant-input]:border-gray-300 [&_.ant-input]:shadow-none"
+            >
+              <Form.Item name="name" label="Category Name" rules={[{ required: true }]}>
+                <Input placeholder="e.g., Technology" size="large" />
+              </Form.Item>
+              <Form.Item name="description" label="Description">
+                <TextArea rows={3} placeholder="Brief description of this category" />
+              </Form.Item>
+              <Form.Item name="color" label="Badge Color" initialValue="#3B82F6">
+                <Input type="color" className="h-12 w-full p-1 cursor-pointer" />
+              </Form.Item>
+              
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-6">
+                <button 
+                  type="button" 
+                  onClick={() => setCategoryModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors"
+                >
+                  Create Category
+                </button>
+              </div>
+            </Form>
+          </div>
+        </div>
+      )}
 
-      <Modal title="Create Tag" open={tagModal} onCancel={() => setTagModal(false)} onOk={() => tagForm.submit()}>
-        <Form form={tagForm} onFinish={handleCreateTag} layout="vertical">
-          <Form.Item name="name" label="Tag Name" rules={[{ required: true }]}>
-            <Input placeholder="Enter tag name" />
-          </Form.Item>
-          <Form.Item name="description" label="Description">
-            <TextArea rows={2} placeholder="Tag description" />
-          </Form.Item>
-          <Form.Item name="color" label="Color" initialValue="#6B7280">
-            <Input type="color" />
-          </Form.Item>
-        </Form>
-      </Modal>
+      {/* Flat Custom Modal: Create Tag */}
+      {tagModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+          <div className="bg-white border border-gray-200 w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Create New Tag</h2>
+              <button onClick={() => setTagModal(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <Form 
+              form={tagForm} 
+              onFinish={handleCreateTag} 
+              layout="vertical"
+              className="[&_.ant-form-item-label>label]:font-bold [&_.ant-form-item-label>label]:text-gray-800 [&_.ant-input]:rounded-none [&_.ant-input]:border-gray-300 [&_.ant-input]:shadow-none"
+            >
+              <Form.Item name="name" label="Tag Name" rules={[{ required: true }]}>
+                <Input placeholder="e.g., ReactJS" size="large" />
+              </Form.Item>
+              <Form.Item name="description" label="Description">
+                <TextArea rows={2} placeholder="Optional description for this tag" />
+              </Form.Item>
+              <Form.Item name="color" label="Badge Color" initialValue="#6B7280">
+                <Input type="color" className="h-12 w-full p-1 cursor-pointer" />
+              </Form.Item>
+              
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-6">
+                <button 
+                  type="button" 
+                  onClick={() => setTagModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors"
+                >
+                  Create Tag
+                </button>
+              </div>
+            </Form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

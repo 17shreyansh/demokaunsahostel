@@ -3,15 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { hostelAPI } from '../services/api';
 import { stateManager, invalidateData } from '../utils/stateManager';
 import { forceRefresh } from '../utils/cacheManager';
+import { message } from 'antd'; // Retained strictly for imperative toast notifications
 import { 
-  Row, Col, Card, Button, Input, Tag, Spin, message, Empty, Tooltip, Statistic 
-} from 'antd';
-import { 
-  FiPlus, FiRefreshCw, FiEdit2, FiEye, FiTrash2, FiHome, 
-  FiCheckCircle, FiAlertCircle, FiXCircle 
-} from 'react-icons/fi';
-
-const { Search } = Input;
+  Plus, RefreshCw, Pencil, Eye, Trash2, Home, 
+  CheckCircle2, AlertCircle, XCircle, Search, X, Loader2, MapPin, Star
+} from 'lucide-react';
 
 const AdminHostels = () => {
   const navigate = useNavigate();
@@ -20,7 +16,7 @@ const AdminHostels = () => {
   const [searchText, setSearchText] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Safe Network Fetching
+  // Safe Network Fetching (Logic retained completely)
   const fetchHostels = useCallback(async (force = false, abortSignal) => {
     try {
       setLoading(true);
@@ -56,7 +52,7 @@ const AdminHostels = () => {
     };
   }, [fetchHostels]);
 
-  // Derived State (Eliminates the need for a separate filteredHostels state)
+  // Derived State
   const filteredHostels = useMemo(() => {
     if (!searchText) return hostels;
     const lowercasedSearch = searchText.toLowerCase();
@@ -102,175 +98,224 @@ const AdminHostels = () => {
     fetchHostels(true);
   };
 
+  // UI Helpers
+  const getStatusBadge = (status) => {
+    const styles = {
+      'Available': 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+      'Limited': 'bg-amber-50 text-amber-700 ring-amber-600/20',
+      'Full': 'bg-rose-50 text-rose-700 ring-rose-600/20',
+    };
+    return `inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold ring-1 ring-inset ${styles[status] || 'bg-gray-50 text-gray-700 ring-gray-600/20'}`;
+  };
+
   return (
-    <div className="pb-8">
+    <div className="relative pb-8 min-h-[80vh] font-sans text-gray-900">
+      
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 m-0 leading-tight">My Properties</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900 m-0 leading-tight">My Properties</h1>
           {lastUpdated && (
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm font-medium text-gray-500 mt-1">
               Last synced: {lastUpdated.toLocaleTimeString()}
             </p>
           )}
         </div>
-        <div className="flex gap-3">
-          <Button 
-            icon={<FiRefreshCw />} 
+        <div className="flex w-full sm:w-auto items-center gap-3">
+          <button 
             onClick={handleForceRefresh}
-            loading={loading}
+            disabled={loading}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
           >
-            Force Sync
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<FiPlus />} 
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            <span className="hidden sm:inline">Force Sync</span>
+          </button>
+          <button 
             onClick={handleAdd}
-            className="bg-blue-600"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] transition-all shadow-sm"
           >
+            <Plus size={16} />
             Add Property
-          </Button>
+          </button>
         </div>
-      </div>
+      </header>
 
       {/* Statistics Cards */}
-      <Row gutter={[16, 16]} className="mb-8">
-        <Col xs={12} md={6}>
-          <Card bordered={false} className="shadow-sm">
-            <Statistic 
-              title="Total Properties" 
-              value={stats.total} 
-              prefix={<FiHome className="text-blue-500 mr-2" />} 
-            />
-          </Card>
-        </Col>
-        <Col xs={12} md={6}>
-          <Card bordered={false} className="shadow-sm">
-            <Statistic 
-              title="Available" 
-              value={stats.available} 
-              valueStyle={{ color: '#52c41a' }}
-              prefix={<FiCheckCircle className="mr-2" />} 
-            />
-          </Card>
-        </Col>
-        <Col xs={12} md={6}>
-          <Card bordered={false} className="shadow-sm">
-            <Statistic 
-              title="Limited" 
-              value={stats.limited} 
-              valueStyle={{ color: '#faad14' }}
-              prefix={<FiAlertCircle className="mr-2" />} 
-            />
-          </Card>
-        </Col>
-        <Col xs={12} md={6}>
-          <Card bordered={false} className="shadow-sm">
-            <Statistic 
-              title="Full" 
-              value={stats.full} 
-              valueStyle={{ color: '#ff4d4f' }}
-              prefix={<FiXCircle className="mr-2" />} 
-            />
-          </Card>
-        </Col>
-      </Row>
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-center text-sm font-medium text-gray-500 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center mr-3">
+              <Home className="w-4 h-4 text-blue-600" />
+            </div>
+            Total Properties
+          </div>
+          <div className="text-3xl font-semibold tracking-tight text-gray-900">
+            {stats.total}
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-center text-sm font-medium text-gray-500 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-3">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            </div>
+            Available
+          </div>
+          <div className="text-3xl font-semibold tracking-tight text-emerald-600">
+            {stats.available}
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-center text-sm font-medium text-gray-500 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center mr-3">
+              <AlertCircle className="w-4 h-4 text-amber-600" />
+            </div>
+            Limited
+          </div>
+          <div className="text-3xl font-semibold tracking-tight text-amber-500">
+            {stats.limited}
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-center text-sm font-medium text-gray-500 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center mr-3">
+              <XCircle className="w-4 h-4 text-rose-600" />
+            </div>
+            Full
+          </div>
+          <div className="text-3xl font-semibold tracking-tight text-rose-600">
+            {stats.full}
+          </div>
+        </div>
+      </section>
 
-      {/* Search Bar */}
-      <div className="mb-6 max-w-md">
-        <Search
-          placeholder="Search properties by name or location..."
-          allowClear
-          onChange={(e) => setSearchText(e.target.value)}
-          size="large"
-          className="shadow-sm"
-        />
-      </div>
+      {/* Toolbar / Search */}
+      <section className="mb-6 max-w-md">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm placeholder:text-gray-400"
+            placeholder="Search properties by name or location..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          {searchText && (
+            <button
+              onClick={() => setSearchText('')}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </section>
 
-      {/* Properties Grid */}
-      <Spin spinning={loading} size="large">
+      {/* Properties Grid Area */}
+      <main className="relative min-h-[400px]">
+        {loading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[2px] rounded-xl transition-all duration-300">
+            <div className="bg-white p-4 rounded-full shadow-lg border border-gray-100">
+              <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+            </div>
+          </div>
+        )}
+
         {filteredHostels.length === 0 && !loading ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-16">
-            <Empty 
-              description={<span className="text-slate-500 font-medium">No properties found</span>} 
-            />
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 py-24 flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <Home className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">No properties found</h3>
+            <p className="text-sm text-gray-500">Try adjusting your search criteria or add a new property.</p>
           </div>
         ) : (
-          <Row gutter={[24, 24]}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredHostels.map((hostel) => (
-              <Col xs={24} sm={12} lg={8} xl={6} key={hostel._id}>
-                <Card
-                  hoverable
-                  className="h-full overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                  cover={
-                    <div className="h-48 bg-slate-100 relative group">
-                      {hostel.images?.[0] ? (
-                        <img 
-                          src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${hostel.images[0]}`} 
-                          alt={hostel.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-300">
-                          <FiHome size={48} />
-                        </div>
-                      )}
-                      {/* Price Badge Overlay */}
-                      <div className="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-sm text-white px-3 py-1 rounded-lg font-semibold border border-white/10 shadow-lg">
-                        ₹{Number(hostel.price || 0).toLocaleString()}/{hostel.priceType || 'mo'}
-                      </div>
+              <article 
+                key={hostel._id} 
+                className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden group"
+              >
+                {/* Image & Overlay */}
+                <div className="relative h-48 bg-gray-100 overflow-hidden flex-shrink-0">
+                  {hostel.images?.[0] ? (
+                    <img 
+                      src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${hostel.images[0]}`} 
+                      alt={hostel.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <Home size={40} strokeWidth={1.5} />
                     </div>
-                  }
-                  actions={[
-                    <Tooltip title="Edit Property">
-                      <Button type="text" icon={<FiEdit2 />} onClick={() => handleEdit(hostel)} />
-                    </Tooltip>,
-                    <Tooltip title="View Live">
-                      <Button type="text" icon={<FiEye />} onClick={() => handleView(hostel)} />
-                    </Tooltip>,
-                    <Tooltip title="Delete">
-                      <Button 
-                        type="text" 
-                        danger 
-                        icon={<FiTrash2 />} 
-                        onClick={() => {
-                          if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
-                            handleDelete(hostel._id);
-                          }
-                        }} 
-                      />
-                    </Tooltip>
-                  ]}
-                >
-                  <div className="flex justify-between items-start mb-2 gap-2">
-                    <h3 className="font-bold text-slate-900 text-lg m-0 truncate" title={hostel.name}>
+                  )}
+                  {/* Price Tag */}
+                  <div className="absolute bottom-3 right-3 bg-gray-900/80 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-sm font-semibold border border-white/10 shadow-lg tracking-tight">
+                    ₹{Number(hostel.price || 0).toLocaleString()} <span className="text-gray-300 font-medium text-xs">/{hostel.priceType || 'mo'}</span>
+                  </div>
+                </div>
+
+                {/* Content Body */}
+                <div className="p-4 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start gap-3 mb-2">
+                    <h3 className="font-semibold text-gray-900 text-base m-0 line-clamp-1 flex-1" title={hostel.name}>
                       {hostel.name}
                     </h3>
-                    <Tag 
-                      color={
-                        hostel.availability === 'Available' ? 'success' : 
-                        hostel.availability === 'Limited' ? 'warning' : 'error'
+                    <div className="flex-shrink-0">
+                      <span className={getStatusBadge(hostel.availability)}>
+                        {hostel.availability}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-4 line-clamp-1" title={hostel.location}>
+                    <MapPin size={14} className="flex-shrink-0" />
+                    <span className="truncate">{hostel.location}</span>
+                  </div>
+                  
+                  <div className="mt-auto flex items-center gap-1.5 text-sm font-medium">
+                    <Star size={14} className="fill-amber-400 text-amber-400" />
+                    <span className="text-gray-700">{hostel.rating || 'New'}</span>
+                  </div>
+                </div>
+
+                {/* Action Footer */}
+                <div className="grid grid-cols-3 divide-x divide-gray-100 border-t border-gray-100 bg-gray-50/50">
+                  <button 
+                    onClick={() => handleEdit(hostel)}
+                    className="flex flex-col items-center justify-center py-2.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-inset focus:ring-2 focus:ring-blue-500"
+                    title="Edit Property"
+                    aria-label="Edit Property"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                  <button 
+                    onClick={() => handleView(hostel)}
+                    className="flex flex-col items-center justify-center py-2.5 text-gray-500 hover:text-emerald-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-inset focus:ring-2 focus:ring-emerald-500"
+                    title="View Live Page"
+                    aria-label="View Live Page"
+                  >
+                    <Eye size={16} />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+                        handleDelete(hostel._id);
                       }
-                      className="m-0 border-0"
-                    >
-                      {hostel.availability}
-                    </Tag>
-                  </div>
-                  
-                  <p className="text-slate-500 text-sm mb-3 truncate" title={hostel.location}>
-                    {hostel.location}
-                  </p>
-                  
-                  <div className="flex items-center gap-1 text-sm font-medium">
-                    <span className="text-yellow-500">★</span>
-                    <span className="text-slate-600">{hostel.rating || 'New'}</span>
-                  </div>
-                </Card>
-              </Col>
+                    }}
+                    className="flex flex-col items-center justify-center py-2.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors focus:outline-none focus:ring-inset focus:ring-2 focus:ring-rose-500"
+                    title="Delete Property"
+                    aria-label="Delete Property"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </article>
             ))}
-          </Row>
+          </div>
         )}
-      </Spin>
+      </main>
     </div>
   );
 };

@@ -83,7 +83,7 @@ const AdminLoginContent = () => {
       </div>
 
       {/* Theme Toggle Button */}
-      <button
+      {/* <button
         onClick={toggleTheme}
         className={`fixed top-6 right-6 p-3.5 rounded-full backdrop-blur-md shadow-lg transition-all duration-300 transform-gpu hover:scale-110 z-50 ${
           isDark ? 'bg-gray-800/80 text-yellow-400 hover:bg-gray-700' : 'bg-white/80 text-gray-700 hover:bg-gray-100'
@@ -101,7 +101,7 @@ const AdminLoginContent = () => {
             {isDark ? <FiSun size={20} /> : <FiMoon size={20} />}
           </motion.div>
         </AnimatePresence>
-      </button>
+      </button> */}
 
       <motion.div 
         className="max-w-md w-full relative z-10 px-4"

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
+import { KeyRound, UserCog, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 
 const AdminSettings = () => {
   const { isDark } = useTheme()
@@ -128,32 +129,48 @@ const AdminSettings = () => {
   }
 
   return (
-    <div className={`transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
+    <div className={`transition-colors duration-300 min-h-screen p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto font-sans ${isDark ? 'bg-black text-gray-100' : 'bg-[#FAFAFA] text-gray-900'}`}>
+      
+      {/* Header Section */}
       <div className="mb-8">
-        <h1 className={`text-3xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Admin Settings</h1>
-        <p className={`transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage API configuration and profile settings</p>
+        <h1 className={`text-2xl font-semibold tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'} mb-1`}>
+          Admin Settings
+        </h1>
+        <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+          Manage system integrations, API configurations, and your security profile.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* API Configuration */}
-        <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-          <div className="flex items-center space-x-2 mb-4">
-            <svg className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3a1 1 0 011-1h2.586l6.243-6.243A6 6 0 0121 9z" />
-            </svg>
-            <h2 className={`text-lg font-semibold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>API Configuration</h2>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+        
+        {/* API Configuration Card */}
+        <div className={`transition-all duration-300 rounded-2xl p-6 sm:p-8 border shadow-sm ${
+          isDark ? 'bg-gray-900 border-gray-800 shadow-black/50' : 'bg-white border-gray-200'
+        }`}>
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                <KeyRound size={20} />
+              </div>
+              <h2 className={`text-lg font-semibold tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                API Configuration
+              </h2>
+            </div>
+            
+            {/* Status Badge */}
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ring-1 ring-inset ${
+              apiSaved 
+                ? (isDark ? 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20' : 'bg-emerald-50 text-emerald-700 ring-emerald-600/20')
+                : (isDark ? 'bg-rose-500/10 text-rose-400 ring-rose-500/20' : 'bg-rose-50 text-rose-700 ring-rose-600/20')
+            }`}>
+              {apiSaved ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+              {apiSaved ? 'Key Configured' : 'Missing Key'}
+            </div>
           </div>
           
-          <div className="mb-4">
-            <span className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Status: </span>
-            <span className={`text-sm font-medium ${apiSaved ? 'text-green-500' : 'text-red-500'}`}>
-              {apiSaved ? '✓ API Key Saved' : '✗ API Key Not Configured'}
-            </span>
-          </div>
-          
-          <form onSubmit={handleApiSubmit} className="space-y-4">
+          <form onSubmit={handleApiSubmit} className="space-y-5">
             <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+              <label className={`block text-sm font-medium mb-1.5 transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 OpenRouteService API Key
               </label>
               <input
@@ -161,37 +178,50 @@ const AdminSettings = () => {
                 name="apiKey"
                 required
                 placeholder="Enter your API key"
-                className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 ${
+                  isDark 
+                    ? 'bg-gray-950 border-gray-800 text-white placeholder-gray-600 focus:bg-black' 
+                    : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white'
+                }`}
               />
+              <p className={`mt-2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                Required for calculating distances between properties and nearby places.
+              </p>
             </div>
             <button
               type="submit"
               disabled={apiLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {apiLoading ? 'Saving...' : 'Save API Key'}
+              {apiLoading ? <Loader2 size={18} className="animate-spin" /> : <KeyRound size={18} />}
+              {apiLoading ? 'Saving Configuration...' : 'Save API Key'}
             </button>
           </form>
         </div>
 
-        {/* Profile Management */}
-        <div className={`transition-all duration-300 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-          <div className="flex items-center space-x-2 mb-4">
-            <svg className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <h2 className={`text-lg font-semibold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Profile Management</h2>
+        {/* Profile Management Card */}
+        <div className={`transition-all duration-300 rounded-2xl p-6 sm:p-8 border shadow-sm ${
+          isDark ? 'bg-gray-900 border-gray-800 shadow-black/50' : 'bg-white border-gray-200'
+        }`}>
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
+                <UserCog size={20} />
+              </div>
+              <h2 className={`text-lg font-semibold tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Security Profile
+              </h2>
+            </div>
+            
+            <div className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              Logged in as: <span className={isDark ? 'text-white' : 'text-gray-900'}>{currentUser}</span>
+            </div>
           </div>
           
-          <div className="mb-4">
-            <span className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Current user: </span>
-            <span className={`text-sm font-medium transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentUser}</span>
-          </div>
-          
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
+          <form onSubmit={handleProfileSubmit} className="space-y-5">
             <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-                Username
+              <label className={`block text-sm font-medium mb-1.5 transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Administrator Username
               </label>
               <input
                 type="text"
@@ -199,54 +229,84 @@ const AdminSettings = () => {
                 required
                 defaultValue={currentUser}
                 placeholder="Enter username"
-                className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 ${
+                  isDark 
+                    ? 'bg-gray-950 border-gray-800 text-white placeholder-gray-600 focus:bg-black' 
+                    : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white'
+                }`}
               />
             </div>
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-                Current Password
-              </label>
-              <input
-                type="password"
-                name="currentPassword"
-                required
-                placeholder="Current password"
-                className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
+            
+            <div className="pt-2">
+              <h3 className={`text-xs font-semibold uppercase tracking-wider mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                Update Password
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-1.5 transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    name="currentPassword"
+                    required
+                    placeholder="Enter current password"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 ${
+                      isDark 
+                        ? 'bg-gray-950 border-gray-800 text-white placeholder-gray-600 focus:bg-black' 
+                        : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white'
+                    }`}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-sm font-medium mb-1.5 transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      name="newPassword"
+                      required
+                      placeholder="New password"
+                      className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 ${
+                        isDark 
+                          ? 'bg-gray-950 border-gray-800 text-white placeholder-gray-600 focus:bg-black' 
+                          : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white'
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium mb-1.5 transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      required
+                      placeholder="Confirm password"
+                      className={`w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 ${
+                        isDark 
+                          ? 'bg-gray-950 border-gray-800 text-white placeholder-gray-600 focus:bg-black' 
+                          : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-                New Password
-              </label>
-              <input
-                type="password"
-                name="newPassword"
-                required
-                placeholder="New password"
-                className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium transition-colors ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                required
-                placeholder="Confirm password"
-                className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-            </div>
+
             <button
               type="submit"
               disabled={profileLoading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-6 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {profileLoading ? 'Updating...' : 'Update Profile'}
+              {profileLoading ? <Loader2 size={18} className="animate-spin" /> : <UserCog size={18} />}
+              {profileLoading ? 'Updating Profile...' : 'Update Security Profile'}
             </button>
           </form>
         </div>
+
       </div>
     </div>
   )
