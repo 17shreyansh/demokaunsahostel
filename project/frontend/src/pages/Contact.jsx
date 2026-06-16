@@ -77,7 +77,7 @@ const Contact = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Email Us</h3>
-              <p className="text-gray-600">{content.contact?.contactInfo?.email || 'hello@staynest.com'}</p>
+              <p className="text-gray-600">{content.contact?.contactInfo?.email || 'support@kaunsahostel.com'}</p>
             </div>
             
             <div className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow">

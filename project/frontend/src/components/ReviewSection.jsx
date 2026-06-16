@@ -235,40 +235,14 @@ const ReviewSection = ({ hostelId }) => {
         </h3>
         
         {user && !showForm && (
-          <button
-            onClick={toggleForm}
-            className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 transform-gpu hover:-translate-y-0.5 will-change-transform"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-            Write a Review
-          </button>
+          <p className="text-sm text-gray-500 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+            ℹ️ You can write reviews for hostels assigned to you from your profile dashboard.
+          </p>
         )}
       </div>
 
-      {/* Guest Call to Action */}
-      {!user && !showForm && (
-        <div className="bg-gray-900 rounded-2xl p-8 mb-8 text-center relative overflow-hidden shadow-xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 rounded-full blur-[80px] pointer-events-none"></div>
-          <div className="relative z-10">
-            <div className="flex justify-center mb-4">
-              <div className="bg-gray-800 border border-gray-700 p-4 rounded-2xl shadow-inner">
-                <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-            </div>
-            <p className="text-white font-bold mb-4 text-xl">Share your experience with others!</p>
-            <button 
-              onClick={() => navigate('/user/auth')} 
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform-gpu hover:-translate-y-0.5"
-            >
-              Sign In to Write a Review
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Guest Call to Action - REMOVED */}
+      {/* Reviews are now only written by assigned users from their portal */}
 
       {/* Status Messages */}
       <AnimatePresence mode="wait">

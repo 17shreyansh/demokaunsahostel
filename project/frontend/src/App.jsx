@@ -30,6 +30,8 @@ const AdminSettings = lazy(() => import('./pages/AdminSettings'))
 const AdminPageContent = lazy(() => import('./pages/AdminPageContent'))
 const AdminUsers = lazy(() => import('./pages/AdminUsers'))
 const AdminReviews = lazy(() => import('./pages/AdminReviews'))
+const AdminVisitBookings = lazy(() => import('./pages/AdminVisitBookings'))
+const AdminAssignments = lazy(() => import('./pages/AdminAssignments'))
 const AdminBlogList = lazy(() => import('./pages/blog/AdminBlogList'))
 const AdminBlogEditor = lazy(() => import('./pages/blog/AdminBlogEditor'))
 const BlogList = lazy(() => import('./pages/blog/BlogListPage'))
@@ -138,6 +140,8 @@ function App() {
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="managers" element={<AdminHostelManagers />} />
                   <Route path="reviews" element={<AdminReviews />} />
+                  <Route path="visit-bookings" element={<AdminVisitBookings />} />
+                  <Route path="assignments" element={<AdminAssignments />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="page-content" element={<AdminPageContent />} />
                   <Route path="blog" element={<AdminBlogList />} />

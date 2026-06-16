@@ -12,7 +12,9 @@ const STARS = [1, 2, 3, 4, 5];
 
 const TABS = [
   { id: 'profile', label: 'Profile Settings', icon: FiSettings },
-  { id: 'reviews', label: 'My Reviews', icon: FiMessageSquare }
+  { id: 'bookings', label: 'My Bookings', icon: FiMessageSquare },
+  { id: 'assignments', label: 'My Assigned Hostels', icon: FiMessageSquare },
+  { id: 'reviews', label: 'My Reviews', icon: FiStar }
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -260,6 +262,300 @@ const ReviewManager = memo(() => {
 });
 ReviewManager.displayName = 'ReviewManager';
 
+// 4. Assigned Hostels Manager
+const AssignedHostelsManager = memo(() => {
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showReviewForm, setShowReviewForm] = useState(null);
+  const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchAssignments = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/assignments/my-assignments`, {
+          credentials: 'include',
+          signal: abortController.signal
+        });
+        const data = await response.json();
+        if (!abortController.signal.aborted) {
+          setAssignments(data.assignments || []);
+        }
+      } catch (err) {
+        if (err.name !== 'CanceledError') setError('Failed to load assigned hostels.');
+      } finally {
+        if (!abortController.signal.aborted) setLoading(false);
+      }
+    };
+
+    fetchAssignments();
+    return () => abortController.abort();
+  }, []);
+
+  const handleReviewSubmit = async (hostelId) => {
+    if (reviewData.comment.length < 10) {
+      alert('Review must be at least 10 characters');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await reviewAPI.create({ hostelId, rating: reviewData.rating, comment: reviewData.comment });
+      alert('✅ Review submitted successfully! It will be visible after admin approval.');
+      setShowReviewForm(null);
+      setReviewData({ rating: 5, comment: '' });
+      // Refresh assignments
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/assignments/my-assignments`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      setAssignments(data.assignments || []);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="p-4 bg-red-50 text-red-600 rounded-xl">{error}</div>;
+  }
+
+  if (assignments.length === 0) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+        <FiMessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+        <h3 className="text-lg font-bold text-gray-900">No assigned hostels</h3>
+        <p className="text-gray-500 mt-1">Book a hostel visit to get assigned and write reviews.</p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">My Assigned Hostels</h2>
+        <p className="text-gray-500 text-sm">Write reviews for hostels you've been assigned to.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {assignments.map((assignment) => (
+          <motion.div
+            key={assignment._id}
+            className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+          >
+            <img
+              src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${assignment.hostel?.images?.[0]}`}
+              alt={assignment.hostel?.name}
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-6">
+              <h3 className="font-bold text-gray-900 text-lg mb-2">{assignment.hostel?.name}</h3>
+              <p className="text-gray-500 text-sm mb-2">{assignment.hostel?.location}</p>
+              <p className="text-yellow-600 font-bold mb-4">₹{assignment.hostel?.price}/month</p>
+              
+              {assignment.hasReviewed ? (
+                <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-medium">
+                  ✓ Review submitted
+                </div>
+              ) : (
+                <>
+                  {showReviewForm === assignment.hostel._id ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
+                        <div className="flex gap-2">
+                          {STARS.map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setReviewData(prev => ({ ...prev, rating: star }))}
+                              className="text-3xl"
+                            >
+                              <span className={star <= reviewData.rating ? 'text-yellow-400' : 'text-gray-200'}>★</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Your Review</label>
+                        <textarea
+                          value={reviewData.comment}
+                          onChange={(e) => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
+                          rows="3"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-500"
+                          placeholder="Share your experience..."
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleReviewSubmit(assignment.hostel._id)}
+                          disabled={submitting}
+                          className="flex-1 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-lg hover:bg-yellow-600 disabled:opacity-50"
+                        >
+                          {submitting ? 'Submitting...' : 'Submit Review'}
+                        </button>
+                        <button
+                          onClick={() => setShowReviewForm(null)}
+                          className="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowReviewForm(assignment.hostel._id)}
+                      className="w-full px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-lg hover:bg-yellow-600 transition-colors"
+                    >
+                      Write Review
+                    </button>
+                  )}
+                </>
+              )}
+              
+              <button
+                onClick={() => navigate(`/hostels/${assignment.hostel?.slug}`)}
+                className="w-full mt-3 px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                View Details
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+});
+AssignedHostelsManager.displayName = 'AssignedHostelsManager';
+
+// 5. Booking History Manager
+const BookingHistoryManager = memo(() => {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/visit-bookings/my-bookings`, {
+          credentials: 'include',
+          signal: abortController.signal
+        });
+        const data = await response.json();
+        if (!abortController.signal.aborted) {
+          setBookings(data.bookings || []);
+        }
+      } catch (err) {
+        if (err.name !== 'CanceledError') setError('Failed to load bookings.');
+      } finally {
+        if (!abortController.signal.aborted) setLoading(false);
+      }
+    };
+
+    fetchBookings();
+    return () => abortController.abort();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="p-4 bg-red-50 text-red-600 rounded-xl">{error}</div>;
+  }
+
+  if (bookings.length === 0) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+        <FiMessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+        <h3 className="text-lg font-bold text-gray-900">No bookings yet</h3>
+        <p className="text-gray-500 mt-1">Book a hostel visit to see your booking history here.</p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">My Visit Bookings</h2>
+        <p className="text-gray-500 text-sm">Track your hostel visit bookings and payment history.</p>
+      </div>
+
+      <div className="space-y-4">
+        {bookings.map((booking) => (
+          <motion.div
+            key={booking._id}
+            className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex flex-col md:flex-row justify-between gap-4">
+              <div className="flex gap-4">
+                <img
+                  src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${booking.hostel?.images?.[0]}`}
+                  alt={booking.hostel?.name}
+                  className="w-24 h-24 object-cover rounded-lg"
+                />
+                <div>
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">{booking.hostel?.name}</h3>
+                  <p className="text-gray-500 text-sm mb-2">{booking.hostel?.location}</p>
+                  <p className="text-yellow-600 font-bold">₹{booking.amount}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-start md:items-end gap-2">
+                <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                  booking.paymentStatus === 'completed' ? 'bg-green-100 text-green-700' :
+                  booking.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  Payment: {booking.paymentStatus}
+                </span>
+                <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                  booking.visitStatus === 'completed' ? 'bg-blue-100 text-blue-700' :
+                  booking.visitStatus === 'scheduled' ? 'bg-purple-100 text-purple-700' :
+                  booking.visitStatus === 'cancelled' ? 'bg-red-100 text-red-700' :
+                  'bg-gray-100 text-gray-700'
+                }`}>
+                  Visit: {booking.visitStatus}
+                </span>
+                <p className="text-xs text-gray-400 mt-2">
+                  {new Date(booking.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+            </div>
+
+            {booking.razorpayPaymentId && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-500">Payment ID: {booking.razorpayPaymentId}</p>
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+});
+BookingHistoryManager.displayName = 'BookingHistoryManager';
+
 
 /* -------------------------------------------------------------------------- */
 /* MAIN SHELL COMPONENT                                                       */
@@ -333,6 +629,10 @@ const UserProfile = () => {
               {activeTab === 'profile' ? (
                 <motion.div key="profile" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                   <ProfileSettings user={user} updateUser={updateUser} onLogout={handleLogout} />
+                </motion.div>
+              ) : activeTab === 'assignments' ? (
+                <motion.div key="assignments" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                  <AssignedHostelsManager />
                 </motion.div>
               ) : (
                 <motion.div key="reviews" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>

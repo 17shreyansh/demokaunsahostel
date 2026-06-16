@@ -1,0 +1,36 @@
+const mongoose = require('mongoose');
+
+const userHostelAssignmentSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  hostel: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Hostel',
+    required: true
+  },
+  assignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin',
+    required: true
+  },
+  canReview: {
+    type: Boolean,
+    default: true
+  },
+  hasReviewed: {
+    type: Boolean,
+    default: false
+  },
+  notes: {
+    type: String
+  }
+}, {
+  timestamps: true
+});
+
+userHostelAssignmentSchema.index({ user: 1, hostel: 1 }, { unique: true });
+
+module.exports = mongoose.model('UserHostelAssignment', userHostelAssignmentSchema);

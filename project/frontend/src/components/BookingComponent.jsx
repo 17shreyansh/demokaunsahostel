@@ -1,14 +1,79 @@
 import { useState } from 'react'
+import { useUser } from '../contexts/UserContext'
+import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
 const BookingComponent = ({ hostel }) => {
   const [showContactModal, setShowContactModal] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const { user } = useUser()
+  const navigate = useNavigate()
+  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 
-  const handleBookNow = () => {
-    // Static WhatsApp number for booking
-    const staticWhatsApp = '91859594865' // Replace with your static number
-    const message = `Hi! I'm interested in booking a room at ${hostel.name}. Can you please provide more details about availability and booking process?`
-    const whatsappUrl = `https://wa.me/${staticWhatsApp}?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, '_blank')
+  const handleBookVisit = async () => {
+    if (!user) {
+      navigate('/user/auth')
+      return
+    }
+
+    try {
+      setLoading(true)
+
+      // Create order - using withCredentials for cookie auth
+      const { data } = await axios.post(`${API_URL}/visit-bookings/create-order`, 
+        { hostelId: hostel._id },
+        { withCredentials: true }
+      )
+
+      // Load Razorpay script
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.async = true
+      document.body.appendChild(script)
+
+      script.onload = () => {
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: data.amount,
+          currency: data.currency,
+          name: 'Kaunsa College',
+          description: `Visit booking for ${hostel.name}`,
+          order_id: data.orderId,
+          handler: async (response) => {
+            try {
+              await axios.post(`${API_URL}/visit-bookings/verify-payment`,
+                {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  bookingId: data.bookingId
+                },
+                { withCredentials: true }
+              )
+              alert('✅ Visit booked successfully! Contact admin for hostel assignment to write reviews.')
+              navigate('/user/profile')
+            } catch (error) {
+              alert('❌ Payment verification failed. Please contact support.')
+            }
+          },
+          prefill: {
+            name: user.name,
+            email: user.email,
+            contact: user.phone || ''
+          },
+          theme: {
+            color: '#F59E0B'
+          }
+        }
+
+        const rzp = new window.Razorpay(options)
+        rzp.open()
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to create booking')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleContact = () => {
@@ -70,13 +135,26 @@ const BookingComponent = ({ hostel }) => {
           {/* Action Buttons */}
           <div className="space-y-3">
             <button
-              onClick={handleBookNow}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2"
+              onClick={handleBookVisit}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>Book Now</span>
+              {loading ? (
+                <>
+                  <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span>Book Visit - ₹299</span>
+                </>
+              )}
             </button>
             
             <button

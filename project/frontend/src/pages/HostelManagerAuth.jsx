@@ -268,7 +268,7 @@ const HostelManagerAuth = () => {
                 id="email" name="email" type="email" label="Business Email"
                 icon={FiMail} required={true}
                 value={formData.email} onChange={handleChange}
-                placeholder="manager@example.com"
+                placeholder="manager@kaunsahostel.com"
               />
 
               <MemoizedInputField

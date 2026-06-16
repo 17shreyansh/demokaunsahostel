@@ -40,6 +40,8 @@ app.use('/api/pages', require('./routes/pages'));
 app.use('/api/page-content', require('./routes/pageContent'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/visit-bookings', require('./routes/visitBookings'));
+app.use('/api/assignments', require('./routes/assignments'));
 
 // Blog System Routes
 app.use('/api/blog', require('./routes/blog.routes'));

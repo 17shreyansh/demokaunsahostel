@@ -1,6 +1,7 @@
 const express = require('express');
 const Review = require('../models/Review');
 const Hostel = require('../models/Hostel');
+const UserHostelAssignment = require('../models/UserHostelAssignment');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
@@ -44,6 +45,21 @@ router.post('/', auth, async (req, res) => {
       return res.status(403).json({ message: 'Only users can submit reviews' });
     }
 
+    // Check if user is assigned to this hostel
+    const assignment = await UserHostelAssignment.findOne({
+      user: req.user.id,
+      hostel: hostelId,
+      canReview: true
+    });
+
+    if (!assignment) {
+      return res.status(403).json({ message: 'You can only review hostels assigned to you' });
+    }
+
+    if (assignment.hasReviewed) {
+      return res.status(400).json({ message: 'You have already reviewed this hostel' });
+    }
+
     // Check if user already reviewed this hostel
     const existingReview = await Review.findOne({ 
       hostel: hostelId, 
@@ -62,6 +78,10 @@ router.post('/', auth, async (req, res) => {
     });
 
     await review.save();
+
+    // Mark as reviewed
+    assignment.hasReviewed = true;
+    await assignment.save();
 
     // Update hostel rating
     await updateHostelRating(hostelId);
