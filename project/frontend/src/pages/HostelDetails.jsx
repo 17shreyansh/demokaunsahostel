@@ -239,37 +239,28 @@ const HostelDetails = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="relative h-[300px] sm:h-[400px] md:h-[600px] bg-gradient-to-r from-blue-900 to-purple-900 overflow-hidden transform-gpu">
         {hostel.images && hostel.images.length > 0 ? (
-          <>
-            <div 
-              className="relative w-full h-full"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            >
-              <div className="flex transition-transform duration-500 ease-in-out h-full will-change-transform"
-                   style={{ transform: `translate3d(-${currentImageIndex * 100}%, 0, 0)` }}>
-                {hostel.images.map((image, index) => (
-                  <div key={index} className="w-full h-full flex-shrink-0 relative">
-                    <img
-                      src={`${UPLOADS_BASE_URL}/${image}`}
-                      alt={`${hostel.name} ${index + 1}`}
-                      className="w-full h-full object-cover cursor-pointer"
-                      onClick={() => openFullscreen(index)}
-                      fetchpriority={index === 0 ? 'high' : 'auto'}
-                      loading={index === 0 ? 'eager' : 'lazy'}
-                      decoding="async"
-                    />
-                    <div className="hidden md:block absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white p-2 rounded-full opacity-0 hover:opacity-100 transition-opacity">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                      </svg>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div 
+            className="relative w-full h-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className="flex transition-transform duration-500 ease-in-out h-full will-change-transform"
+                 style={{ transform: `translate3d(-${currentImageIndex * 100}%, 0, 0)` }}>
+              {hostel.images.map((image, index) => (
+                <div key={index} className="w-full h-full flex-shrink-0 relative">
+                  <img
+                    src={`${UPLOADS_BASE_URL}/${image}`}
+                    alt={`${hostel.name} ${index + 1}`}
+                    className="w-full h-full object-cover cursor-pointer"
+                    onClick={() => openFullscreen(index)}
+                    fetchpriority={index === 0 ? 'high' : 'auto'}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
+                  />
+                </div>
+              ))}
             </div>
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none"></div>
             
             {hostel.images.length > 1 && (
               <>
@@ -291,48 +282,9 @@ const HostelDetails = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
-                
-                <div className="hidden md:flex absolute bottom-24 left-1/2 transform -translate-x-1/2 space-x-2 z-10">
-                  {hostel.images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setCurrentImageIndex(index)
-                        setIsAutoPlaying(false)
-                        setTimeout(() => setIsAutoPlaying(true), 10000)
-                      }}
-                      className={`transition-all duration-300 rounded-full ${
-                        index === currentImageIndex 
-                          ? 'bg-white w-8 h-3' 
-                          : 'bg-white/60 hover:bg-white/80 w-3 h-3'
-                      }`}
-                      aria-label={`Go to image ${index + 1}`}
-                    />
-                  ))}
-                </div>
-                
-                <div className="hidden md:block absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium z-10">
-                  {currentImageIndex + 1} / {hostel.images.length}
-                </div>
-                
-                <button
-                  onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                  className="hidden md:block absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white p-2 rounded-full transition-all duration-300 hover:bg-black/70 z-10"
-                  aria-label={isAutoPlaying ? 'Pause slideshow' : 'Play slideshow'}
-                >
-                  {isAutoPlaying ? (
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zM11 8a1 1 0 012 0v4a1 1 0 11-2 0V8z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </button>
               </>
             )}
-          </>
+          </div>
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-yellow-custom via-orange-400 to-red-500 flex items-center justify-center">
             <div className="text-center text-white">
@@ -345,58 +297,6 @@ const HostelDetails = () => {
             </div>
           </div>
         )}
-        
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col sm:flex-row sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
-              <span className={`px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mr-0 sm:mr-4 w-fit ${
-                hostel.availability === 'Available' ? 'bg-green-500 text-white' : 
-                hostel.availability === 'Limited' ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'
-              }`}>
-                {hostel.availability}
-              </span>
-              <span className="bg-yellow-custom text-gray-900 px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold w-fit">
-                {hostel.type || 'PG'} - {hostel.gender || 'Co-ed'}
-              </span>
-              {hostel.verified && (
-                <span className="bg-blue-500 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold w-fit flex items-center">
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Verified
-                </span>
-              )}
-            </div>
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">{hostel.name}</h1>
-            <div className="flex items-center text-white text-sm sm:text-lg md:text-xl mb-2 sm:mb-3">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-2 sm:mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-              </svg>
-              {hostel.mapCoordinates ? (
-                <a
-                  href={`https://maps.google.com/?q=${hostel.mapCoordinates.lat},${hostel.mapCoordinates.lng}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="truncate hover:underline"
-                >
-                  {hostel.location}
-                </a>
-              ) : (
-                <span className="truncate">{hostel.location}</span>
-              )}
-            </div>
-            <div className="flex items-center">
-              <div className="flex text-yellow-custom mr-2 sm:mr-3">
-                {STARS.map((i) => (
-                  <svg key={i} className={`w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 ${i < Math.floor(hostel.rating || 4.8) ? 'text-yellow-custom' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-              <span className="text-white text-xs sm:text-sm md:text-lg">({(hostel.rating || 4.8).toFixed(1)}/5)</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="bg-white border-b shadow-sm hidden md:block">
@@ -408,6 +308,58 @@ const HostelDetails = () => {
             <span className="mx-2 text-gray-400">/</span>
             <span className="text-gray-900 font-semibold">{hostel.name}</span>
           </nav>
+        </div>
+      </div>
+
+      <div className="bg-white border-b shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center mb-3 space-y-2 sm:space-y-0 sm:space-x-4">
+            <span className={`px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold w-fit ${
+              hostel.availability === 'Available' ? 'bg-green-500 text-white' : 
+              hostel.availability === 'Limited' ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'
+            }`}>
+              {hostel.availability}
+            </span>
+            <span className="bg-yellow-custom text-gray-900 px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold w-fit">
+              {hostel.type || 'PG'} - {hostel.gender || 'Co-ed'}
+            </span>
+            {hostel.verified && (
+              <span className="bg-blue-500 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold w-fit flex items-center">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Verified
+              </span>
+            )}
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 leading-tight">{hostel.name}</h1>
+          <div className="flex items-center text-gray-600 text-sm sm:text-base mb-2">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+            </svg>
+            {hostel.mapCoordinates ? (
+              <a
+                href={`https://maps.google.com/?q=${hostel.mapCoordinates.lat},${hostel.mapCoordinates.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="truncate hover:underline"
+              >
+                {hostel.location}
+              </a>
+            ) : (
+              <span className="truncate">{hostel.location}</span>
+            )}
+          </div>
+          <div className="flex items-center">
+            <div className="flex text-yellow-custom mr-2">
+              {STARS.map((i) => (
+                <svg key={i} className={`w-4 h-4 ${i < Math.floor(hostel.rating || 4.8) ? 'text-yellow-custom' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <span className="text-gray-700 text-sm">({(hostel.rating || 4.8).toFixed(1)}/5)</span>
+          </div>
         </div>
       </div>
 
@@ -709,25 +661,8 @@ const HostelDetails = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Location & Nearby
+                    Nearby Places
                   </h3>
-                  
-                  {hostel.mapCoordinates && hostel.mapCoordinates.lat && hostel.mapCoordinates.lng ? (
-                    <MemoizedHostelMap 
-                      coordinates={hostel.mapCoordinates}
-                      hostelName={hostel.name}
-                      address={hostel.contactInfo?.address || hostel.location}
-                    />
-                  ) : (
-                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 h-64 rounded-xl flex items-center justify-center mb-6 border border-blue-200">
-                      <div className="text-center">
-                        <svg className="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                        </svg>
-                        <span className="text-blue-600 font-semibold text-lg">Map not available for this hostel</span>
-                      </div>
-                    </div>
-                  )}
                   <MemoizedNearbyPlacesDisplay hostelCoordinates={hostel.mapCoordinates} hostelNearbyPlaces={hostel.nearbyPlaces} />
                 </div>
 

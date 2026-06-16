@@ -113,7 +113,7 @@ const HostelManagerAuth = () => {
             <div className="bg-white px-4 py-2.5 lg:px-5 lg:py-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 lg:gap-3">
               <img src={logo} alt="KaunsaHostel" className="h-8 lg:h-10 object-contain" />
               <div className="w-px h-5 lg:h-6 bg-gray-200 mx-0.5 lg:mx-1"></div>
-              <span className="text-gray-900 font-bold tracking-tight text-sm lg:text-base">Partners</span>
+              <span className="text-gray-900 font-bold tracking-tight text-sm lg:text-base">Owner Portal</span>
             </div>
           </Link>
         </div>
@@ -187,7 +187,7 @@ const HostelManagerAuth = () => {
             <div className="bg-white px-3 py-2 rounded-xl shadow-lg flex items-center gap-2">
               <img src={logo} alt="KaunsaHostel" className="h-6 object-contain" />
               <div className="w-px h-4 bg-gray-200"></div>
-              <span className="text-gray-900 font-bold text-xs">Partners</span>
+              <span className="text-gray-900 font-bold text-xs">Owner Portal</span>
             </div>
           </Link>
         </div>
@@ -201,13 +201,13 @@ const HostelManagerAuth = () => {
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl p-6 sm:p-8 lg:p-10 border border-gray-100">
             <div className="text-center mb-6 sm:mb-8">
               <div className="lg:hidden inline-flex items-center justify-center px-3 py-1 mb-4 sm:mb-5 text-xs font-bold tracking-wide text-yellow-800 uppercase bg-yellow-100 rounded-full">
-                Partner Portal
+                Owner Portal
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
-                {isLogin ? 'Welcome Back' : 'Partner With Us'}
+                {isLogin ? 'Welcome Back' : 'Join as Owner'}
               </h2>
               <p className="text-sm sm:text-base text-gray-500 font-medium">
-                {isLogin ? 'Sign in to manage your properties' : 'Register your business to get started'}
+                {isLogin ? 'Sign in to manage your properties' : 'Register your hostel to get started'}
               </p>
             </div>
 
@@ -319,9 +319,9 @@ const HostelManagerAuth = () => {
                 className="text-xs sm:text-sm font-medium text-gray-600 hover:text-yellow-600 transition-colors transform-gpu will-change-transform active:scale-95"
               >
                 {isLogin ? (
-                  <span>New to the platform? <span className="font-bold text-gray-900 hover:text-yellow-600 transition-colors">Register Business</span></span>
+                  <span>New to the platform? <span className="font-bold text-gray-900 hover:text-yellow-600 transition-colors">Register as Owner</span></span>
                 ) : (
-                  <span>Already a partner? <span className="font-bold text-gray-900 hover:text-yellow-600 transition-colors">Sign in</span></span>
+                  <span>Already an owner? <span className="font-bold text-gray-900 hover:text-yellow-600 transition-colors">Sign in</span></span>
                 )}
               </button>
             </div>

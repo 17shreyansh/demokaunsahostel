@@ -49,9 +49,9 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Hotel Manager Section */}
+          {/* For Hostel Owners */}
           <div>
-            <h5 className="font-bold text-xl mb-6 text-yellow-custom">Hostel Manager</h5>
+            <h5 className="font-bold text-xl mb-6 text-yellow-custom">For Hostel Owners</h5>
             <ul className="space-y-3">
               <li>
                 <Link to="/hostel-manager/auth?mode=register" className="text-gray-300 hover:text-yellow-custom hover:translate-x-1 transition-all duration-200 flex items-center group">

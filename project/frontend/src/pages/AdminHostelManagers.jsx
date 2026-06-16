@@ -89,8 +89,8 @@ const AdminHostelManagers = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h2 className="text-3xl font-bold text-gray-900">Hostel Manager Management</h2>
-        <p className="text-gray-600 mt-1">Manage hostel managers and review KYC submissions</p>
+        <h2 className="text-3xl font-bold text-gray-900">Hostel Owner Management</h2>
+        <p className="text-gray-600 mt-1">Manage hostel owners and review KYC submissions</p>
       </div>
 
       {/* Tab Navigation */}
@@ -103,7 +103,7 @@ const AdminHostelManagers = () => {
               : 'bg-white text-gray-700 hover:bg-gray-50 shadow'
           }`}
         >
-          All Managers ({managers.length})
+          All Owners ({managers.length})
         </button>
         <button 
           onClick={() => setSelectedTab('pending')} 
@@ -128,7 +128,7 @@ const AdminHostelManagers = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC Status</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hostels</th>
@@ -141,7 +141,7 @@ const AdminHostelManagers = () => {
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                     <FiAlertCircle className="mx-auto text-4xl mb-2 text-gray-400" />
-                    <p>No managers found</p>
+                    <p>No owners found</p>
                   </td>
                 </tr>
               ) : (
@@ -230,7 +230,7 @@ const AdminHostelManagers = () => {
           <div className="bg-white rounded-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">Manager Details</h3>
+                <h3 className="text-2xl font-bold text-gray-900">Owner Details</h3>
                 <p className="text-gray-500 text-sm mt-1">Complete profile and KYC information</p>
               </div>
               <button onClick={() => setSelectedManager(null)} className="text-gray-400 hover:text-gray-600">
@@ -391,7 +391,7 @@ const AdminHostelManagers = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setRejectionModal(null)}>
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Reject KYC Application</h3>
-            <p className="text-gray-600 mb-4">Please provide a clear reason for rejection. The manager will use this to correct and resubmit.</p>
+            <p className="text-gray-600 mb-4">Please provide a clear reason for rejection. The owner will use this to correct and resubmit.</p>
             
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-700 mb-2">Rejection Reason *</label>

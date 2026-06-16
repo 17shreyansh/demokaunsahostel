@@ -89,7 +89,7 @@ const HostelManagerLayout = ({ children }) => {
           <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded flex items-center justify-center shadow-sm">
             <span className="text-slate-900 text-sm font-bold">K</span>
           </div>
-          <span className="font-bold text-slate-900 tracking-tight">Partner Portal</span>
+          <span className="font-bold text-slate-900 tracking-tight">Owner Portal</span>
         </div>
         <div className="w-10" /> {/* Centering Spacer */}
       </div>
@@ -130,7 +130,7 @@ const HostelManagerLayout = ({ children }) => {
             </div>
             <div className="flex flex-col">
               <h1 className="text-sm font-extrabold text-white tracking-wide">KaunsaHostel</h1>
-              <p className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest">Partners</p>
+              <p className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest">Owners</p>
             </div>
           </Link>
         </div>

@@ -14,7 +14,7 @@ const MENU_ITEMS = [
   { key: 'dashboard', label: 'Dashboard', icon: FiHome, path: '/admin/dashboard' },
   { key: 'hostels', label: 'Properties', icon: FiGrid, path: '/admin/hostels' },
   { key: 'users', label: 'Users', icon: FiUsers, path: '/admin/users' },
-  { key: 'managers', label: 'Hostel Managers', icon: FiUsers, path: '/admin/managers' },
+  { key: 'managers', label: 'Hostel Owners', icon: FiUsers, path: '/admin/managers' },
   { key: 'reviews', label: 'Reviews', icon: FiStar, path: '/admin/reviews' },
   { key: 'blog', label: 'Blog Posts', icon: FiFileText, path: '/admin/blog' },
   { key: 'nearbyplaces', label: 'Nearby Places', icon: FiMessageSquare, path: '/admin/nearbyplaces' },
