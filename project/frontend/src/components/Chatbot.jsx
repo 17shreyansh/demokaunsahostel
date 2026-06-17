@@ -260,15 +260,14 @@ const Chatbot = () => {
 
   return (
     <>
-      <motion.div 
+      <div 
         className="call-floating-btn"
         onClick={handleCallRedirect}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        style={{ willChange: 'transform' }}
+        aria-label="Call us"
+        title="Call Us Now"
       >
-        <FiPhone size={20} />
-      </motion.div>
+        <FiPhone size={22} />
+      </div>
 
       <motion.div 
         className={`chat-icon ${isOpen ? 'open' : ''}`}
@@ -276,8 +275,9 @@ const Chatbot = () => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         style={{ willChange: 'transform, background-color' }}
+        title={isOpen ? 'Close Chat' : 'Chat with Us'}
       >
-        {isOpen ? <FiX size={20} /> : <FiMessageCircle size={20} />}
+        {isOpen ? <FiX size={24} /> : <FiMessageCircle size={24} />}
         {!isOpen && <div className="notification-dot"></div>}
       </motion.div>
 
