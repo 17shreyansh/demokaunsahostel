@@ -20,11 +20,71 @@ const razorpay = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET
     })
   : null;
 
+// Check free visit eligibility
+router.get('/check-eligibility', auth, async (req, res) => {
+  try {
+    const completedCount = await VisitBooking.countDocuments({
+      user: req.user.id,
+      paymentStatus: 'completed'
+    });
+
+    const isFree = completedCount < 3;
+    const remainingFree = isFree ? 3 - completedCount : 0;
+
+    res.json({
+      success: true,
+      isFree,
+      completedVisits: completedCount,
+      remainingFreeVisits: remainingFree,
+      nextVisitAmount: isFree ? 0 : 299
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Create visit booking order
 router.post('/create-order', auth, async (req, res) => {
   try {
     const { hostelId } = req.body;
 
+    const hostel = await Hostel.findById(hostelId);
+    if (!hostel) {
+      return res.status(404).json({ success: false, message: 'Hostel not found' });
+    }
+
+    // Count completed bookings for user
+    const completedCount = await VisitBooking.countDocuments({
+      user: req.user.id,
+      paymentStatus: 'completed'
+    });
+
+    // First 3 bookings are free
+    const isFree = completedCount < 3;
+    const amount = isFree ? 0 : 299;
+
+    if (isFree) {
+      // Create free booking directly
+      const booking = new VisitBooking({
+        user: req.user.id,
+        hostel: hostelId,
+        amount: 0,
+        isFree: true,
+        paymentStatus: 'completed',
+        visitStatus: 'scheduled'
+      });
+
+      await booking.save();
+
+      return res.json({
+        success: true,
+        isFree: true,
+        bookingId: booking._id,
+        message: `Free visit booking confirmed! You have ${3 - completedCount - 1} free visits remaining.`
+      });
+    }
+
+    // Paid booking - create Razorpay order
     if (!razorpay) {
       return res.status(500).json({ 
         success: false, 
@@ -32,13 +92,8 @@ router.post('/create-order', auth, async (req, res) => {
       });
     }
 
-    const hostel = await Hostel.findById(hostelId);
-    if (!hostel) {
-      return res.status(404).json({ success: false, message: 'Hostel not found' });
-    }
-
     const options = {
-      amount: 29900, // 299 INR in paise
+      amount: 29900,
       currency: 'INR',
       receipt: `v_${Date.now().toString().slice(-8)}`,
       notes: {
@@ -54,6 +109,7 @@ router.post('/create-order', auth, async (req, res) => {
       user: req.user.id,
       hostel: hostelId,
       amount: 299,
+      isFree: false,
       razorpayOrderId: order.id,
       paymentStatus: 'pending',
       visitStatus: 'pending'
@@ -63,6 +119,7 @@ router.post('/create-order', auth, async (req, res) => {
 
     res.json({
       success: true,
+      isFree: false,
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,

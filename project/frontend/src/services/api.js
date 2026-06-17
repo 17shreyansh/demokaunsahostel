@@ -208,4 +208,11 @@ export const hostelManagerAPI = {
   getReviews: () => api.get('/hostel-manager/reviews')
 }
 
+export const visitBookingAPI = {
+  checkEligibility: () => api.get('/visit-bookings/check-eligibility'),
+  createOrder: (hostelId) => api.post('/visit-bookings/create-order', { hostelId }),
+  verifyPayment: (data) => api.post('/visit-bookings/verify-payment', data),
+  getMyBookings: () => api.get('/visit-bookings/my-bookings')
+}
+
 export default api

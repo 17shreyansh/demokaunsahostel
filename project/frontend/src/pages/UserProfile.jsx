@@ -446,20 +446,31 @@ const BookingHistoryManager = memo(() => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [eligibility, setEligibility] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const abortController = new AbortController();
 
-    const fetchBookings = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/visit-bookings/my-bookings`, {
+        // Fetch bookings
+        const bookingsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/visit-bookings/my-bookings`, {
           credentials: 'include',
           signal: abortController.signal
         });
-        const data = await response.json();
+        const bookingsData = await bookingsResponse.json();
+        
+        // Fetch eligibility
+        const eligibilityResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/visit-bookings/check-eligibility`, {
+          credentials: 'include',
+          signal: abortController.signal
+        });
+        const eligibilityData = await eligibilityResponse.json();
+        
         if (!abortController.signal.aborted) {
-          setBookings(data.bookings || []);
+          setBookings(bookingsData.bookings || []);
+          setEligibility(eligibilityData);
         }
       } catch (err) {
         if (err.name !== 'CanceledError') setError('Failed to load bookings.');
@@ -468,7 +479,7 @@ const BookingHistoryManager = memo(() => {
       }
     };
 
-    fetchBookings();
+    fetchData();
     return () => abortController.abort();
   }, []);
 
@@ -501,6 +512,32 @@ const BookingHistoryManager = memo(() => {
         <p className="text-gray-500 text-sm">Track your hostel visit bookings and payment history.</p>
       </div>
 
+      {/* Free Visits Summary */}
+      {eligibility && (
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Free Visits Program</h3>
+              <p className="text-sm text-gray-600">
+                {eligibility.isFree ? (
+                  <span className="text-green-700 font-semibold">
+                    🎉 You have {eligibility.remainingFreeVisits} free visit{eligibility.remainingFreeVisits !== 1 ? 's' : ''} remaining!
+                  </span>
+                ) : (
+                  <span className="text-gray-600">
+                    You've used all {eligibility.completedVisits} free visits. Next visit: ₹299
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-green-600">{eligibility.completedVisits}/3</div>
+              <div className="text-xs text-gray-500 font-semibold">Visits Completed</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4">
         {bookings.map((booking) => (
           <motion.div
@@ -517,7 +554,14 @@ const BookingHistoryManager = memo(() => {
                 <div>
                   <h3 className="font-bold text-gray-900 text-lg mb-1">{booking.hostel?.name}</h3>
                   <p className="text-gray-500 text-sm mb-2">{booking.hostel?.location}</p>
-                  <p className="text-yellow-600 font-bold">₹{booking.amount}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-yellow-600 font-bold">₹{booking.amount}</p>
+                    {booking.isFree && (
+                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                        FREE VISIT
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

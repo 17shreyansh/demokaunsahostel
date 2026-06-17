@@ -178,7 +178,7 @@ const Header = memo(() => {
           <img 
             src={logo} 
             alt="KaunsaHostel Logo" 
-            className="h-8 sm:h-9 md:h-10 transition-transform duration-300 transform-gpu group-hover:scale-105 will-change-transform" 
+            className="h-12 sm:h-14 md:h-16 transition-transform duration-300 transform-gpu group-hover:scale-105 will-change-transform" 
           />
         </Link>
         
@@ -257,7 +257,7 @@ const Header = memo(() => {
               className="fixed left-0 top-0 h-[100dvh] w-[280px] sm:w-80 max-w-[85vw] bg-white shadow-2xl z-50 md:hidden flex flex-col overscroll-contain"
             >
               <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-white flex-shrink-0">
-                <img src={logo} alt="Logo" className="h-8 sm:h-10 w-auto" />
+                <img src={logo} alt="Logo" className="h-12 sm:h-14 w-auto" />
                 <button
                   onClick={() => setMobileMenuOpen(false)}
                   className="p-1.5 sm:p-2 -mr-2 sm:-mr-0 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400"

@@ -16,14 +16,17 @@ const visitBookingSchema = new mongoose.Schema({
     required: true,
     default: 299
   },
+  isFree: {
+    type: Boolean,
+    default: false
+  },
   paymentStatus: {
     type: String,
     enum: ['pending', 'completed', 'failed', 'refunded'],
     default: 'pending'
   },
   razorpayOrderId: {
-    type: String,
-    required: true
+    type: String
   },
   razorpayPaymentId: {
     type: String
