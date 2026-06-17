@@ -43,7 +43,7 @@ const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, 
       {isOpen && (
         <div className="search-dropdown absolute top-full left-0 right-0 mt-1 sm:mt-2 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-xl z-50 overflow-hidden">
           <div className="max-h-48 sm:max-h-60 overflow-y-auto">
-            {options.map((option, index) => {
+            {options?.map((option, index) => {
               const itemKey = typeof option.value === 'object' ? option.label : option.value;
               
               return (
@@ -69,6 +69,7 @@ const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, 
 
 CustomDropdown.displayName = 'CustomDropdown';
 
+
 /* -------------------------------------------------------------------------- */
 /* MAIN COMPONENT                                                             */
 /* -------------------------------------------------------------------------- */
@@ -93,10 +94,13 @@ const SearchSection = ({ content }) => {
     const fetchFilterOptions = async () => {
       try {
         const response = await hostelAPI.getFilterOptions({ signal: abortController.signal });
-        setFilterOptions(response.data);
+        // Fortified check in case the API returns nothing in production
+        if (response?.data) {
+          setFilterOptions(response.data);
+        }
       } catch (error) {
         if (error.name !== 'CanceledError') {
-          console.error('Error fetching filter options:', error);
+          console.error('API Error in production:', error);
         }
       }
     };
@@ -105,7 +109,6 @@ const SearchSection = ({ content }) => {
     return () => abortController.abort();
   }, []);
 
-  // Fixed: Added touchstart for mobile responsiveness
   useEffect(() => {
     if (!activeDropdown) return; 
 
@@ -116,7 +119,7 @@ const SearchSection = ({ content }) => {
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -144,14 +147,14 @@ const SearchSection = ({ content }) => {
     'GL Bajaj Institute'
   ], [content?.universityLogos]);
 
-  // Fixed: Added empty array fallbacks to prevent mapping errors if API fails
+  // Aggressive fallbacks added here to prevent production mapping crashes
   const locationOptions = useMemo(() => 
-    (filterOptions.locations || []).map(loc => ({ value: loc, label: loc })), 
-  [filterOptions.locations]);
+    (filterOptions?.locations || []).map(loc => ({ value: loc, label: loc })), 
+  [filterOptions?.locations]);
   
   const nearbyPlaceOptions = useMemo(() => 
-    (filterOptions.nearbyPlaces || []).map(place => ({ value: place, label: place })), 
-  [filterOptions.nearbyPlaces]);
+    (filterOptions?.nearbyPlaces || []).map(place => ({ value: place, label: place })), 
+  [filterOptions?.nearbyPlaces]);
 
   const handleFilterChange = useCallback((type, value, label) => {
     setFilters(prev => {
@@ -172,7 +175,6 @@ const SearchSection = ({ content }) => {
     setActiveDropdown(null);
   }, []);
 
-  // Fixed: Removed activeDropdown from dependency array to preserve memoization
   const toggleDropdown = useCallback((type) => {
     setActiveDropdown(prev => (prev === type ? null : type));
   }, []);
