@@ -261,6 +261,16 @@ const Chatbot = () => {
   return (
     <>
       <motion.div 
+        className="call-floating-btn"
+        onClick={handleCallRedirect}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        style={{ willChange: 'transform' }}
+      >
+        <FiPhone size={20} />
+      </motion.div>
+
+      <motion.div 
         className={`chat-icon ${isOpen ? 'open' : ''}`}
         onClick={toggleChat}
         whileHover={{ scale: 1.05 }}

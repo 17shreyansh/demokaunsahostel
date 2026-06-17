@@ -1,4 +1,31 @@
 /* Clean, responsive chatbot styles - 120 FPS GPU Optimized */
+.call-floating-btn {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+  z-index: 1000;
+  color: white;
+  transition: all 0.3s ease;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.call-floating-btn:hover {
+  transform: scale(1.05) translate3d(0, 0, 0);
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+  background: #059669;
+}
+
 .chat-icon {
   position: fixed;
   bottom: 20px;
@@ -359,6 +386,13 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
+  .call-floating-btn {
+    bottom: 80px;
+    right: 16px;
+    width: 45px;
+    height: 45px;
+  }
+  
   .chat-box {
     width: calc(100vw - 32px);
     height: 70vh;
@@ -383,6 +417,13 @@
 }
 
 @media (max-width: 480px) {
+  .call-floating-btn {
+    bottom: 75px;
+    right: 12px;
+    width: 42px;
+    height: 42px;
+  }
+  
   .chat-box {
     width: calc(100vw - 20px);
     height: 75vh;
