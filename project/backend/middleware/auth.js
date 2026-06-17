@@ -18,7 +18,11 @@ const auth = async (req, res, next) => {
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    req.user = { id: decoded.id, role: decoded.role || 'admin' };
+    req.user = { 
+      id: decoded.id, 
+      _id: decoded.id, 
+      role: decoded.role || 'admin' 
+    };
     req.admin = { id: decoded.id }; // backward compatibility
     next();
   } catch (error) {

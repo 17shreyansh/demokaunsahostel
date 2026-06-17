@@ -14,9 +14,13 @@ class BlogService {
       const Admin = mongoose.model('Admin');
       const admin = await Admin.findById(adminId);
       
+      if (!admin) {
+        throw new Error('Admin not found');
+      }
+      
       author = new Author({
-        name: admin.username || 'Admin',
-        slug: (admin.username || 'admin').toLowerCase().replace(/\s+/g, '-'),
+        name: admin.username || admin.email || 'Admin',
+        slug: (admin.username || admin.email || 'admin').toLowerCase().replace(/\s+/g, '-').replace(/@.*$/, ''),
         email: admin.email,
         bio: 'Content Creator',
         role: 'admin',
