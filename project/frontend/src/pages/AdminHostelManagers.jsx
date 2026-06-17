@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Check, X, Eye, Clock, CheckCircle2, XCircle, AlertCircle, Loader2, FileText, Building2, Landmark, User, ShieldAlert } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const BACKEND_URL = API_BASE_URL.replace(/\/api$/, '');
+
 const AdminHostelManagers = () => {
   const [managers, setManagers] = useState([]);
   const [pendingKYC, setPendingKYC] = useState([]);
@@ -381,7 +384,7 @@ const AdminHostelManagers = () => {
                         </div>
                         {selectedManager.kyc.documents?.panCard && (
                           <a 
-                            href={`http://localhost:5000${selectedManager.kyc.documents.panCard}`} 
+                            href={`${BACKEND_URL}${selectedManager.kyc.documents.panCard}`} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -405,7 +408,7 @@ const AdminHostelManagers = () => {
                         </div>
                         {selectedManager.kyc.documents?.bankProof && (
                           <a 
-                            href={`http://localhost:5000${selectedManager.kyc.documents.bankProof}`} 
+                            href={`${BACKEND_URL}${selectedManager.kyc.documents.bankProof}`} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"

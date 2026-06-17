@@ -6,14 +6,14 @@ import { useHostelManager } from '../contexts/HostelManagerContext';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
 import { 
   FiHome, FiStar, FiMessageSquare, FiCheckCircle, 
-  FiAlertCircle, FiClock, FiTrendingUp, FiEye, 
-  FiArrowRight, FiFileText, FiShield
+  FiAlertCircle, FiClock, FiArrowRight, FiFileText, FiShield
 } from 'react-icons/fi';
 
 const { Title, Text } = Typography;
 
 const HostelManagerDashboard = () => {
   const [stats, setStats] = useState(null);
+  const [recentReviews, setRecentReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const { manager } = useHostelManager();
   const navigate = useNavigate();
@@ -21,8 +21,12 @@ const HostelManagerDashboard = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await hostelManagerAPI.getDashboard();
-        setStats(res.data);
+        const [dashboardRes, reviewsRes] = await Promise.all([
+          hostelManagerAPI.getDashboard(),
+          hostelManagerAPI.getReviews()
+        ]);
+        setStats(dashboardRes.data);
+        setRecentReviews(reviewsRes.data.reviews?.slice(0, 5) || []);
       } catch (error) {
         console.error('Dashboard sync failed:', error);
       } finally {
@@ -79,34 +83,20 @@ const HostelManagerDashboard = () => {
       title: 'Active Properties',
       value: stats?.totalHostels || 0,
       icon: <FiHome className="text-blue-600" size={24} />,
-      bg: 'bg-blue-50',
-      trend: '+12%',
-      isPositive: true
+      bg: 'bg-blue-50'
     },
     {
       title: 'Total Reviews',
       value: stats?.totalReviews || 0,
       icon: <FiMessageSquare className="text-indigo-600" size={24} />,
-      bg: 'bg-indigo-50',
-      trend: '+8%',
-      isPositive: true
+      bg: 'bg-indigo-50'
     },
     {
       title: 'Average Rating',
       value: stats?.avgRating || '0.0',
       suffix: '/ 5',
       icon: <FiStar className="text-amber-500" size={24} />,
-      bg: 'bg-amber-50',
-      trend: '+0.3',
-      isPositive: true
-    },
-    {
-      title: 'Profile Views',
-      value: '1,248',
-      icon: <FiEye className="text-emerald-600" size={24} />,
-      bg: 'bg-emerald-50',
-      trend: '+24%',
-      isPositive: true
+      bg: 'bg-amber-50'
     }
   ], [stats]);
 
@@ -195,14 +185,6 @@ const HostelManagerDashboard = () => {
                     <div className={`p-3 rounded-xl ${stat.bg}`}>
                       {stat.icon}
                     </div>
-                    {stat.trend && (
-                      <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-md ${
-                        stat.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                      }`}>
-                        <FiTrendingUp size={12} />
-                        {stat.trend}
-                      </span>
-                    )}
                   </div>
                   <Text className="text-slate-500 font-medium">{stat.title}</Text>
                   <div className="flex items-baseline gap-1 mt-1">
@@ -265,29 +247,49 @@ const HostelManagerDashboard = () => {
           {/* Activity Feed */}
           <Col xs={24} xl={10}>
             <Card 
-              title={<span className="text-lg font-bold text-slate-800">Recent Activity</span>} 
+              title={<span className="text-lg font-bold text-slate-800">Recent Reviews</span>} 
               bordered={false} 
               className="shadow-sm h-full"
               bodyStyle={{ padding: '0 20px 20px 20px' }}
             >
-              <List
-                itemLayout="horizontal"
-                dataSource={[1, 2, 3]} // Mock data for now
-                renderItem={(item, index) => (
-                  <List.Item className="py-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 px-2 rounded-lg transition-colors cursor-pointer group">
-                    <List.Item.Meta
-                      avatar={
-                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                          {index + 1}
-                        </div>
-                      }
-                      title={<span className="font-semibold text-slate-800">New review published</span>}
-                      description={<span className="text-xs text-slate-500">2 hours ago • Property {index + 1}</span>}
-                    />
-                    <FiArrowRight className="text-slate-300 group-hover:text-blue-500 transition-colors" />
-                  </List.Item>
-                )}
-              />
+              {recentReviews.length === 0 ? (
+                <div className="py-12 text-center text-slate-400">
+                  <FiMessageSquare size={48} className="mx-auto mb-4 opacity-50" />
+                  <p className="text-sm">No reviews yet</p>
+                </div>
+              ) : (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={recentReviews}
+                  renderItem={(review) => (
+                    <List.Item 
+                      className="py-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 px-2 rounded-lg transition-colors cursor-pointer group"
+                      onClick={() => navigate('/hostel-manager/reviews')}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                            <FiStar size={20} />
+                          </div>
+                        }
+                        title={
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-800">{review.hostel?.name || 'Unknown Property'}</span>
+                            <span className="text-amber-500 font-bold">{review.rating}/5</span>
+                          </div>
+                        }
+                        description={
+                          <div>
+                            <p className="text-sm text-slate-600 line-clamp-1 mb-1">{review.comment || 'No comment'}</p>
+                            <span className="text-xs text-slate-500">by {review.user?.name || 'Anonymous'} • {new Date(review.createdAt).toLocaleDateString()}</span>
+                          </div>
+                        }
+                      />
+                      <FiArrowRight className="text-slate-300 group-hover:text-blue-500 transition-colors" />
+                    </List.Item>
+                  )}
+                />
+              )}
             </Card>
           </Col>
 

@@ -1,9 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const blogController = require('../controllers/blog.controller');
+const blogImageController = require('../controllers/blogImage.controller');
 const auth = require('../middleware/auth');
 const { validateBlog, validateQuery } = require('../middleware/validation');
 const { rateLimitPublic, rateLimitAdmin } = require('../middleware/rateLimit');
+const multer = require('multer');
+
+// Configure multer for memory storage (Sharp will process from buffer)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
 
 // ============= PUBLIC ROUTES =============
 
@@ -59,5 +74,10 @@ router.delete('/admin/:id', auth, rateLimitAdmin, blogController.delete);
 
 // Generate SEO preview
 router.post('/admin/seo/generate', auth, rateLimitAdmin, blogController.generateSEO);
+
+// Image upload routes
+router.post('/admin/image/upload', auth, rateLimitAdmin, upload.single('image'), blogImageController.uploadFeaturedImage);
+router.put('/admin/:id/image', auth, rateLimitAdmin, upload.single('image'), blogImageController.updateBlogImage);
+router.delete('/admin/:id/image', auth, rateLimitAdmin, blogImageController.removeBlogImage);
 
 module.exports = router;

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Form, Input, Select, Switch, message } from 'antd';
 import { Save, Eye, Send, Plus, Sparkles, X } from 'lucide-react';
 import TiptapEditor from '../../components/editor/TiptapEditor';
+import ImageUpload from '../../components/ImageUpload';
 import blogAPI, { categoryService, tagService } from '../../services/blogAPI';
 
 const { TextArea } = Input;
@@ -14,6 +15,7 @@ export default function BlogEditor() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState('');
+  const [featuredImage, setFeaturedImage] = useState(null);
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
   const [seoScore, setSeoScore] = useState(null);
@@ -72,6 +74,7 @@ export default function BlogEditor() {
         'seo.focusKeyword': blog.seo?.focusKeyword
       });
       setContent(blog.content);
+      setFeaturedImage(blog.featuredImage || null);
       setSeoScore(res.data.data.seoScore);
     } catch (error) {
       message.error('Failed to load blog');
@@ -100,6 +103,7 @@ export default function BlogEditor() {
       const data = {
         ...values,
         content,
+        featuredImage,
         seo: {
           title: values['seo.title'],
           description: values['seo.description'],
@@ -178,6 +182,22 @@ export default function BlogEditor() {
     } catch (error) {
       message.error('Failed to create tag');
     }
+  };
+
+  const handleImageUpload = (imageData) => {
+    setFeaturedImage(imageData);
+  };
+
+  const handleImageRemove = async () => {
+    if (id && featuredImage) {
+      try {
+        await blogAPI.delete(`/admin/${id}/image`);
+        message.success('Image removed');
+      } catch (error) {
+        console.error('Failed to remove image:', error);
+      }
+    }
+    setFeaturedImage(null);
   };
 
   return (
@@ -375,6 +395,42 @@ export default function BlogEditor() {
                   {tags.map(t => <Option key={t._id} value={t._id}>{t.name}</Option>)}
                 </Select>
               </Form.Item>
+            </div>
+
+            {/* Featured Image Panel */}
+            <div className="bg-white border border-gray-200 p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-4">Featured Image</h2>
+              <ImageUpload
+                value={featuredImage}
+                onChange={handleImageUpload}
+                onRemove={handleImageRemove}
+                maxSize={10}
+                aspectRatio={16/9}
+                showPreview={true}
+              />
+              
+              {featuredImage && (
+                <div className="mt-4 space-y-3">
+                  <Input
+                    placeholder="Alt text (for accessibility)"
+                    value={featuredImage.alt}
+                    onChange={(e) => setFeaturedImage({ ...featuredImage, alt: e.target.value })}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Caption (optional)"
+                    value={featuredImage.caption}
+                    onChange={(e) => setFeaturedImage({ ...featuredImage, caption: e.target.value })}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Photo credits (optional)"
+                    value={featuredImage.credits}
+                    onChange={(e) => setFeaturedImage({ ...featuredImage, credits: e.target.value })}
+                    className="text-sm"
+                  />
+                </div>
+              )}
             </div>
 
           </div>
