@@ -290,9 +290,17 @@ router.get('/search/suggestions', async (req, res) => {
       { location: { $regex: sanitizedQuery, $options: 'i' } }
     );
     
+    // Get nearby places from NearbyPlaces collection
+    const NearbyPlaces = require('../models/NearbyPlaces');
+    const nearbyPlaces = await NearbyPlaces.find(
+      { name: { $regex: sanitizedQuery, $options: 'i' }, active: true },
+      { name: 1, category: 1 }
+    ).limit(5).lean();
+    
     const suggestions = [
       ...hostels.map(h => ({ type: 'hostel', name: h.name, location: h.location, id: h._id, slug: h.slug })),
-      ...locations.slice(0, 3).map(loc => ({ type: 'location', name: loc, id: loc }))
+      ...locations.slice(0, 3).map(loc => ({ type: 'location', name: loc, id: loc })),
+      ...nearbyPlaces.map(place => ({ type: 'place', name: place.name, category: place.category, id: place._id }))
     ];
     
     res.json(suggestions);

@@ -105,6 +105,8 @@ const SearchWidget = memo(({ content }) => {
   const handleResultClick = useCallback((result) => {
     if (result.type === 'hostel') {
       navigate(`/hostel/${result.slug || result.id}`);
+    } else if (result.type === 'place') {
+      navigate(`/hostels?nearbyPlace=${encodeURIComponent(result.name)}`);
     } else {
       navigate(`/hostels?location=${encodeURIComponent(result.name)}`);
     }
@@ -129,7 +131,7 @@ const SearchWidget = memo(({ content }) => {
             </svg>
             <input 
               type="text" 
-              placeholder={content?.searchPlaceholder || 'Search hostels, locations, colleges...'}
+              placeholder={  'Search colleges, hostels, locations ...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -175,14 +177,38 @@ const SearchWidget = memo(({ content }) => {
                   className="w-full px-4 py-3 text-left hover:bg-yellow-50 transition-colors flex items-center space-x-3 border-b border-gray-100 last:border-b-0"
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    result.type === 'hostel' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+                    result.type === 'hostel' ? 'bg-blue-100 text-blue-600' : 
+                    result.type === 'place' ? 'bg-purple-100 text-purple-600' : 
+                    'bg-green-100 text-green-600'
                   }`}>
-                    {result.type === 'hostel' ? '🏠' : '📍'}
+                    {result.type === 'hostel' ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                    ) : result.type === 'place' ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    )}
                   </div>
-                  <div>
-                    <div className="font-medium text-gray-900">{result.name}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-gray-900">{result.name}</div>
+                      {result.type === 'hostel' && (
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-full">Premium</span>
+                      )}
+                    </div>
                     {result.location && (
                       <div className="text-sm text-gray-500">{result.location}</div>
+                    )}
+                    {result.category && (
+                      <div className="text-xs text-purple-600 capitalize">{result.category}</div>
                     )}
                   </div>
                 </button>

@@ -5,29 +5,39 @@
   right: 20px;
   width: 56px;
   height: 56px;
-  background: #10b981;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   color: white;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   perspective: 1000px;
+  animation: pulse-green 2s ease-in-out infinite;
 }
 
 .call-floating-btn:hover {
-  background: #059669;
-  transform: translateY(-2px) translate3d(0, 0, 0);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-4px) scale(1.05) translate3d(0, 0, 0);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.5), 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .call-floating-btn:active {
-  transform: translateY(0) translate3d(0, 0, 0);
+  transform: translateY(-2px) scale(1.02) translate3d(0, 0, 0);
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 8px rgba(16, 185, 129, 0);
+  }
 }
 
 .chat-icon {
@@ -36,16 +46,17 @@
   right: 20px;
   width: 56px;
   height: 56px;
-  background: #f59e0b;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45), 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   color: white;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: pulse-orange 2s ease-in-out infinite;
   
   /* GPU Acceleration */
   transform: translate3d(0, 0, 0);
@@ -54,31 +65,54 @@
 }
 
 .chat-icon:hover {
-  transform: translateY(-2px) translate3d(0, 0, 0);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px) scale(1.05) translate3d(0, 0, 0);
+  box-shadow: 0 12px 32px rgba(245, 158, 11, 0.55), 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .chat-icon.open {
-  background: #1f2937;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: none;
 }
 
 .chat-icon.open:hover {
-  transform: translateY(-2px) translate3d(0, 0, 0);
+  transform: translateY(-4px) scale(1.05) translate3d(0, 0, 0);
+  box-shadow: 0 12px 32px rgba(31, 41, 55, 0.5), 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .chat-icon:active {
-  transform: translateY(0) translate3d(0, 0, 0);
+  transform: translateY(-2px) scale(1.02) translate3d(0, 0, 0);
+}
+
+@keyframes pulse-orange {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45), 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45), 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 8px rgba(245, 158, 11, 0);
+  }
 }
 
 .notification-dot {
   position: absolute;
   top: -2px;
   right: -2px;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   background: #ef4444;
   border-radius: 50%;
   border: 2px solid white;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
 }
 
 .chat-box {
@@ -136,6 +170,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .header-info h4 {
@@ -179,13 +214,14 @@
 .bot-avatar {
   width: 28px;
   height: 28px;
-  background: #f59e0b;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
 }
 
 .message-content {

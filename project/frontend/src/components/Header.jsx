@@ -114,32 +114,8 @@ UserDropdown.displayName = 'UserDropdown';
 
 const Header = memo(() => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
   const location = useLocation();
   const { user } = useUser();
-
-  useEffect(() => {
-    const abortController = new AbortController();
-
-    const fetchPhoneNumber = async () => {
-      try {
-        const response = await pageAPI.getPageContent('contact', { 
-          signal: abortController.signal 
-        });
-        const phone = response.data?.content?.contact?.contactInfo?.phone;
-        if (phone && !abortController.signal.aborted) {
-          setPhoneNumber(phone);
-        }
-      } catch (error) {
-        if (error.name !== 'CanceledError') {
-          console.error('Error fetching phone number:', error);
-        }
-      }
-    };
-
-    fetchPhoneNumber();
-    return () => abortController.abort();
-  }, []);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -172,15 +148,14 @@ const Header = memo(() => {
 
   return (
     <header id="home" className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50 transform-gpu">
-      <nav className="container mx-auto px-3 sm:px-4 md:px-6 py-2 md:py-3 flex justify-between items-center">
+      <nav className="container mx-auto px-3 sm:px-4 md:px-6 flex justify-between items-center">
 
-        <Link to="/" className="flex items-center group flex-shrink-0">
-          <img 
-            src={logo} 
-            alt="KaunsaHostel Logo" 
-            className="h-12 sm:h-14 md:h-16 transition-transform duration-300 transform-gpu group-hover:scale-105 will-change-transform" 
-          />
-        </Link>
+        <img 
+          src={logo} 
+          alt="KaunsaHostel Logo" 
+          className="h-16 sm:h-181 md:h-20 w-auto object-contain block cursor-pointer transition-transform duration-300 transform-gpu hover:scale-105 will-change-transform" 
+          onClick={() => window.location.href = '/'}
+        />
         
         <div className="hidden md:flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2 flex-1 justify-center">
           {NAV_LINKS.map(({ path, label, exact }) => {
@@ -202,18 +177,6 @@ const Header = memo(() => {
         </div>
         
         <div className="hidden md:flex items-center gap-2 lg:gap-3 xl:gap-4 flex-shrink-0">
-          {phoneNumber && (
-            <a href={`tel:${phoneNumber.replace(/\s/g, '')}`} className="flex items-center bg-gray-900 text-white font-semibold py-2 lg:py-2.5 px-3 lg:px-4 xl:px-5 rounded-xl hover:bg-gray-800 transition-all duration-300 transform-gpu hover:-translate-y-0.5 shadow-md text-xs lg:text-sm xl:text-base whitespace-nowrap">
-              <svg className="w-3 h-3 lg:w-4 lg:h-4 mr-1.5 lg:mr-2 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-              </svg>
-              <span className="hidden lg:inline">{phoneNumber}</span>
-              <span className="lg:hidden">Call</span>
-            </a>
-          )}
-          
-          <div className="h-6 w-px bg-gray-200"></div>
-
           {user ? (
             <UserDropdown user={user} />
           ) : (
@@ -312,27 +275,14 @@ const Header = memo(() => {
 
               {/* Enhanced Sidebar Footer with Social Icons */}
               <div className="px-4 sm:px-6 py-5 border-t border-gray-200 space-y-4 bg-gray-50 flex-shrink-0">
-                <div className="space-y-3">
-                  {!user && (
-                    <Link
-                      to="/user/auth"
-                      className="block text-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all"
-                    >
-                      Sign In
-                    </Link>
-                  )}
-                  {phoneNumber && (
-                    <a
-                      href={`tel:${phoneNumber.replace(/\s/g, '')}`}
-                      className="flex items-center justify-center gap-2 bg-gray-900 text-white font-semibold py-3 px-4 rounded-xl hover:bg-gray-800 transition-colors"
-                    >
-                      <svg className="w-4 h-4 text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                      </svg>
-                      <span className="truncate">{phoneNumber}</span>
-                    </a>
-                  )}
-                </div>
+                {!user && (
+                  <Link
+                    to="/user/auth"
+                    className="block text-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all"
+                  >
+                    Sign In
+                  </Link>
+                )}
 
                 {/* Social Media Links */}
                 <div className="pt-2 flex items-center justify-center gap-5">
