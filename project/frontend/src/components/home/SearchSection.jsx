@@ -7,51 +7,68 @@ import { hostelAPI } from '../../services/api'
 /* -------------------------------------------------------------------------- */
 // Extracted to prevent DOM destruction on parent render.
 // Wrapped in memo so unaffected dropdowns ignore sibling state changes.
-const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, isOpen, onToggle, onSelect }) => (
-  <div className="relative">
-    <button
-      onClick={() => onToggle(type)}
-      className="w-full px-2.5 sm:px-3 lg:px-4 py-2.5 sm:py-3 lg:py-3.5 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-left focus:ring-2 focus:ring-yellow-custom focus:border-yellow-custom hover:border-gray-300 transition-all duration-300 flex items-center justify-between gap-2 group"
-    >
-      <span className={`${value ? 'text-gray-900' : 'text-gray-500'} font-medium text-xs sm:text-sm lg:text-base truncate flex-1`}>
-        {displayValue || placeholder}
-      </span>
-      <svg 
-        className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-gray-400 transition-transform duration-300 group-hover:text-yellow-custom ${
-          isOpen ? 'rotate-180' : ''
-        }`} 
-        fill="none" 
-        stroke="currentColor" 
-        viewBox="0 0 24 24"
+const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, isOpen, onToggle, onSelect }) => {
+  const handleOptionClick = (optionValue, optionLabel) => {
+    console.log('Option clicked:', type, optionValue, optionLabel);
+    onSelect(type, optionValue, optionLabel);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggle(type);
+        }}
+        className="w-full px-2.5 sm:px-3 lg:px-4 py-2.5 sm:py-3 lg:py-3.5 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-left focus:ring-2 focus:ring-yellow-custom focus:border-yellow-custom hover:border-gray-300 transition-all duration-300 flex items-center justify-between gap-2 group"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
-    </button>
-    
-    {isOpen && (
-      <div className="search-dropdown absolute top-full left-0 right-0 mt-1 sm:mt-2 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-xl z-50 overflow-hidden">
-        <div className="max-h-48 sm:max-h-60 overflow-y-auto">
-          {options.map((option, index) => {
-            const itemKey = typeof option.value === 'object' ? option.label : option.value;
-            
-            return (
-              <button
-                key={itemKey}
-                onClick={() => onSelect(type, option.value, option.label)}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-yellow-50 hover:text-yellow-custom transition-all duration-200 border-b border-gray-50 last:border-b-0 font-medium group text-xs sm:text-sm lg:text-base"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <span className="group-hover:translate-x-1 transition-transform duration-200 inline-block">
-                  {option.label}
-                </span>
-              </button>
-            )
-          })}
+        <span className={`${value || displayValue ? 'text-gray-900' : 'text-gray-500'} font-medium text-xs sm:text-sm lg:text-base truncate flex-1`}>
+          {displayValue || placeholder}
+        </span>
+        <svg 
+          className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-gray-400 transition-transform duration-300 group-hover:text-yellow-custom ${
+            isOpen ? 'rotate-180' : ''
+          }`} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      
+      {isOpen && (
+        <div className="search-dropdown absolute top-full left-0 right-0 mt-1 sm:mt-2 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-xl z-50 overflow-hidden">
+          <div className="max-h-48 sm:max-h-60 overflow-y-auto">
+            {options.map((option, index) => {
+              const itemKey = typeof option.value === 'object' ? option.label : option.value;
+              
+              return (
+                <button
+                  type="button"
+                  key={itemKey}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleOptionClick(option.value, option.label);
+                  }}
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-yellow-50 hover:text-yellow-custom transition-all duration-200 border-b border-gray-50 last:border-b-0 font-medium group text-xs sm:text-sm lg:text-base"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <span className="group-hover:translate-x-1 transition-transform duration-200 inline-block">
+                    {option.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
-      </div>
-    )}
-  </div>
-));
+      )}
+    </div>
+  );
+});
 
 CustomDropdown.displayName = 'CustomDropdown';
 
@@ -140,6 +157,7 @@ const SearchSection = ({ content }) => {
 
   // Handlers memoized with useCallback to prevent child re-renders
   const handleFilterChange = useCallback((type, value, label) => {
+    console.log('Filter change:', type, value, label);
     setFilters(prev => {
       if (type === 'budget') {
         return { ...prev, minPrice: value.min, maxPrice: value.max, budgetLabel: label };
@@ -147,13 +165,24 @@ const SearchSection = ({ content }) => {
       if (type === 'nearby') {
         return { ...prev, nearbyPlace: value, nearbyLabel: label };
       }
+      if (type === 'gender') {
+        return { ...prev, gender: value, genderLabel: label };
+      }
+      if (type === 'location') {
+        return { ...prev, location: value, locationLabel: label };
+      }
       return { ...prev, [type]: value, [`${type}Label`]: label };
     });
     setActiveDropdown(null);
   }, []);
 
   const toggleDropdown = useCallback((type) => {
-    setActiveDropdown(prev => prev === type ? null : type);
+    console.log('Toggle dropdown:', type);
+    setActiveDropdown(prev => {
+      const newState = prev === type ? null : type;
+      console.log('New dropdown state:', newState);
+      return newState;
+    });
   }, []);
 
   const handleSearch = useCallback(() => {
@@ -164,7 +193,8 @@ const SearchSection = ({ content }) => {
     if (filters.maxPrice) searchParams.set('maxPrice', filters.maxPrice);
     if (filters.gender) searchParams.set('gender', filters.gender);
     
-    navigate(`/hostels?${searchParams.toString()}`);
+    const queryString = searchParams.toString();
+    navigate(queryString ? `/hostels?${queryString}` : '/hostels');
   }, [filters, navigate]);
 
   return (
@@ -225,6 +255,7 @@ const SearchSection = ({ content }) => {
                 />
                 <button 
                   onClick={handleSearch}
+                  type="button"
                   className="search-button bg-gradient-to-r from-yellow-custom to-yellow-400 text-gray-900 font-bold px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 rounded-lg sm:rounded-xl hover:shadow-xl sm:hover:shadow-2xl hover:shadow-yellow-200 transform hover:-translate-y-0.5 sm:hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 group sm:col-span-2 lg:col-span-1"
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
