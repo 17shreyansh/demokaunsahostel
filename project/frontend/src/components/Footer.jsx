@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { pageAPI } from '../services/api'
-import logo from '../assets/logo.png'
+import logo from '../assets/logo2.png'
 
 const Footer = () => {
   const [contactInfo, setContactInfo] = useState({})
