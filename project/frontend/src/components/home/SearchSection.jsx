@@ -160,31 +160,32 @@ const SearchSection = ({ content }) => {
   const handleFilterChange = useCallback((type, value, label) => {
     console.log('Filter change:', type, value, label);
     setFilters(prev => {
+      let newFilters;
       if (type === 'budget') {
-        return { ...prev, minPrice: value.min, maxPrice: value.max, budgetLabel: label };
+        newFilters = { ...prev, minPrice: value.min, maxPrice: value.max, budgetLabel: label };
+      } else if (type === 'nearby') {
+        newFilters = { ...prev, nearbyPlace: value, nearbyLabel: label };
+      } else if (type === 'gender') {
+        newFilters = { ...prev, gender: value, genderLabel: label };
+      } else if (type === 'location') {
+        newFilters = { ...prev, location: value, locationLabel: label };
+      } else {
+        newFilters = { ...prev, [type]: value, [`${type}Label`]: label };
       }
-      if (type === 'nearby') {
-        return { ...prev, nearbyPlace: value, nearbyLabel: label };
-      }
-      if (type === 'gender') {
-        return { ...prev, gender: value, genderLabel: label };
-      }
-      if (type === 'location') {
-        return { ...prev, location: value, locationLabel: label };
-      }
-      return { ...prev, [type]: value, [`${type}Label`]: label };
+      console.log('New filters:', newFilters);
+      return newFilters;
     });
     setActiveDropdown(null);
   }, []);
 
   const toggleDropdown = useCallback((type) => {
-    console.log('Toggle dropdown:', type);
+    console.log('Toggle dropdown:', type, 'current active:', activeDropdown);
     setActiveDropdown(prev => {
       const newState = prev === type ? null : type;
       console.log('New dropdown state:', newState);
       return newState;
     });
-  }, []);
+  }, [activeDropdown]);
 
   const handleSearch = useCallback(() => {
     const searchParams = new URLSearchParams();
