@@ -8,20 +8,25 @@ import { hostelAPI } from '../../services/api'
 // Extracted to prevent DOM destruction on parent render.
 // Wrapped in memo so unaffected dropdowns ignore sibling state changes.
 const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, isOpen, onToggle, onSelect }) => {
-  const handleOptionClick = (optionValue, optionLabel) => {
+  const handleOptionClick = (e, optionValue, optionLabel) => {
+    e.preventDefault();
+    e.stopPropagation();
     console.log('Option clicked:', type, optionValue, optionLabel);
     onSelect(type, optionValue, optionLabel);
+  };
+
+  const handleButtonClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Button clicked:', type, 'isOpen:', isOpen);
+    onToggle(type);
   };
 
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onToggle(type);
-        }}
+        onClick={handleButtonClick}
         className="w-full px-2.5 sm:px-3 lg:px-4 py-2.5 sm:py-3 lg:py-3.5 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-left focus:ring-2 focus:ring-yellow-custom focus:border-yellow-custom hover:border-gray-300 transition-all duration-300 flex items-center justify-between gap-2 group"
       >
         <span className={`${value || displayValue ? 'text-gray-900' : 'text-gray-500'} font-medium text-xs sm:text-sm lg:text-base truncate flex-1`}>
@@ -49,11 +54,7 @@ const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, 
                 <button
                   type="button"
                   key={itemKey}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleOptionClick(option.value, option.label);
-                  }}
+                  onClick={(e) => handleOptionClick(e, option.value, option.label)}
                   className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-yellow-50 hover:text-yellow-custom transition-all duration-200 border-b border-gray-50 last:border-b-0 font-medium group text-xs sm:text-sm lg:text-base"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
