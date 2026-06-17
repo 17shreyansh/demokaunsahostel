@@ -177,8 +177,12 @@ const Chatbot = () => {
 
   const handleWhatsAppRedirect = useCallback(() => {
     const message = "Hi! I was chatting with your Greater Noida hostel assistant and I'm interested in finding accommodation near my college.";
-    const whatsappUrl = `https://wa.me/91859594865?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/918595948615?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+  }, []);
+
+  const handleCallRedirect = useCallback(() => {
+    window.open('tel:+918595948615', '_self');
   }, []);
 
   const handleSendMessage = useCallback(async (text) => {
@@ -285,6 +289,13 @@ const Chatbot = () => {
                 <h4>Greater Noida Hostels</h4>
                 <span className="status">Online</span>
               </div>
+              <button 
+                className="call-icon-btn"
+                onClick={handleCallRedirect}
+                aria-label="Call us"
+              >
+                <FiPhone size={18} />
+              </button>
             </div>
           
             <div className="chat-messages">

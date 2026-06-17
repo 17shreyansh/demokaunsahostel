@@ -3,15 +3,8 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const blogAPI = axios.create({
-  baseURL: `${API_URL}/blog`
-});
-
-blogAPI.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  baseURL: `${API_URL}/blog`,
+  withCredentials: true // Enable cookies
 });
 
 export const blogService = {
@@ -42,20 +35,20 @@ export const blogService = {
 };
 
 export const categoryService = {
-  getAll: () => axios.get(`${API_URL}/blog/categories`),
-  getTree: () => axios.get(`${API_URL}/blog/categories/tree`),
-  getBySlug: (slug) => axios.get(`${API_URL}/blog/categories/${slug}`),
-  create: (data) => axios.post(`${API_URL}/blog/categories/admin`, data),
-  update: (id, data) => axios.put(`${API_URL}/blog/categories/admin/${id}`, data),
-  delete: (id) => axios.delete(`${API_URL}/blog/categories/admin/${id}`)
+  getAll: () => blogAPI.get('/categories'),
+  getTree: () => blogAPI.get('/categories/tree'),
+  getBySlug: (slug) => blogAPI.get(`/categories/${slug}`),
+  create: (data) => blogAPI.post('/categories/admin', data),
+  update: (id, data) => blogAPI.put(`/categories/admin/${id}`, data),
+  delete: (id) => blogAPI.delete(`/categories/admin/${id}`)
 };
 
 export const tagService = {
-  getAll: () => axios.get(`${API_URL}/blog/tags`),
-  getPopular: () => axios.get(`${API_URL}/blog/tags/popular`),
-  create: (data) => axios.post(`${API_URL}/blog/tags/admin`, data),
-  update: (id, data) => axios.put(`${API_URL}/blog/tags/admin/${id}`, data),
-  delete: (id) => axios.delete(`${API_URL}/blog/tags/admin/${id}`)
+  getAll: () => blogAPI.get('/tags'),
+  getPopular: () => blogAPI.get('/tags/popular'),
+  create: (data) => blogAPI.post('/tags/admin', data),
+  update: (id, data) => blogAPI.put(`/tags/admin/${id}`, data),
+  delete: (id) => blogAPI.delete(`/tags/admin/${id}`)
 };
 
 export const authorService = {

@@ -234,11 +234,11 @@ const ReviewSection = ({ hostelId }) => {
           Guest Reviews
         </h3>
         
-        {user && !showForm && (
+        {/* {user && !showForm && (
           <p className="text-sm text-gray-500 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
             ℹ️ You can write reviews for hostels assigned to you from your profile dashboard.
           </p>
-        )}
+        )} */}
       </div>
 
       {/* Guest Call to Action - REMOVED */}

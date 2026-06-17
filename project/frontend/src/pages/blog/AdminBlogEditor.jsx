@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Form, Input, Select, Switch, message } from 'antd';
 import { Save, Eye, Send, Plus, Sparkles, X } from 'lucide-react';
 import TiptapEditor from '../../components/editor/TiptapEditor';
-import axios from 'axios';
+import blogAPI, { categoryService, tagService } from '../../services/blogAPI';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -41,11 +41,9 @@ export default function BlogEditor() {
 
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
       const [categoriesRes, tagsRes] = await Promise.all([
-        axios.get('/api/blog/categories', config),
-        axios.get('/api/blog/tags', config)
+        categoryService.getAll(),
+        tagService.getAll()
       ]);
       setCategories(categoriesRes.data.data);
       setTags(tagsRes.data.data);
@@ -57,10 +55,7 @@ export default function BlogEditor() {
   const loadBlog = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.get(`/api/blog/admin/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await blogAPI.get(`/admin/${id}`);
       const blog = res.data.data.blog;
       form.setFieldsValue({
         title: blog.title,
@@ -88,12 +83,9 @@ export default function BlogEditor() {
   const autoSave = async () => {
     try {
       setAutoSaving(true);
-      const token = localStorage.getItem('adminToken');
-      await axios.patch(`/api/blog/admin/${id}/autosave`, {
+      await blogAPI.patch(`/admin/${id}/autosave`, {
         title: form.getFieldValue('title'),
         content
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
     } catch (error) {
       console.error('Auto-save failed');
@@ -105,7 +97,6 @@ export default function BlogEditor() {
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('adminToken');
       const data = {
         ...values,
         content,
@@ -118,14 +109,10 @@ export default function BlogEditor() {
       };
 
       if (id) {
-        await axios.put(`/api/blog/admin/${id}`, data, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await blogAPI.put(`/admin/${id}`, data);
         message.success('Blog updated successfully');
       } else {
-        const res = await axios.post('/api/blog/admin', data, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await blogAPI.post('/admin', data);
         message.success('Blog created successfully');
         navigate(`/admin/blog/edit/${res.data.data._id}`);
       }
@@ -138,10 +125,7 @@ export default function BlogEditor() {
 
   const handlePublish = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      await axios.post(`/api/blog/admin/${id}/publish`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await blogAPI.post(`/admin/${id}/publish`);
       message.success('Blog published successfully');
       navigate('/admin/blog');
     } catch (error) {
@@ -152,13 +136,10 @@ export default function BlogEditor() {
   const generateSEO = async () => {
     try {
       const hideLoading = message.loading('Analyzing content and generating SEO...', 0);
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.post('/api/blog/admin/seo/generate', {
+      const res = await blogAPI.post('/admin/seo/generate', {
         title: form.getFieldValue('title'),
         content,
         excerpt: form.getFieldValue('excerpt')
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       hideLoading();
       const { seo, seoScore: score } = res.data.data;
@@ -177,10 +158,7 @@ export default function BlogEditor() {
 
   const handleCreateCategory = async (values) => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.post('/api/blog/categories/admin', values, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await categoryService.create(values);
       message.success('Category created');
       setCategories([...categories, res.data.data]);
       setCategoryModal(false);
@@ -192,10 +170,7 @@ export default function BlogEditor() {
 
   const handleCreateTag = async (values) => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.post('/api/blog/tags/admin', values, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await tagService.create(values);
       message.success('Tag created');
       setTags([...tags, res.data.data]);
       setTagModal(false);

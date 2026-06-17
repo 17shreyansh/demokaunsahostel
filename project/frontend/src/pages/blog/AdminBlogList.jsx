@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import blogAPI from '../../services/blogAPI';
 import { 
   Plus, Edit2, Trash2, Eye, Copy, Send, 
   Search, Loader2, FileText, CheckCircle, Edit3, TrendingUp
@@ -25,17 +25,13 @@ export default function AdminBlogList() {
   const loadBlogs = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('adminToken');
       const params = {
         page: pagination.page,
         limit: pagination.limit,
         status: filters.status === 'all' ? undefined : filters.status,
         search: filters.search || undefined
       };
-      const res = await axios.get('/api/blog', { 
-        params,
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await blogAPI.get('/', { params });
       setBlogs(res.data.blogs);
       setPagination(prev => ({ ...prev, total: res.data.pagination.total }));
     } catch (error) {
@@ -47,10 +43,7 @@ export default function AdminBlogList() {
 
   const loadStats = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.get('/api/blog/admin/stats', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await blogAPI.get('/admin/stats');
       setStats(res.data.data);
     } catch (error) {
       console.error('Failed to load stats');
@@ -61,10 +54,7 @@ export default function AdminBlogList() {
     if (!window.confirm('Are you sure you want to delete this blog post? This cannot be undone.')) return;
     
     try {
-      const token = localStorage.getItem('adminToken');
-      await axios.delete(`/api/blog/admin/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await blogAPI.delete(`/admin/${id}`);
       message.success('Blog deleted');
       loadBlogs();
     } catch (error) {
@@ -74,10 +64,7 @@ export default function AdminBlogList() {
 
   const handleDuplicate = async (id) => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.post(`/api/blog/admin/${id}/duplicate`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await blogAPI.post(`/admin/${id}/duplicate`);
       message.success('Blog duplicated');
       navigate(`/admin/blog/edit/${res.data.data._id}`);
     } catch (error) {
@@ -89,10 +76,7 @@ export default function AdminBlogList() {
     if (!window.confirm('Are you sure you want to publish this post?')) return;
 
     try {
-      const token = localStorage.getItem('adminToken');
-      await axios.post(`/api/blog/admin/${id}/publish`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await blogAPI.post(`/admin/${id}/publish`);
       message.success('Blog published');
       loadBlogs();
     } catch (error) {

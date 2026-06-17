@@ -359,7 +359,7 @@ const HostelSlider = memo(({ hostels, loading }) => {
 /* MAIN COMPONENT                                                             */
 /* -------------------------------------------------------------------------- */
 
-const HeroSection = memo(({ hostels, loading, content }) => {
+const HeroSection = memo(({ hostels, loading, content, searchSection }) => {
   const typewriterTexts = useMemo(() => content?.typewriterTexts || [
     'Premium Hostels',
     'Safe Accommodations', 
@@ -441,7 +441,10 @@ const HeroSection = memo(({ hostels, loading, content }) => {
           </div>
           
           {/* Right Visual */}
-          <div className="relative order-1 lg:order-2 z-20">
+          <div className="relative order-1 lg:order-2 z-20 flex flex-col">
+            <div className="lg:hidden order-3">
+              {searchSection}
+            </div>
             {/* Floating background elements */}
             <div className="absolute inset-0 pointer-events-none">
               <motion.div 

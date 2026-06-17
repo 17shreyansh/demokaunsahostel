@@ -11,13 +11,13 @@ const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, 
   <div className="relative">
     <button
       onClick={() => onToggle(type)}
-      className="w-full px-3 sm:px-4 py-3 sm:py-3.5 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-left focus:ring-2 focus:ring-yellow-custom focus:border-yellow-custom hover:border-gray-300 transition-all duration-300 flex items-center justify-between group"
+      className="w-full px-2.5 sm:px-3 lg:px-4 py-2.5 sm:py-3 lg:py-3.5 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-left focus:ring-2 focus:ring-yellow-custom focus:border-yellow-custom hover:border-gray-300 transition-all duration-300 flex items-center justify-between gap-2 group"
     >
-      <span className={`${value ? 'text-gray-900' : 'text-gray-500'} font-medium text-sm sm:text-base truncate`}>
+      <span className={`${value ? 'text-gray-900' : 'text-gray-500'} font-medium text-xs sm:text-sm lg:text-base truncate flex-1`}>
         {displayValue || placeholder}
       </span>
       <svg 
-        className={`w-5 h-5 text-gray-400 transition-transform duration-300 group-hover:text-yellow-custom ${
+        className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-gray-400 transition-transform duration-300 group-hover:text-yellow-custom ${
           isOpen ? 'rotate-180' : ''
         }`} 
         fill="none" 
@@ -29,17 +29,16 @@ const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, 
     </button>
     
     {isOpen && (
-      <div className="search-dropdown absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
-        <div className="max-h-60 overflow-y-auto">
+      <div className="search-dropdown absolute top-full left-0 right-0 mt-1 sm:mt-2 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="max-h-48 sm:max-h-60 overflow-y-auto">
           {options.map((option, index) => {
-            // Pre-calculate key to avoid inline object stringification if possible
             const itemKey = typeof option.value === 'object' ? option.label : option.value;
             
             return (
               <button
                 key={itemKey}
                 onClick={() => onSelect(type, option.value, option.label)}
-                className="w-full px-4 py-3 text-left hover:bg-yellow-50 hover:text-yellow-custom transition-all duration-200 border-b border-gray-50 last:border-b-0 font-medium group"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-yellow-50 hover:text-yellow-custom transition-all duration-200 border-b border-gray-50 last:border-b-0 font-medium group text-xs sm:text-sm lg:text-base"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <span className="group-hover:translate-x-1 transition-transform duration-200 inline-block">
@@ -169,21 +168,21 @@ const SearchSection = ({ content }) => {
   }, [filters, navigate]);
 
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-6">
-        <div className="search-container bg-white rounded-2xl sm:rounded-3xl mx-2 sm:mx-4 lg:mx-8 my-6 sm:my-8 p-4 sm:p-8 lg:p-12 shadow-2xl border border-gray-100">
+    <section className="py-8 sm:py-12 lg:py-16">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+        <div className="search-container bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl mx-1 sm:mx-2 lg:mx-4 xl:mx-8 my-4 sm:my-6 lg:my-8 p-3 sm:p-6 lg:p-8 xl:p-12 shadow-xl sm:shadow-2xl border border-gray-100">
           <div className="max-w-5xl mx-auto text-center">
-            <div className="mb-6 sm:mb-8">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+            <div className="mb-4 sm:mb-6 lg:mb-8">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 lg:mb-4 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
                 {content?.title || 'Search Your Ideal Hostel'}
               </h2>
-              <p className="text-gray-600 text-base sm:text-lg font-medium px-2">
+              <p className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium px-2 sm:px-4">
                 {content?.subtitle || 'Filter by location, budget, amenities, and more to find your perfect stay'}
               </p>
             </div>
             
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl sm:rounded-2xl shadow-inner p-4 sm:p-6 lg:p-8 border border-yellow-100">
-              <div ref={dropdownRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg sm:rounded-xl lg:rounded-2xl shadow-inner p-3 sm:p-4 lg:p-6 xl:p-8 border border-yellow-100">
+              <div ref={dropdownRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4 xl:gap-6">
                 <CustomDropdown 
                   type="location" 
                   placeholder="Select Location" 
@@ -226,23 +225,23 @@ const SearchSection = ({ content }) => {
                 />
                 <button 
                   onClick={handleSearch}
-                  className="search-button bg-gradient-to-r from-yellow-custom to-yellow-400 text-gray-900 font-bold px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg sm:rounded-xl hover:shadow-2xl hover:shadow-yellow-200 transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center justify-center group sm:col-span-2 lg:col-span-1"
+                  className="search-button bg-gradient-to-r from-yellow-custom to-yellow-400 text-gray-900 font-bold px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 rounded-lg sm:rounded-xl hover:shadow-xl sm:hover:shadow-2xl hover:shadow-yellow-200 transform hover:-translate-y-0.5 sm:hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 group sm:col-span-2 lg:col-span-1"
                 >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <span className="text-sm sm:text-base">Search Hostels</span>
+                  <span className="text-sm sm:text-base">Search</span>
                 </button>
               </div>
             </div>
             
             {/* University Logos */}
-            <div className="mt-8 sm:mt-12 lg:mt-16">
-              <p className="text-gray-500 text-xs sm:text-sm mb-4 sm:mb-6 lg:mb-8 font-medium">Trusted by students from top universities</p>
-              <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 lg:gap-6">
+            <div className="mt-6 sm:mt-8 lg:mt-12 xl:mt-16">
+              <p className="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-4 lg:mb-6 xl:mb-8 font-medium">Trusted by students from top universities</p>
+              <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-6">
                 {universities.map((university) => (
                   <div key={university} className="group">
-                    <span className="university-badge text-gray-500 font-semibold px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl shadow-md border border-gray-100 hover:border-yellow-200 hover:shadow-lg hover:text-yellow-custom transition-all duration-300 group-hover:scale-105 text-xs sm:text-sm">
+                    <span className="university-badge text-gray-500 font-semibold px-2 sm:px-3 lg:px-4 xl:px-6 py-1.5 sm:py-2 lg:py-2.5 xl:py-3 rounded-md sm:rounded-lg lg:rounded-xl shadow-sm sm:shadow-md border border-gray-100 hover:border-yellow-200 hover:shadow-lg hover:text-yellow-custom transition-all duration-300 group-hover:scale-105 text-xs sm:text-sm inline-block">
                       {university}
                     </span>
                   </div>

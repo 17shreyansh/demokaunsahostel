@@ -140,8 +140,10 @@ const Home = () => {
         ))}
       </div>
       
-      <MemoizedHeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
-      <MemoizedSearchSection content={pageContent.search} />
+      <MemoizedHeroSection hostels={hostels} loading={loading} content={pageContent.hero} searchSection={<MemoizedSearchSection content={pageContent.search} />} />
+      <div className="hidden lg:block">
+        <MemoizedSearchSection content={pageContent.search} />
+      </div>
       <MemoizedOurPartners />
       <MemoizedFeaturedHostels hostels={hostels} loading={loading} />
       {/* <MemoizedServicesSection content={pageContent.services} /> */}

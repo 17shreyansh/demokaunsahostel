@@ -42,6 +42,12 @@ const HostelDetails = () => {
   const amenitiesRef = useRef(null)
   const locationRef = useRef(null)
   const reviewsRef = useRef(null)
+  const activeTabRef = useRef(activeTab)
+
+  // Keep ref in sync without triggering effects
+  useEffect(() => {
+    activeTabRef.current = activeTab
+  }, [activeTab])
 
   const fetchHostelDetails = useCallback(async (abortController) => {
     setLoading(true)
@@ -79,7 +85,7 @@ const HostelDetails = () => {
     }
   }, [isAutoPlaying, hostel?.images?.length, isFullscreen])
 
-  // Hardware-Accelerated Scroll Listener
+  // Extremely Optimized Hardware-Accelerated Scroll Listener
   useEffect(() => {
     if (!hostel) return;
     
@@ -98,7 +104,9 @@ const HostelDetails = () => {
           for (let i = sections.length - 1; i >= 0; i--) {
             const section = sections[i]
             if (section.ref.current && section.ref.current.offsetTop <= scrollPosition) {
-              setActiveTab(section.id)
+              if (activeTabRef.current !== section.id) {
+                setActiveTab(section.id) // Only update if changed (prevents lag)
+              }
               break
             }
           }
@@ -162,6 +170,11 @@ const HostelDetails = () => {
     setIsAutoPlaying(false)
   }, [])
 
+  const handleThumbnailClick = useCallback((index) => {
+    setCurrentImageIndex(index)
+    setIsAutoPlaying(false)
+  }, [])
+
   const handleEnquirySuccess = useCallback(() => {
     alert('Enquiry sent successfully! We will contact you soon.')
   }, [])
@@ -187,7 +200,7 @@ const HostelDetails = () => {
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-custom border-t-transparent mx-auto mb-4 transform-gpu will-change-transform"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-custom border-t-transparent mx-auto mb-4"></div>
         <p className="text-gray-600 text-lg">Loading hostel details...</p>
       </div>
     </div>
@@ -237,36 +250,31 @@ const HostelDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="relative h-[300px] sm:h-[400px] md:h-[600px] bg-gradient-to-r from-blue-900 to-purple-900 overflow-hidden transform-gpu">
+      
+      {/* 1 Big Preview Image Section */}
+      <div className="relative h-[300px] sm:h-[400px] md:h-[500px] bg-gradient-to-r from-blue-900 to-purple-900 overflow-hidden transform-gpu">
         {hostel.images && hostel.images.length > 0 ? (
           <div 
-            className="relative w-full h-full"
+            className="relative w-full h-full group"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            <div className="flex transition-transform duration-500 ease-in-out h-full will-change-transform"
-                 style={{ transform: `translate3d(-${currentImageIndex * 100}%, 0, 0)` }}>
-              {hostel.images.map((image, index) => (
-                <div key={index} className="w-full h-full flex-shrink-0 relative">
-                  <img
-                    src={`${UPLOADS_BASE_URL}/${image}`}
-                    alt={`${hostel.name} ${index + 1}`}
-                    className="w-full h-full object-cover cursor-pointer"
-                    onClick={() => openFullscreen(index)}
-                    fetchpriority={index === 0 ? 'high' : 'auto'}
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    decoding="async"
-                  />
-                </div>
-              ))}
-            </div>
+            <img
+              src={`${UPLOADS_BASE_URL}/${hostel.images[currentImageIndex]}`}
+              alt={`${hostel.name} Preview`}
+              className="w-full h-full object-cover cursor-pointer transition-opacity duration-300"
+              onClick={() => openFullscreen(currentImageIndex)}
+              fetchpriority="high"
+              loading="eager"
+              decoding="async"
+            />
             
             {hostel.images.length > 1 && (
               <>
                 <button
                   onClick={prevImage}
-                  className="hidden md:block absolute left-6 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 shadow-lg z-10 will-change-transform"
+                  className="hidden md:flex absolute left-6 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/60 text-white p-3 rounded-full transition-colors duration-300 shadow-lg z-10 items-center justify-center"
                   aria-label="Previous image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +283,7 @@ const HostelDetails = () => {
                 </button>
                 <button
                   onClick={nextImage}
-                  className="hidden md:block absolute right-6 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 shadow-lg z-10 will-change-transform"
+                  className="hidden md:flex absolute right-6 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/60 text-white p-3 rounded-full transition-colors duration-300 shadow-lg z-10 items-center justify-center"
                   aria-label="Next image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,6 +307,34 @@ const HostelDetails = () => {
         )}
       </div>
 
+      {/* Small Thumbnails Show Just After Big Image */}
+      {hostel.images && hostel.images.length > 1 && (
+        <div className="bg-white border-b shadow-sm py-3 px-4">
+          <div className="max-w-7xl mx-auto flex gap-3 overflow-x-auto snap-x hide-scrollbar">
+            {hostel.images.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => handleThumbnailClick(index)}
+                className={`relative flex-shrink-0 snap-start w-24 h-16 sm:w-32 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                  index === currentImageIndex 
+                    ? 'border-yellow-custom ring-2 ring-yellow-custom/20 scale-105 transform-gpu' 
+                    : 'border-transparent hover:border-gray-300 opacity-70 hover:opacity-100'
+                }`}
+              >
+                <img
+                  src={`${UPLOADS_BASE_URL}/${image}`}
+                  alt={`Thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Breadcrumb */}
       <div className="bg-white border-b shadow-sm hidden md:block">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <nav className="flex text-sm">
@@ -311,54 +347,64 @@ const HostelDetails = () => {
         </div>
       </div>
 
+      {/* Structured Header Information */}
       <div className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center mb-3 space-y-2 sm:space-y-0 sm:space-x-4">
-            <span className={`px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold w-fit ${
+          
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <span className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold shadow-sm ${
               hostel.availability === 'Available' ? 'bg-green-500 text-white' : 
               hostel.availability === 'Limited' ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'
             }`}>
               {hostel.availability}
             </span>
-            <span className="bg-yellow-custom text-gray-900 px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold w-fit">
+            <span className="bg-yellow-custom text-gray-900 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-sm">
               {hostel.type || 'PG'} - {hostel.gender || 'Co-ed'}
             </span>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-4 mb-3">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight">{hostel.name}</h1>
+            {/* Pro Verified Tag placed just after name */}
             {hostel.verified && (
-              <span className="bg-blue-500 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold w-fit flex items-center">
-                <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <span className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-bold uppercase tracking-wider flex items-center shadow-md">
+                <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 Verified
               </span>
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 leading-tight">{hostel.name}</h1>
-          <div className="flex items-center text-gray-600 text-sm sm:text-base mb-2">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-            </svg>
-            {hostel.mapCoordinates ? (
-              <a
-                href={`https://maps.google.com/?q=${hostel.mapCoordinates.lat},${hostel.mapCoordinates.lng}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="truncate hover:underline"
-              >
-                {hostel.location}
-              </a>
-            ) : (
-              <span className="truncate">{hostel.location}</span>
-            )}
-          </div>
-          <div className="flex items-center">
-            <div className="flex text-yellow-custom mr-2">
-              {STARS.map((i) => (
-                <svg key={i} className={`w-4 h-4 ${i < Math.floor(hostel.rating || 4.8) ? 'text-yellow-custom' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center text-gray-700 bg-gray-100 px-4 py-2 rounded-lg w-fit">
+              <svg className="w-5 h-5 mr-2 text-gray-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+              {hostel.mapCoordinates ? (
+                <a
+                  href={`https://maps.google.com/?q=${hostel.mapCoordinates.lat},${hostel.mapCoordinates.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium hover:text-yellow-600 transition-colors underline decoration-gray-300 underline-offset-2"
+                >
+                  {hostel.location}
+                </a>
+              ) : (
+                <span className="font-medium">{hostel.location}</span>
+              )}
             </div>
-            <span className="text-gray-700 text-sm">({(hostel.rating || 4.8).toFixed(1)}/5)</span>
+
+            <div className="flex items-center bg-gray-50 px-4 py-2 rounded-lg border border-gray-200 w-fit">
+              <div className="flex text-yellow-custom mr-2">
+                {STARS.map((i) => (
+                  <svg key={i} className={`w-5 h-5 ${i < Math.floor(hostel.rating || 4.8) ? 'text-yellow-custom' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <span className="text-gray-900 font-bold">{(hostel.rating || 4.8).toFixed(1)} <span className="text-gray-500 font-normal text-sm">/ 5</span></span>
+            </div>
           </div>
         </div>
       </div>
@@ -367,62 +413,6 @@ const HostelDetails = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-8 md:gap-12">
           
           <div className="xl:col-span-2 space-y-4 sm:space-y-6 md:space-y-8">
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6">
-              <div className="flex justify-between items-center mb-3 sm:mb-4">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900">Gallery</h3>
-                {hostel.images && hostel.images.length > 0 && (
-                  <button
-                    onClick={() => openFullscreen(0)}
-                    className="text-yellow-custom hover:text-yellow-600 font-medium text-xs sm:text-sm flex items-center space-x-1"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
-                    <span>View All</span>
-                  </button>
-                )}
-              </div>
-              {hostel.images && hostel.images.length > 0 ? (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
-                  {hostel.images.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => openFullscreen(index)}
-                      className={`group relative rounded-lg overflow-hidden border-2 transition-all duration-300 hover:shadow-lg transform-gpu ${
-                        index === currentImageIndex ? 'border-yellow-custom ring-2 ring-yellow-custom/20' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <img 
-                        src={`${UPLOADS_BASE_URL}/${image}`} 
-                        alt={`${hostel.name} ${index + 1}`}
-                        className="w-full h-16 sm:h-20 md:h-24 object-cover group-hover:scale-105 transition-transform duration-300 transform-gpu will-change-transform"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                        </svg>
-                      </div>
-                      {index === currentImageIndex && (
-                        <div className="absolute top-1 right-1 bg-yellow-custom text-gray-900 rounded-full p-1">
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  No images available
-                </div>
-              )}
-            </div>
 
             {parsedVideoUrl && (
               <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6">
@@ -449,19 +439,9 @@ const HostelDetails = () => {
             <div className="xl:hidden">
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-gradient-to-r from-yellow-custom to-orange-400 p-4 text-gray-900 text-center">
-                  <div className="text-2xl font-bold mb-1">
+                  <div className="text-3xl font-bold mb-1">
                     Rs. {formattedPrice}
                     <span className="text-base font-normal ml-1">/{hostel.priceType || 'month'}</span>
-                  </div>
-                  <div className="flex justify-center mt-2">
-                    <div className="flex text-gray-900">
-                      {STARS.map((i) => (
-                        <svg key={i} className={`w-4 h-4 ${i < Math.floor(hostel.rating || 4.8) ? 'text-gray-900' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                    <span className="ml-2 text-sm text-gray-800">({(hostel.rating || 4.8).toFixed(1)})</span>
                   </div>
                 </div>
                 
@@ -515,7 +495,7 @@ const HostelDetails = () => {
               </div>
             </div>
 
-            <div className="sticky top-20 z-30 bg-white rounded-xl sm:rounded-2xl shadow-lg mb-4 sm:mb-6 transform-gpu">
+            <div className="sticky top-20 z-30 bg-white rounded-xl sm:rounded-2xl shadow-lg mb-4 sm:mb-6">
               <nav className="flex border-b border-gray-100 overflow-x-auto">
                 {TABS.map((tab) => (
                   <button
@@ -526,10 +506,10 @@ const HostelDetails = () => {
                                  tab.id === 'location' ? locationRef : reviewsRef
                       ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                     }}
-                    className={`flex-1 min-w-0 py-3 sm:py-4 md:py-6 px-2 sm:px-4 md:px-6 font-semibold text-xs sm:text-sm flex items-center justify-center space-x-1 sm:space-x-2 md:space-x-3 transition-all duration-300 relative whitespace-nowrap ${
+                    className={`flex-1 min-w-0 py-3 sm:py-4 md:py-6 px-2 sm:px-4 md:px-6 font-semibold text-xs sm:text-sm flex items-center justify-center space-x-1 sm:space-x-2 md:space-x-3 transition-colors duration-300 relative whitespace-nowrap ${
                       activeTab === tab.id
                         ? 'text-yellow-600 bg-yellow-50 rounded-xl sm:rounded-2xl'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 '
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -623,7 +603,7 @@ const HostelDetails = () => {
                   </div>
                 )}
 
-                <div ref={amenitiesRef} className="mb-12">
+                <div ref={amenitiesRef} className="mb-12" style={{ contentVisibility: 'auto', containIntrinsicSize: '250px' }}>
                   <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                     <svg className="w-6 h-6 mr-3 text-yellow-custom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -655,7 +635,7 @@ const HostelDetails = () => {
                   )}
                 </div>
 
-                <div ref={locationRef} className="mb-12">
+                <div ref={locationRef} className="mb-12" style={{ contentVisibility: 'auto', containIntrinsicSize: '400px' }}>
                   <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                     <svg className="w-6 h-6 mr-3 text-yellow-custom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -666,8 +646,7 @@ const HostelDetails = () => {
                   <MemoizedNearbyPlacesDisplay hostelCoordinates={hostel.mapCoordinates} hostelNearbyPlaces={hostel.nearbyPlaces} />
                 </div>
 
-                <div ref={reviewsRef} className="mb-12">
-                  {/* Replaced old hardcoded HTML with the isolated ReviewSection component */}
+                <div ref={reviewsRef} className="mb-12" style={{ contentVisibility: 'auto', containIntrinsicSize: '600px' }}>
                   <MemoizedReviewSection hostelId={hostel._id} />
                 </div>
               </div>
@@ -681,16 +660,6 @@ const HostelDetails = () => {
                 <div className="text-4xl font-bold mb-2">
                   Rs. {formattedPrice}
                   <span className="text-lg font-normal ml-1">/{hostel.priceType || 'month'}</span>
-                </div>
-                <div className="flex justify-center mt-3">
-                  <div className="flex text-gray-900">
-                    {STARS.map((i) => (
-                      <svg key={i} className={`w-4 h-4 ${i < Math.floor(hostel.rating || 4.8) ? 'text-gray-900' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <span className="ml-2 text-sm text-gray-800">({(hostel.rating || 4.8).toFixed(1)})</span>
                 </div>
               </div>
               
@@ -768,7 +737,7 @@ const HostelDetails = () => {
           <div className="relative w-full h-full flex items-center justify-center p-4">
             <button
               onClick={() => setIsFullscreen(false)}
-              className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 z-10"
+              className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-colors duration-300 z-10"
               aria-label="Close fullscreen"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -779,7 +748,7 @@ const HostelDetails = () => {
             <img
               src={`${UPLOADS_BASE_URL}/${hostel.images[currentImageIndex]}`}
               alt={`${hostel.name} ${currentImageIndex + 1}`}
-              className="max-w-full max-h-full object-contain transform-gpu"
+              className="max-w-full max-h-full object-contain"
               loading="lazy"
               decoding="async"
             />
@@ -788,7 +757,7 @@ const HostelDetails = () => {
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 transform-gpu will-change-transform"
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-colors duration-300"
                   aria-label="Previous image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -797,7 +766,7 @@ const HostelDetails = () => {
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 transform-gpu will-change-transform"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-colors duration-300"
                   aria-label="Next image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -807,19 +776,19 @@ const HostelDetails = () => {
               </>
             )}
             
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full transform-gpu">
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full">
               <span className="text-sm font-medium">
                 {currentImageIndex + 1} of {hostel.images.length} • {hostel.name}
               </span>
             </div>
             
-            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-full overflow-x-auto px-4 transform-gpu">
+            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-full overflow-x-auto px-4 hide-scrollbar">
               {hostel.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`flex-shrink-0 w-16 h-12 rounded border-2 overflow-hidden transition-all duration-300 transform-gpu will-change-transform ${
-                    index === currentImageIndex ? 'border-white' : 'border-white/50 hover:border-white/80'
+                  className={`flex-shrink-0 w-16 h-12 rounded border-2 overflow-hidden transition-all duration-200 ${
+                    index === currentImageIndex ? 'border-yellow-custom scale-105' : 'border-white/50 hover:border-white/80'
                   }`}
                 >
                   <img

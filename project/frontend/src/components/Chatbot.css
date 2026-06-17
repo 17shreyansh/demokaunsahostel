@@ -67,6 +67,28 @@
   gap: 12px;
 }
 
+.call-icon-btn {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: all 0.3s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.call-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05) translateZ(0);
+}
+
 .avatar {
   width: 40px;
   height: 40px;
