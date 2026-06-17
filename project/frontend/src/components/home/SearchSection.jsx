@@ -5,20 +5,16 @@ import { hostelAPI } from '../../services/api'
 /* -------------------------------------------------------------------------- */
 /* EXTRACTED & MEMOIZED MICRO-COMPONENT                                       */
 /* -------------------------------------------------------------------------- */
-// Extracted to prevent DOM destruction on parent render.
-// Wrapped in memo so unaffected dropdowns ignore sibling state changes.
 const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, isOpen, onToggle, onSelect }) => {
   const handleOptionClick = (e, optionValue, optionLabel) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Option clicked:', type, optionValue, optionLabel);
     onSelect(type, optionValue, optionLabel);
   };
 
   const handleButtonClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Button clicked:', type, 'isOpen:', isOpen);
     onToggle(type);
   };
 
@@ -73,7 +69,6 @@ const CustomDropdown = memo(({ type, placeholder, options, value, displayValue, 
 
 CustomDropdown.displayName = 'CustomDropdown';
 
-
 /* -------------------------------------------------------------------------- */
 /* MAIN COMPONENT                                                             */
 /* -------------------------------------------------------------------------- */
@@ -88,12 +83,10 @@ const SearchSection = ({ content }) => {
     gender: ''
   });
   
-  // Replaced heavy object tracking with a single active pointer
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [filterOptions, setFilterOptions] = useState({ locations: [], nearbyPlaces: [] });
   const dropdownRef = useRef(null);
 
-  // Fetch filter options with abort control
   useEffect(() => {
     const abortController = new AbortController();
     
@@ -112,7 +105,7 @@ const SearchSection = ({ content }) => {
     return () => abortController.abort();
   }, []);
 
-  // Optimized click listener: Only attaches when a dropdown is actually open
+  // Fixed: Added touchstart for mobile responsiveness
   useEffect(() => {
     if (!activeDropdown) return; 
 
@@ -123,10 +116,14 @@ const SearchSection = ({ content }) => {
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, [activeDropdown]);
 
-  // Memoized static arrays to preserve referential equality
   const budgets = useMemo(() => content?.budgetOptions || [
     { value: { min: '', max: '7000' }, label: 'Budget Friendly (Under ₹7K)' },
     { value: { min: '7000', max: '10000' }, label: 'Affordable (₹7K - ₹10K)' },
@@ -147,18 +144,16 @@ const SearchSection = ({ content }) => {
     'GL Bajaj Institute'
   ], [content?.universityLogos]);
 
-  // Transform dynamic options once per fetch, not per render
+  // Fixed: Added empty array fallbacks to prevent mapping errors if API fails
   const locationOptions = useMemo(() => 
-    filterOptions.locations.map(loc => ({ value: loc, label: loc })), 
+    (filterOptions.locations || []).map(loc => ({ value: loc, label: loc })), 
   [filterOptions.locations]);
   
   const nearbyPlaceOptions = useMemo(() => 
-    filterOptions.nearbyPlaces.map(place => ({ value: place, label: place })), 
+    (filterOptions.nearbyPlaces || []).map(place => ({ value: place, label: place })), 
   [filterOptions.nearbyPlaces]);
 
-  // Handlers memoized with useCallback to prevent child re-renders
   const handleFilterChange = useCallback((type, value, label) => {
-    console.log('Filter change:', type, value, label);
     setFilters(prev => {
       let newFilters;
       if (type === 'budget') {
@@ -172,20 +167,15 @@ const SearchSection = ({ content }) => {
       } else {
         newFilters = { ...prev, [type]: value, [`${type}Label`]: label };
       }
-      console.log('New filters:', newFilters);
       return newFilters;
     });
     setActiveDropdown(null);
   }, []);
 
+  // Fixed: Removed activeDropdown from dependency array to preserve memoization
   const toggleDropdown = useCallback((type) => {
-    console.log('Toggle dropdown:', type, 'current active:', activeDropdown);
-    setActiveDropdown(prev => {
-      const newState = prev === type ? null : type;
-      console.log('New dropdown state:', newState);
-      return newState;
-    });
-  }, [activeDropdown]);
+    setActiveDropdown(prev => (prev === type ? null : type));
+  }, []);
 
   const handleSearch = useCallback(() => {
     const searchParams = new URLSearchParams();
