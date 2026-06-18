@@ -163,7 +163,10 @@ const HostelManagerHostelForm = () => {
           jobTitle: data.contactInfo?.jobTitle || '',
           phone: data.contactInfo?.phone || '',
           coordinates: data.mapCoordinates ? `${data.mapCoordinates.lat}, ${data.mapCoordinates.lng}` : '',
-          videoTourUrl: data.videoTourUrl || ''
+          videoTourUrl: data.videoTourUrl || '',
+          paymentDetails: data.paymentDetails || { upiId: '', qrCode: '', paymentInstructions: '' },
+          reservationEnabled: data.reservationEnabled || false,
+          reservationAmount: data.reservationAmount || 0
         });
 
         if (data.images) {
@@ -232,10 +235,23 @@ const HostelManagerHostelForm = () => {
 
       // Basic Text Fields
       Object.keys(values).forEach(key => {
-        if (!['amenities', 'rules', 'info', 'coordinates', 'roomTypes', 'sharingTypes', 'installmentPlans'].includes(key) && values[key] !== undefined && values[key] !== null) {
+        if (!['amenities', 'rules', 'info', 'coordinates', 'roomTypes', 'sharingTypes', 'installmentPlans', 'paymentDetails'].includes(key) && values[key] !== undefined && values[key] !== null) {
           formData.append(key, values[key]);
         }
       });
+
+      // Payment settings
+      if (values.paymentDetails) {
+        formData.append('paymentDetails', JSON.stringify(values.paymentDetails));
+      }
+      if (values.reservationEnabled !== undefined) {
+        formData.append('reservationEnabled', values.reservationEnabled ? 'true' : 'false');
+      }
+      if (values.reservationAmount !== undefined && values.reservationAmount !== null && !isNaN(values.reservationAmount)) {
+        formData.append('reservationAmount', Number(values.reservationAmount) || 0);
+      } else {
+        formData.append('reservationAmount', 0);
+      }
 
       // Images
       const newImages = fileList.filter(file => file.originFileObj);
@@ -607,7 +623,67 @@ const HostelManagerHostelForm = () => {
             </Form.List>
           </Card>
 
-          {/* Section 6: Dynamic Arrays */}
+          {/* Section 6: Payment Settings */}
+          <Card 
+            title={<span className="flex items-center gap-2"><DollarOutlined className="text-green-600" /> Payment Settings (Manual Payment System)</span>}
+            bordered={false} className="shadow-sm rounded-2xl"
+          >
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+              <p className="text-sm text-blue-800 font-medium">
+                Configure your payment details for manual payment collection. Students will see this information when booking visits or reserving seats.
+              </p>
+            </div>
+            <Row gutter={24}>
+              <Col xs={24} md={12}>
+                <Form.Item name={['paymentDetails', 'upiId']} label="UPI ID">
+                  <Input size="large" placeholder="yourname@upi" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item label="QR Code (Upload)">
+                  <Upload
+                    listType="picture-card"
+                    maxCount={1}
+                    beforeUpload={() => false}
+                    accept="image/*"
+                  >
+                    <div className="flex flex-col items-center text-slate-400">
+                      <UploadOutlined className="text-xl mb-1" />
+                      <span className="text-xs">Upload QR</span>
+                    </div>
+                  </Upload>
+                </Form.Item>
+              </Col>
+            </Row>
+            <Form.Item name={['paymentDetails', 'paymentInstructions']} label="Payment Instructions">
+              <TextArea rows={3} placeholder="Additional instructions for students making payments..." />
+            </Form.Item>
+            
+            <div className="border-t border-slate-200 pt-4 mt-4">
+              <Title level={5}>Seat Reservation Settings</Title>
+              <Row gutter={24}>
+                <Col xs={24} md={12}>
+                  <Form.Item name="reservationEnabled" valuePropName="checked" className="mb-2">
+                    <Checkbox>Enable Seat Reservation</Checkbox>
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name="reservationAmount" label="Reservation Amount (₹)">
+                    <InputNumber 
+                      size="large" 
+                      style={{ width: '100%' }} 
+                      min={0}
+                      defaultValue={0}
+                      formatter={value => value ? `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
+                      placeholder="5000"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </div>
+          </Card>
+
+          {/* Section 7: Dynamic Arrays */}
           <Card title="Room Configurations" bordered={false} className="shadow-sm rounded-2xl">
             <Form.List name="roomTypes">
               {(fields, { add, remove }) => (

@@ -1,6 +1,4 @@
 const express = require('express');
-const Razorpay = require('razorpay');
-const crypto = require('crypto');
 const VisitBooking = require('../models/VisitBooking');
 const Hostel = require('../models/Hostel');
 const auth = require('../middleware/auth');
@@ -8,17 +6,8 @@ const { adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Check if Razorpay credentials are configured
-if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-  console.warn('WARNING: Razorpay credentials not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to .env file');
-}
-
-const razorpay = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET 
-  ? new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET
-    })
-  : null;
+// NOTE: Razorpay is disabled. Manual payment system is active.
+// To re-enable Razorpay, set RAZORPAY_ENABLED=true in .env and restore the payment flow.
 
 // Check free visit eligibility
 router.get('/check-eligibility', auth, async (req, res) => {
@@ -84,46 +73,45 @@ router.post('/create-order', auth, async (req, res) => {
       });
     }
 
-    // Paid booking - create Razorpay order
-    if (!razorpay) {
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Razorpay not configured. Please contact admin to set up payment gateway.' 
-      });
-    }
-
-    const options = {
-      amount: 29900,
-      currency: 'INR',
-      receipt: `v_${Date.now().toString().slice(-8)}`,
-      notes: {
-        userId: req.user.id,
-        hostelId: hostelId,
-        hostelName: hostel.name
-      }
-    };
-
-    const order = await razorpay.orders.create(options);
-
+    // Paid booking - use manual payment
     const booking = new VisitBooking({
       user: req.user.id,
       hostel: hostelId,
       amount: 299,
       isFree: false,
-      razorpayOrderId: order.id,
       paymentStatus: 'pending',
       visitStatus: 'pending'
     });
 
     await booking.save();
 
+    // Get payment details - hostel first, then admin fallback
+    let paymentDetails = hostel.paymentDetails;
+    
+    // If hostel doesn't have payment details, use admin defaults
+    if (!paymentDetails || !paymentDetails.upiId) {
+      const Settings = require('../models/Settings');
+      const [upiSetting, qrSetting, instructionsSetting] = await Promise.all([
+        Settings.findOne({ key: 'admin_upi_id' }),
+        Settings.findOne({ key: 'admin_qr_code' }),
+        Settings.findOne({ key: 'admin_payment_instructions' })
+      ]);
+
+      paymentDetails = {
+        upiId: upiSetting?.value || 'Not configured',
+        qrCode: qrSetting?.value || null,
+        paymentInstructions: instructionsSetting?.value || 'Please contact admin for payment details'
+      };
+    }
+
+    // Return manual payment details
     res.json({
       success: true,
       isFree: false,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      bookingId: booking._id
+      manualPayment: true,
+      bookingId: booking._id,
+      amount: 299,
+      paymentDetails
     });
   } catch (error) {
     console.error('Create order error:', error);
@@ -131,38 +119,8 @@ router.post('/create-order', auth, async (req, res) => {
   }
 });
 
-// Verify payment
-router.post('/verify-payment', auth, async (req, res) => {
-  try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = req.body;
-
-    const sign = razorpay_order_id + '|' + razorpay_payment_id;
-    const expectedSign = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(sign.toString())
-      .digest('hex');
-
-    if (razorpay_signature === expectedSign) {
-      const booking = await VisitBooking.findById(bookingId);
-      if (!booking) {
-        return res.status(404).json({ success: false, message: 'Booking not found' });
-      }
-
-      booking.paymentStatus = 'completed';
-      booking.razorpayPaymentId = razorpay_payment_id;
-      booking.razorpaySignature = razorpay_signature;
-      booking.visitStatus = 'scheduled';
-      await booking.save();
-
-      res.json({ success: true, message: 'Payment verified successfully', booking });
-    } else {
-      res.status(400).json({ success: false, message: 'Invalid signature' });
-    }
-  } catch (error) {
-    console.error('Verify payment error:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+// Verify payment - DISABLED (Razorpay removed, manual payment system active)
+// router.post('/verify-payment', ...) -- preserved for future re-enable
 
 // Get user's bookings
 router.get('/my-bookings', auth, async (req, res) => {

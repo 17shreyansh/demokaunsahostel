@@ -23,6 +23,7 @@ const MENU_ITEMS = [
   { key: 'settings', label: 'System Settings', icon: Settings, path: '/admin/settings' },
   { key: 'visits', label: 'Users Visits', icon: Settings, path: '/admin/visit-bookings' },
   { key: 'assignments', label: 'Hostel Assignments', icon: Settings, path: '/admin/assignments' },
+  { key: 'payments', label: 'Payments', icon: Folder, path: '/admin/payments' },
 ];
 
 const getSelectedKey = (pathname) => {

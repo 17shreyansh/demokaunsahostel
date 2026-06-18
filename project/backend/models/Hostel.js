@@ -234,7 +234,26 @@ const hostelSchema = new mongoose.Schema({
       },
       dueDate: String
     }]
-  }]
+  }],
+  paymentDetails: {
+    upiId: {
+      type: String
+    },
+    qrCode: {
+      type: String
+    },
+    paymentInstructions: {
+      type: String
+    }
+  },
+  reservationEnabled: {
+    type: Boolean,
+    default: false
+  },
+  reservationAmount: {
+    type: Number,
+    default: 0
+  }
 }, {
   timestamps: true
 });

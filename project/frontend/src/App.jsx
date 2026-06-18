@@ -32,6 +32,7 @@ const AdminUsers = lazy(() => import('./pages/AdminUsers'))
 const AdminReviews = lazy(() => import('./pages/AdminReviews'))
 const AdminVisitBookings = lazy(() => import('./pages/AdminVisitBookings'))
 const AdminAssignments = lazy(() => import('./pages/AdminAssignments'))
+const AdminPayments = lazy(() => import('./pages/AdminPayments'))
 const AdminBlogList = lazy(() => import('./pages/blog/AdminBlogList'))
 const AdminBlogEditor = lazy(() => import('./pages/blog/AdminBlogEditor'))
 const BlogList = lazy(() => import('./pages/blog/BlogListPage'))
@@ -44,6 +45,7 @@ const HostelManagerKYC = lazy(() => import('./pages/HostelManagerKYC'))
 const HostelManagerHostels = lazy(() => import('./pages/HostelManagerHostels'))
 const HostelManagerHostelForm = lazy(() => import('./pages/HostelManagerHostelForm'))
 const HostelManagerReviews = lazy(() => import('./pages/HostelManagerReviews'))
+const HostelManagerPayments = lazy(() => import('./pages/HostelManagerPayments'))
 const AdminHostelManagers = lazy(() => import('./pages/AdminHostelManagers'))
 const HostelManagerProfile = lazy(() => import('./pages/HostelManagerProfile'))
 const HostelManagerSettings = lazy(() => import('./pages/HostelManagerSettings'))
@@ -142,6 +144,7 @@ function App() {
                   <Route path="reviews" element={<AdminReviews />} />
                   <Route path="visit-bookings" element={<AdminVisitBookings />} />
                   <Route path="assignments" element={<AdminAssignments />} />
+                  <Route path="payments" element={<AdminPayments />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="page-content" element={<AdminPageContent />} />
                   <Route path="blog" element={<AdminBlogList />} />
@@ -175,6 +178,7 @@ function App() {
                 <Route path="/hostel-manager/hostels/add" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/hostels/edit/:id" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/reviews" element={<HostelManagerProtectedRoute><HostelManagerReviews /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/payments" element={<HostelManagerProtectedRoute><HostelManagerPayments /></HostelManagerProtectedRoute>} />
               </Routes>
             </Suspense>
             <ScrollToTop />

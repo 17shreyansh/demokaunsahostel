@@ -25,6 +25,7 @@ const visitBookingSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'failed', 'refunded'],
     default: 'pending'
   },
+  // Legacy Razorpay fields - kept for backward compatibility, disabled
   razorpayOrderId: {
     type: String
   },

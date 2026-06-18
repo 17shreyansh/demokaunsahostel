@@ -172,18 +172,19 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
     return () => abortController.abort();
   }, [categories]);
 
-  // Auto-calculate distances when coordinates change
-  useEffect(() => {
-    const hasCoordinates = coordinates?.lat && coordinates?.lng;
-    const coordsChanged = !lastCalculatedCoords || 
-      lastCalculatedCoords.lat !== coordinates?.lat || 
-      lastCalculatedCoords.lng !== coordinates?.lng;
-    
-    if (hasCoordinates && coordsChanged && hasSelectedPlaces()) {
-      recalculateDistances();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coordinates?.lat, coordinates?.lng]);
+  // Auto-calculate distances when coordinates change - DISABLED to save API tokens
+  // Only manual calculation via button click is allowed
+  // useEffect(() => {
+  //   const hasCoordinates = coordinates?.lat && coordinates?.lng;
+  //   const coordsChanged = !lastCalculatedCoords || 
+  //     lastCalculatedCoords.lat !== coordinates?.lat || 
+  //     lastCalculatedCoords.lng !== coordinates?.lng;
+  //   
+  //   if (hasCoordinates && coordsChanged && hasSelectedPlaces()) {
+  //     recalculateDistances();
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [coordinates?.lat, coordinates?.lng]);
 
   const recalculateDistances = useCallback(async () => {
     if (!coordinates?.lat || !coordinates?.lng) {
@@ -239,38 +240,23 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
       return;
     }
 
-    let updatedPlace = {
+    // Add place without auto-calculating distance to save API tokens
+    const updatedPlace = {
       _id: place._id,
       name: place.name,
       type: place.type,
       category: place.category,
-      distance: null
+      distance: null // Distance will be calculated manually via button
     };
-      
-    if (coordinates?.lat && coordinates?.lng) {
-      setDistanceLoading(true);
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/nearbyplaces/distances?lat=${coordinates.lat}&lng=${coordinates.lng}`
-        );
-        if (response.ok) {
-          const placesWithDistances = await response.json();
-          const placeWithDistance = placesWithDistances.find(p => p._id === placeId);
-          if (placeWithDistance) updatedPlace.distance = placeWithDistance.distance;
-        }
-      } catch (error) {
-        console.error('Distance calculation failed');
-      } finally {
-        setDistanceLoading(false);
-      }
-    }
       
     onChange({
       ...normalizedValue,
       [category]: [...selectedPlaces, updatedPlace]
     });
     
-  }, [availablePlaces, normalizedValue, coordinates, onChange]);
+    message.success(`${place.name} added. Click "Calc Distances" to update distances.`);
+    
+  }, [availablePlaces, normalizedValue, onChange]);
 
   const removePlace = useCallback((category, placeId) => {
     const selectedPlaces = normalizedValue[category] || [];

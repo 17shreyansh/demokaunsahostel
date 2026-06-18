@@ -177,7 +177,10 @@ const AdminHostelEdit = () => {
           jobTitle: data.contactInfo?.jobTitle || '',
           phone: data.contactInfo?.phone || '',
           coordinates: data.mapCoordinates ? `${data.mapCoordinates.lat}, ${data.mapCoordinates.lng}` : '',
-          videoTourUrl: data.videoTourUrl || ''
+          videoTourUrl: data.videoTourUrl || '',
+          paymentDetails: data.paymentDetails || { upiId: '', qrCode: '', paymentInstructions: '' },
+          reservationEnabled: data.reservationEnabled === true,
+          reservationAmount: data.reservationAmount ? Number(data.reservationAmount) : 0
         });
 
         if (data.mapCoordinates) setMapCoordinates(data.mapCoordinates);
@@ -249,10 +252,24 @@ const AdminHostelEdit = () => {
       }
 
       Object.keys(values).forEach(key => {
-        if (!['amenities', 'rules', 'info', 'nearbyPlaces', 'coordinates', 'roomTypes', 'sharingTypes', 'installmentPlans', 'reviews'].includes(key) && values[key] !== undefined) {
+        if (!['amenities', 'rules', 'info', 'nearbyPlaces', 'coordinates', 'roomTypes', 'sharingTypes', 'installmentPlans', 'reviews', 'paymentDetails', 'reservationEnabled', 'reservationAmount'].includes(key) && values[key] !== undefined) {
           formData.append(key, values[key]);
         }
       });
+
+      // Payment settings
+      if (values.paymentDetails) {
+        formData.append('paymentDetails', JSON.stringify(values.paymentDetails));
+      }
+      
+      // Reservation settings - explicitly handle boolean and number
+      const reservationEnabled = values.reservationEnabled === true;
+      formData.append('reservationEnabled', reservationEnabled.toString());
+      
+      const reservationAmount = Number(values.reservationAmount) || 0;
+      formData.append('reservationAmount', reservationAmount.toString());
+      
+      console.log('Saving reservation settings:', { reservationEnabled, reservationAmount });
 
       const newImages = fileList.filter(file => file.originFileObj);
       const keepImages = fileList.filter(file => file.isExisting && file.status === 'done');
@@ -468,6 +485,47 @@ const AdminHostelEdit = () => {
               <Form.Item name="availableBeds" label="Open Beds">
                 <InputNumber size="large" className="w-full" min={0} />
               </Form.Item>
+            </div>
+
+            <div className="mt-6 p-5 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl">
+              <div className="flex items-start gap-3 mb-4">
+                <DollarSign size={20} className="text-purple-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-purple-900 mb-1">Reservation Settings</h4>
+                  <p className="text-sm text-purple-700">Allow users to reserve this hostel by paying an advance amount</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Form.Item name="reservationEnabled" valuePropName="checked" className="mb-0">
+                  <Checkbox className="text-gray-700 font-medium">
+                    Enable Reservation System
+                  </Checkbox>
+                </Form.Item>
+                
+                <Form.Item 
+                  noStyle 
+                  shouldUpdate={(prev, curr) => prev.reservationEnabled !== curr.reservationEnabled}
+                >
+                  {({ getFieldValue }) => (
+                    <Form.Item 
+                      name="reservationAmount" 
+                      label="Reservation Amount" 
+                      className="mb-0"
+                    >
+                      <InputNumber 
+                        size="large" 
+                        className="w-full" 
+                        min={0}
+                        disabled={!getFieldValue('reservationEnabled')}
+                        formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} 
+                        parser={value => value.replace(/₹\s?|(,*)/g, '')}
+                        placeholder="Enter reservation amount"
+                      />
+                    </Form.Item>
+                  )}
+                </Form.Item>
+              </div>
             </div>
           </FormSection>
 

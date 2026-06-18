@@ -95,7 +95,7 @@ router.post('/hostels', auth, requireKYC, upload.any(), async (req, res) => {
     hostelData.verified = manager.kyc.status === 'verified';
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'mapCoordinates'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'mapCoordinates', 'paymentDetails'].forEach(field => {
       if (hostelData[field] && typeof hostelData[field] === 'string') {
         try {
           hostelData[field] = JSON.parse(hostelData[field]);
@@ -104,6 +104,15 @@ router.post('/hostels', auth, requireKYC, upload.any(), async (req, res) => {
         }
       }
     });
+
+    // Handle reservation settings
+    if (hostelData.reservationEnabled !== undefined) {
+      hostelData.reservationEnabled = hostelData.reservationEnabled === 'true' || hostelData.reservationEnabled === true;
+    }
+    if (hostelData.reservationAmount !== undefined) {
+      const amount = Number(hostelData.reservationAmount);
+      hostelData.reservationAmount = isNaN(amount) ? 0 : amount;
+    }
 
     // Auto-compute base price from sharingTypes minimum
     if (hostelData.sharingTypes && hostelData.sharingTypes.length > 0) {
@@ -156,7 +165,7 @@ router.put('/hostels/:id', auth, requireKYC, upload.any(), async (req, res) => {
     const updateData = { ...req.body };
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'mapCoordinates'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'mapCoordinates', 'paymentDetails'].forEach(field => {
       if (updateData[field] && typeof updateData[field] === 'string') {
         try {
           updateData[field] = JSON.parse(updateData[field]);
@@ -165,6 +174,15 @@ router.put('/hostels/:id', auth, requireKYC, upload.any(), async (req, res) => {
         }
       }
     });
+
+    // Handle reservation settings
+    if (updateData.reservationEnabled !== undefined) {
+      updateData.reservationEnabled = updateData.reservationEnabled === 'true' || updateData.reservationEnabled === true;
+    }
+    if (updateData.reservationAmount !== undefined) {
+      const amount = Number(updateData.reservationAmount);
+      updateData.reservationAmount = isNaN(amount) ? 0 : amount;
+    }
 
     // Auto-compute base price from sharingTypes minimum
     if (updateData.sharingTypes && updateData.sharingTypes.length > 0) {

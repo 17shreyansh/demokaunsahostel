@@ -408,7 +408,7 @@ router.post('/', auth, upload.any(), async (req, res) => {
     const hostelData = { ...req.body };
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates', 'installmentPlans'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates', 'installmentPlans', 'paymentDetails'].forEach(field => {
       if (hostelData[field] && typeof hostelData[field] === 'string') {
         try {
           hostelData[field] = JSON.parse(hostelData[field]);
@@ -417,6 +417,15 @@ router.post('/', auth, upload.any(), async (req, res) => {
         }
       }
     });
+    
+    // Handle reservation settings
+    if (hostelData.reservationEnabled !== undefined) {
+      hostelData.reservationEnabled = hostelData.reservationEnabled === 'true' || hostelData.reservationEnabled === true;
+    }
+    if (hostelData.reservationAmount !== undefined) {
+      const amount = Number(hostelData.reservationAmount);
+      hostelData.reservationAmount = isNaN(amount) ? 0 : amount;
+    }
     
     // Auto-compute base price from sharingTypes minimum
     if (hostelData.sharingTypes && hostelData.sharingTypes.length > 0) {
@@ -522,7 +531,7 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
     const updateData = { ...req.body };
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates', 'installmentPlans'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates', 'installmentPlans', 'paymentDetails'].forEach(field => {
       if (updateData[field] && typeof updateData[field] === 'string') {
         try {
           updateData[field] = JSON.parse(updateData[field]);
@@ -532,11 +541,26 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
       }
     });
 
-    // Auto-compute base price from sharingTypes minimum
-    if (updateData.sharingTypes && updateData.sharingTypes.length > 0) {
-      const minPrice = Math.min(...updateData.sharingTypes.map(s => Number(s.price) || 0));
-      if (minPrice > 0) updateData.price = minPrice;
+    // Handle reservation settings
+    console.log('Raw reservation data:', { 
+      enabled: updateData.reservationEnabled, 
+      amount: updateData.reservationAmount,
+      enabledType: typeof updateData.reservationEnabled,
+      amountType: typeof updateData.reservationAmount
+    });
+    
+    if (updateData.reservationEnabled !== undefined) {
+      updateData.reservationEnabled = updateData.reservationEnabled === 'true' || updateData.reservationEnabled === true;
     }
+    if (updateData.reservationAmount !== undefined) {
+      const amount = Number(updateData.reservationAmount);
+      updateData.reservationAmount = isNaN(amount) ? 0 : amount;
+    }
+    
+    console.log('Processed reservation data:', { 
+      enabled: updateData.reservationEnabled, 
+      amount: updateData.reservationAmount 
+    });
     
     // Get existing hostel for contact info
     const existingHostel = await Hostel.findById(req.params.id);

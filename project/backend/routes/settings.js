@@ -1,7 +1,14 @@
 const express = require('express');
+const multer = require('multer');
 const Settings = require('../models/Settings');
 const auth = require('../middleware/auth');
 const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: 'uploads/',
+  filename: (req, file, cb) => cb(null, `admin-qr-${Date.now()}-${file.originalname}`)
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // Get setting value (internal API calls)
 router.get('/value/:key', async (req, res) => {
@@ -43,6 +50,60 @@ router.post('/', auth, async (req, res) => {
   } catch (error) {
     console.error('Save error:', error);
     res.status(400).json({ message: error.message });
+  }
+});
+
+// Get payment configuration
+router.get('/payment-config', auth, async (req, res) => {
+  try {
+    const upiSetting = await Settings.findOne({ key: 'admin_upi_id' });
+    const qrSetting = await Settings.findOne({ key: 'admin_qr_code' });
+    const instructionsSetting = await Settings.findOne({ key: 'admin_payment_instructions' });
+
+    res.json({
+      success: true,
+      settings: {
+        upiId: upiSetting?.value || '',
+        qrCode: qrSetting?.value || '',
+        paymentInstructions: instructionsSetting?.value || ''
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Save payment configuration
+router.post('/payment-config', auth, upload.single('qrCode'), async (req, res) => {
+  try {
+    const { upiId, paymentInstructions } = req.body;
+
+    // Save UPI ID
+    await Settings.findOneAndUpdate(
+      { key: 'admin_upi_id' },
+      { value: upiId || '', category: 'payment' },
+      { upsert: true }
+    );
+
+    // Save QR Code filename if uploaded
+    if (req.file) {
+      await Settings.findOneAndUpdate(
+        { key: 'admin_qr_code' },
+        { value: req.file.filename, category: 'payment' },
+        { upsert: true }
+      );
+    }
+
+    // Save payment instructions
+    await Settings.findOneAndUpdate(
+      { key: 'admin_payment_instructions' },
+      { value: paymentInstructions || '', category: 'payment' },
+      { upsert: true }
+    );
+
+    res.json({ success: true, message: 'Payment settings saved successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 

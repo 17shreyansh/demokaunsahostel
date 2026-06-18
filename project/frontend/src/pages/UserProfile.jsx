@@ -13,6 +13,7 @@ const STARS = [1, 2, 3, 4, 5];
 const TABS = [
   { id: 'profile', label: 'Profile Settings', icon: FiSettings },
   { id: 'bookings', label: 'My Bookings', icon: FiMessageSquare },
+  { id: 'payments', label: 'My Payments', icon: FiMessageSquare },
   { id: 'assignments', label: 'My Assigned Hostels', icon: FiMessageSquare },
   { id: 'reviews', label: 'My Reviews', icon: FiStar }
 ];
@@ -771,6 +772,165 @@ const BookingHistoryManager = memo(() => {
 });
 BookingHistoryManager.displayName = 'BookingHistoryManager';
 
+// 6. Payment Requests Manager
+const PaymentRequestsManager = memo(() => {
+  const [paymentRequests, setPaymentRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchPaymentRequests = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/manual-payments/my-requests`, {
+          credentials: 'include',
+          signal: abortController.signal
+        });
+        const data = await response.json();
+        if (!abortController.signal.aborted) {
+          setPaymentRequests(data.requests || []);
+        }
+      } catch (err) {
+        if (err.name !== 'CanceledError') setError('Failed to load payment requests.');
+      } finally {
+        if (!abortController.signal.aborted) setLoading(false);
+      }
+    };
+
+    fetchPaymentRequests();
+    return () => abortController.abort();
+  }, [API_URL]);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getTypeColor = (type) => {
+    return type === 'visit' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="p-4 bg-red-50 text-red-600 rounded-xl">{error}</div>;
+  }
+
+  if (paymentRequests.length === 0) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+        <FiMessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+        <h3 className="text-lg font-bold text-gray-900">No payment requests</h3>
+        <p className="text-gray-500 mt-1">Your payment submissions will appear here.</p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">My Payment Requests</h2>
+        <p className="text-gray-500 text-sm">Track your payment submissions and approval status.</p>
+      </div>
+
+      <div className="space-y-4">
+        {paymentRequests.map((request) => (
+          <motion.div
+            key={request._id}
+            className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <h3 className="font-bold text-gray-900 text-lg">{request.hostel?.name}</h3>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(request.status)}`}>
+                    {request.status.toUpperCase()}
+                  </span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTypeColor(request.paymentType)}`}>
+                    {request.paymentType === 'visit' ? 'Visit Booking' : 'Seat Reservation'}
+                  </span>
+                </div>
+                <p className="text-gray-500 text-sm">{request.hostel?.location}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-bold text-green-600">₹{request.amount}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {new Date(request.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-sm text-gray-600 font-semibold">Transaction ID:</label>
+                <p className="font-mono text-sm bg-gray-50 px-3 py-2 rounded-lg mt-1">{request.upiTransactionId}</p>
+              </div>
+              {request.sharingType && (
+                <div>
+                  <label className="text-sm text-gray-600 font-semibold">Sharing Type:</label>
+                  <p className="font-medium text-sm bg-gray-50 px-3 py-2 rounded-lg mt-1">{request.sharingType}</p>
+                </div>
+              )}
+            </div>
+
+            {request.notes && (
+              <div className="mb-4">
+                <label className="text-sm text-gray-600 font-semibold">Notes:</label>
+                <p className="text-sm bg-gray-50 p-3 rounded-lg mt-1">{request.notes}</p>
+              </div>
+            )}
+
+            {request.screenshot && (
+              <div className="mb-4">
+                <label className="text-sm text-gray-600 font-semibold block mb-2">Payment Screenshot:</label>
+                <img
+                  src={`${API_URL}/uploads/payments/${request.screenshot}`}
+                  alt="Payment Screenshot"
+                  className="max-w-sm border-2 border-gray-200 rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => window.open(`${API_URL}/uploads/payments/${request.screenshot}`, '_blank')}
+                />
+              </div>
+            )}
+
+            {request.status === 'rejected' && request.rejectionReason && (
+              <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                <label className="text-sm font-bold text-red-800">Rejection Reason:</label>
+                <p className="text-sm text-red-600 mt-1">{request.rejectionReason}</p>
+              </div>
+            )}
+
+            {request.status === 'approved' && (
+              <div className="p-4 bg-green-50 border-2 border-green-200 rounded-xl flex items-center gap-2">
+                <FiStar className="text-green-600 fill-current" />
+                <p className="text-sm font-bold text-green-800">Payment Approved! Your booking is confirmed.</p>
+              </div>
+            )}
+
+            {request.reviewedBy && request.reviewedAt && (
+              <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-500">
+                Reviewed on {new Date(request.reviewedAt).toLocaleString()}
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+});
+PaymentRequestsManager.displayName = 'PaymentRequestsManager';
+
 
 /* -------------------------------------------------------------------------- */
 /* MAIN SHELL COMPONENT                                                       */
@@ -848,6 +1008,10 @@ const UserProfile = () => {
               ) : activeTab === 'bookings' ? (
                 <motion.div key="bookings" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                   <BookingHistoryManager />
+                </motion.div>
+              ) : activeTab === 'payments' ? (
+                <motion.div key="payments" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                  <PaymentRequestsManager />
                 </motion.div>
               ) : activeTab === 'assignments' ? (
                 <motion.div key="assignments" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>

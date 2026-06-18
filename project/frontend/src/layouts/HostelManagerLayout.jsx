@@ -65,6 +65,7 @@ const HostelManagerLayout = ({ children }) => {
   const navigation = useMemo(() => [
     { name: 'Dashboard', href: '/hostel-manager/dashboard', icon: FiGrid },
     { name: 'My Properties', href: '/hostel-manager/hostels', icon: FiHome, badge: manager?.hostels?.length || 0 },
+    { name: 'Payments', href: '/hostel-manager/payments', icon: FiBriefcase },
     { name: 'Reviews', href: '/hostel-manager/reviews', icon: FiStar },
     { name: 'KYC Status', href: '/hostel-manager/kyc', icon: FiBriefcase, badgeElement: kycBadge },
   ], [manager?.hostels?.length, kycBadge]);
