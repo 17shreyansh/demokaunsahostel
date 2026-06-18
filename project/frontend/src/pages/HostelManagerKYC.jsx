@@ -41,7 +41,7 @@ const VerifiedState = ({ verifiedAt, onDashboard }) => (
   </div>
 );
 
-const UnderReviewState = ({ submittedAt, companyDetails, bankDetails }) => (
+const UnderReviewState = ({ submittedAt, bankDetails, paymentDetails }) => (
   <div className="max-w-3xl mx-auto py-8">
     <Card className="shadow-sm border-blue-100 rounded-2xl mb-6">
       <Result
@@ -50,22 +50,13 @@ const UnderReviewState = ({ submittedAt, companyDetails, bankDetails }) => (
         subTitle={
           <span className="text-slate-500">
             Submitted on {new Date(submittedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}.
-            Our compliance team is currently reviewing your documents.
+            Our compliance team is currently reviewing your details.
           </span>
         }
       />
     </Card>
 
     <Row gutter={[24, 24]}>
-      <Col xs={24} md={12}>
-        <Card title="Business Details" bordered={false} className="shadow-sm rounded-xl h-full" size="small">
-          <div className="space-y-4">
-            <div><Text type="secondary" className="text-xs uppercase tracking-wider block mb-1">Company Name</Text><Text strong>{companyDetails?.companyName || 'N/A'}</Text></div>
-            <div><Text type="secondary" className="text-xs uppercase tracking-wider block mb-1">Entity Type</Text><Text strong className="capitalize">{companyDetails?.companyType || 'N/A'}</Text></div>
-            <div><Text type="secondary" className="text-xs uppercase tracking-wider block mb-1">GST Identification</Text><Text strong>{companyDetails?.gstNumber || 'N/A'}</Text></div>
-          </div>
-        </Card>
-      </Col>
       <Col xs={24} md={12}>
         <Card title="Banking Information" bordered={false} className="shadow-sm rounded-xl h-full" size="small">
           <div className="space-y-4">
@@ -75,6 +66,19 @@ const UnderReviewState = ({ submittedAt, companyDetails, bankDetails }) => (
               <div><Text type="secondary" className="text-xs uppercase tracking-wider block mb-1">Bank Name</Text><Text strong>{bankDetails?.bankName || 'N/A'}</Text></div>
               <div><Text type="secondary" className="text-xs uppercase tracking-wider block mb-1">IFSC</Text><Text strong>{bankDetails?.ifscCode || 'N/A'}</Text></div>
             </div>
+          </div>
+        </Card>
+      </Col>
+      <Col xs={24} md={12}>
+        <Card title="Payment Details" bordered={false} className="shadow-sm rounded-xl h-full" size="small">
+          <div className="space-y-4">
+            <div><Text type="secondary" className="text-xs uppercase tracking-wider block mb-1">UPI ID</Text><Text strong>{paymentDetails?.upiId || 'N/A'}</Text></div>
+            {paymentDetails?.qrCode && (
+              <div>
+                <Text type="secondary" className="text-xs uppercase tracking-wider block mb-2">QR Code</Text>
+                <img src={`http://localhost:5000${paymentDetails.qrCode}`} alt="QR Code" className="w-32 h-32 border rounded" />
+              </div>
+            )}
           </div>
         </Card>
       </Col>
@@ -92,36 +96,33 @@ const HostelManagerKYC = () => {
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
-  const [panFile, setPanFile] = useState([]);
-  const [bankFile, setBankFile] = useState([]);
+  const [qrFile, setQrFile] = useState([]);
 
   // Ensure fresh form mounting if the user's KYC state changes
   useEffect(() => {
     form.resetFields();
-    setPanFile([]);
-    setBankFile([]);
+    setQrFile([]);
   }, [manager?.kyc?.status, form]);
 
   const onFinish = async (values) => {
-    if (panFile.length === 0 || bankFile.length === 0) {
-      message.error('Both PAN Card and Bank Proof documents are required.');
+    if (qrFile.length === 0) {
+      message.error('QR Code image is required.');
       return;
     }
 
     setLoading(true);
-    const hideMessage = message.loading('Encrypting and submitting compliance data...', 0);
+    const hideMessage = message.loading('Submitting KYC details...', 0);
 
     try {
       const data = new FormData();
       Object.keys(values).forEach(key => data.append(key, values[key]));
-      data.append('panCard', panFile[0].originFileObj);
-      data.append('bankProof', bankFile[0].originFileObj);
+      data.append('qrCode', qrFile[0].originFileObj);
 
       await submitKYC(data);
-      message.success('Compliance data submitted successfully.');
+      message.success('KYC details submitted successfully.');
       navigate('/hostel-manager/dashboard');
     } catch (err) {
-      message.error(err.response?.data?.message || 'Verification submission failed. Please try again.');
+      message.error(err.response?.data?.message || 'KYC submission failed. Please try again.');
     } finally {
       hideMessage();
       setLoading(false);
@@ -131,7 +132,7 @@ const HostelManagerKYC = () => {
   const uploadProps = {
     beforeUpload: () => false,
     maxCount: 1,
-    accept: 'image/jpeg,image/png,application/pdf'
+    accept: 'image/jpeg,image/png'
   };
 
   // State Routing
@@ -150,8 +151,8 @@ const HostelManagerKYC = () => {
       <HostelManagerLayout>
         <UnderReviewState 
           submittedAt={manager.kyc.submittedAt} 
-          companyDetails={manager.kyc.companyDetails} 
-          bankDetails={manager.kyc.bankDetails} 
+          bankDetails={manager.kyc.bankDetails}
+          paymentDetails={manager.kyc.paymentDetails}
         />
       </HostelManagerLayout>
     );
@@ -164,8 +165,8 @@ const HostelManagerKYC = () => {
         
         {/* Header Section */}
         <div className="mb-8">
-          <Title level={2} className="!m-0 text-slate-900">Identity Verification (KYC)</Title>
-          <Text type="secondary" className="text-base">Secure your account to begin accepting reservations.</Text>
+          <Title level={2} className="!m-0 text-slate-900">Bank & Payment Details (KYC)</Title>
+          <Text type="secondary" className="text-base">Setup your payment details to receive bookings.</Text>
         </div>
 
         {/* Rejection Alert */}
@@ -195,9 +196,8 @@ const HostelManagerKYC = () => {
             <Steps
               current={status === 'rejected' ? 0 : 0}
               items={[
-                { title: 'Business Identity', icon: <ShopOutlined /> },
-                { title: 'Documentation', icon: <IdcardOutlined /> },
-                { title: 'Bank Account', icon: <BankOutlined /> }
+                { title: 'Bank Account', icon: <BankOutlined /> },
+                { title: 'Payment Details', icon: <IdcardOutlined /> }
               ]}
               className="max-w-2xl mx-auto"
             />
@@ -211,79 +211,9 @@ const HostelManagerKYC = () => {
             className="p-8"
             requiredMark={false}
           >
-            {/* Step 1: Business Details */}
+            {/* Step 1: Bank Details */}
             <div className="mb-10">
-              <Title level={5} className="!mb-6 text-slate-800 border-b border-slate-100 pb-2">1. Business Identity</Title>
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <Form.Item name="companyName" label={<span className="font-semibold text-slate-700">Registered Entity Name</span>} rules={[{ required: true }]}>
-                    <Input size="large" placeholder="As per legal documents" />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item name="companyType" label={<span className="font-semibold text-slate-700">Entity Type</span>} rules={[{ required: true }]}>
-                    <Select size="large" placeholder="Select legal structure">
-                      <Select.Option value="proprietorship">Sole Proprietorship</Select.Option>
-                      <Select.Option value="partnership">Partnership</Select.Option>
-                      <Select.Option value="llp">Limited Liability Partnership (LLP)</Select.Option>
-                      <Select.Option value="private-limited">Private Limited</Select.Option>
-                      <Select.Option value="public-limited">Public Limited</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col xs={24}>
-                  <Form.Item 
-                    name="gstNumber" 
-                    label={<span className="font-semibold text-slate-700">GST Identification Number (GSTIN)</span>} 
-                    rules={[
-                      { required: true, message: 'GSTIN is required' },
-                      { pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, message: 'Invalid GSTIN format' }
-                    ]}
-                  >
-                    <Input size="large" placeholder="22AAAAA0000A1Z5" className="uppercase" />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
-
-            {/* Step 2: Documents */}
-            <div className="mb-10">
-              <Title level={5} className="!mb-6 text-slate-800 border-b border-slate-100 pb-2">2. Required Documentation</Title>
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <Form.Item label={<span className="font-semibold text-slate-700">PAN Card (Entity or Proprietor)</span>} required>
-                    <Dragger 
-                      {...uploadProps} 
-                      fileList={panFile}
-                      onChange={({ fileList }) => setPanFile(fileList)}
-                      className="bg-slate-50 hover:bg-slate-100 transition-colors"
-                    >
-                      <p className="ant-upload-drag-icon text-blue-500"><InboxOutlined /></p>
-                      <p className="ant-upload-text font-medium text-slate-700">Click or drag file to this area</p>
-                      <p className="ant-upload-hint text-xs text-slate-500">Supports PDF, JPG, PNG (Max 10MB)</p>
-                    </Dragger>
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item label={<span className="font-semibold text-slate-700">Bank Verification (Cancelled Cheque/Passbook)</span>} required>
-                    <Dragger 
-                      {...uploadProps} 
-                      fileList={bankFile}
-                      onChange={({ fileList }) => setBankFile(fileList)}
-                      className="bg-slate-50 hover:bg-slate-100 transition-colors"
-                    >
-                      <p className="ant-upload-drag-icon text-blue-500"><InboxOutlined /></p>
-                      <p className="ant-upload-text font-medium text-slate-700">Click or drag file to this area</p>
-                      <p className="ant-upload-hint text-xs text-slate-500">Must show Account Number and IFSC</p>
-                    </Dragger>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
-
-            {/* Step 3: Bank Details */}
-            <div className="mb-10">
-              <Title level={5} className="!mb-6 text-slate-800 border-b border-slate-100 pb-2">3. Settlement Bank Account</Title>
+              <Title level={5} className="!mb-6 text-slate-800 border-b border-slate-100 pb-2">1. Settlement Bank Account</Title>
               <Row gutter={24}>
                 <Col xs={24}>
                   <Form.Item name="accountHolderName" label={<span className="font-semibold text-slate-700">Account Holder Name</span>} rules={[{ required: true }]}>
@@ -322,10 +252,43 @@ const HostelManagerKYC = () => {
               </Row>
             </div>
 
+            {/* Step 2: Payment Details */}
+            <div className="mb-10">
+              <Title level={5} className="!mb-6 text-slate-800 border-b border-slate-100 pb-2">2. Payment Details</Title>
+              <Row gutter={24}>
+                <Col xs={24} md={12}>
+                  <Form.Item 
+                    name="upiId" 
+                    label={<span className="font-semibold text-slate-700">UPI ID</span>} 
+                    rules={[
+                      { required: true, message: 'UPI ID is required' },
+                      { pattern: /^[a-zA-Z0-9.\-_]+@[a-zA-Z]+$/, message: 'Invalid UPI ID format' }
+                    ]}
+                  >
+                    <Input size="large" placeholder="yourname@paytm" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item label={<span className="font-semibold text-slate-700">QR Code Image</span>} required>
+                    <Dragger 
+                      {...uploadProps} 
+                      fileList={qrFile}
+                      onChange={({ fileList }) => setQrFile(fileList)}
+                      className="bg-slate-50 hover:bg-slate-100 transition-colors"
+                    >
+                      <p className="ant-upload-drag-icon text-blue-500"><InboxOutlined /></p>
+                      <p className="ant-upload-text font-medium text-slate-700">Click or drag QR code to upload</p>
+                      <p className="ant-upload-hint text-xs text-slate-500">Supports JPG, PNG (Max 5MB)</p>
+                    </Dragger>
+                  </Form.Item>
+                </Col>
+              </Row>
+            </div>
+
             {/* Form Actions */}
             <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
               <Text type="secondary" className="text-xs max-w-sm hidden sm:block">
-                By submitting this form, you confirm that all provided details match your legal documents. Fraudulent submissions may result in account termination.
+                By submitting this form, you confirm that all provided details are accurate and belong to you.
               </Text>
               <div className="flex gap-3 w-full sm:w-auto">
                 <Button size="large" onClick={() => navigate('/hostel-manager/dashboard')} disabled={loading}>
@@ -338,7 +301,7 @@ const HostelManagerKYC = () => {
                   loading={loading}
                   className="bg-slate-900 hover:bg-slate-800 min-w-[200px]"
                 >
-                  {status === 'rejected' ? 'Resubmit Verification' : 'Submit for Verification'}
+                  {status === 'rejected' ? 'Resubmit Details' : 'Submit for Verification'}
                 </Button>
               </div>
             </div>

@@ -353,6 +353,34 @@ router.get('/filters/options', async (req, res) => {
   }
 });
 
+// Get hostel payment details from manager's KYC
+router.get('/:id/payment-details', async (req, res) => {
+  try {
+    const hostel = await Hostel.findById(req.params.id).populate({
+      path: 'manager',
+      select: 'kyc.paymentDetails'
+    });
+    
+    if (!hostel) {
+      return res.status(404).json({ message: 'Hostel not found' });
+    }
+
+    const HostelManager = require('../models/HostelManager');
+    const manager = await HostelManager.findOne({ hostels: hostel._id }).select('kyc.paymentDetails');
+    
+    if (!manager || !manager.kyc || !manager.kyc.paymentDetails) {
+      return res.status(404).json({ message: 'Payment details not found' });
+    }
+
+    res.json({
+      success: true,
+      paymentDetails: manager.kyc.paymentDetails
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const hostel = await Hostel.findById(req.params.id);
@@ -408,7 +436,7 @@ router.post('/', auth, upload.any(), async (req, res) => {
     const hostelData = { ...req.body };
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates', 'installmentPlans', 'paymentDetails'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates', 'installmentPlans'].forEach(field => {
       if (hostelData[field] && typeof hostelData[field] === 'string') {
         try {
           hostelData[field] = JSON.parse(hostelData[field]);
@@ -531,7 +559,7 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
     const updateData = { ...req.body };
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates', 'installmentPlans', 'paymentDetails'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates', 'installmentPlans'].forEach(field => {
       if (updateData[field] && typeof updateData[field] === 'string') {
         try {
           updateData[field] = JSON.parse(updateData[field]);

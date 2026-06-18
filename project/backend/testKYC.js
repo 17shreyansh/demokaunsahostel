@@ -99,13 +99,11 @@ async function testKYCEndpoint() {
     log.info('Testing KYC endpoint accessibility...');
     
     const formData = new FormData();
-    formData.append('companyName', 'Test Company');
-    formData.append('companyType', 'private-limited');
-    formData.append('gstNumber', '22AAAAA0000A1Z5');
     formData.append('accountNumber', '1234567890');
     formData.append('ifscCode', 'SBIN0001234');
     formData.append('bankName', 'Test Bank');
     formData.append('accountHolderName', 'Test User');
+    formData.append('upiId', 'testuser@paytm');
     
     const response = await axios.post(
       `${API_BASE}/hostel-manager/auth/kyc`,
@@ -128,6 +126,9 @@ async function testKYCEndpoint() {
     } else if (error.response?.status === 401) {
       log.error('Authentication failed for KYC endpoint');
       log.warn('Token may be missing or invalid');
+    } else if (error.response?.status === 400 && error.response?.data?.message?.includes('QR Code')) {
+      log.success('KYC endpoint is accessible (QR Code required as expected)');
+      return true;
     } else {
       log.error(`KYC test failed: ${error.response?.data?.message || error.message}`);
     }

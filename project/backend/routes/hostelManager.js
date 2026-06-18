@@ -123,10 +123,7 @@ router.put('/password', auth, async (req, res) => {
 });
 
 // Submit KYC
-router.post('/kyc', auth, upload.fields([
-  { name: 'panCard', maxCount: 1 },
-  { name: 'bankProof', maxCount: 1 }
-]), async (req, res) => {
+router.post('/kyc', auth, upload.single('qrCode'), async (req, res) => {
   try {
     console.log('KYC submission attempt - User ID from token:', req.user.id);
     
@@ -151,27 +148,26 @@ router.post('/kyc', auth, upload.fields([
       return res.status(400).json({ message: 'KYC is already verified' });
     }
 
-    const { companyName, companyType, gstNumber, accountNumber, ifscCode, bankName, accountHolderName } = req.body;
+    const { accountNumber, ifscCode, bankName, accountHolderName, upiId } = req.body;
     
     // Validate required fields
-    if (!companyName || !companyType || !gstNumber || !accountNumber || !ifscCode || !bankName || !accountHolderName) {
+    if (!accountNumber || !ifscCode || !bankName || !accountHolderName || !upiId) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Validate files
-    if (!req.files?.panCard || !req.files?.bankProof) {
-      return res.status(400).json({ message: 'PAN Card and Bank Proof documents are required' });
+    // Validate QR code file
+    if (!req.file) {
+      return res.status(400).json({ message: 'QR Code image is required' });
     }
 
     // Update KYC data
     manager.kyc = {
       status: 'submitted',
-      companyDetails: { companyName, companyType, gstNumber },
-      documents: {
-        panCard: `/uploads/${req.files.panCard[0].filename}`,
-        bankProof: `/uploads/${req.files.bankProof[0].filename}`
-      },
       bankDetails: { accountNumber, ifscCode, bankName, accountHolderName },
+      paymentDetails: {
+        upiId,
+        qrCode: `/uploads/${req.file.filename}`
+      },
       submittedAt: new Date(),
       verifiedAt: null,
       rejectedAt: null,

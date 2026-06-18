@@ -28,20 +28,15 @@ const hostelManagerSchema = new mongoose.Schema({
       enum: ['pending', 'submitted', 'verified', 'rejected'],
       default: 'pending'
     },
-    companyDetails: {
-      companyName: String,
-      companyType: String,
-      gstNumber: String
-    },
-    documents: {
-      panCard: String,
-      bankProof: String
-    },
     bankDetails: {
       accountNumber: String,
       ifscCode: String,
       bankName: String,
       accountHolderName: String
+    },
+    paymentDetails: {
+      upiId: String,
+      qrCode: String
     },
     submittedAt: Date,
     verifiedAt: Date,

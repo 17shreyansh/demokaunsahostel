@@ -10,8 +10,30 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(null);
   const [sharingType, setSharingType] = useState('');
+  const [paymentDetails, setPaymentDetails] = useState(null);
+  const [loadingPaymentDetails, setLoadingPaymentDetails] = useState(true);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+  // Fetch payment details from manager's KYC
+  React.useEffect(() => {
+    if (isOpen && hostel?._id) {
+      setLoadingPaymentDetails(true);
+      axios.get(`${API_URL}/api/hostels/${hostel._id}/payment-details`, { withCredentials: true })
+        .then(response => {
+          if (response.data.success) {
+            setPaymentDetails(response.data.paymentDetails);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch payment details:', err);
+          setError('Failed to load payment details. Please contact hostel manager.');
+        })
+        .finally(() => {
+          setLoadingPaymentDetails(false);
+        });
+    }
+  }, [isOpen, hostel?._id, API_URL]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -102,7 +124,17 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
 
   if (!isOpen) return null;
 
-  const paymentDetails = hostel?.paymentDetails || {};
+  if (loadingPaymentDetails) {
+    return createPortal(
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999999] p-4">
+        <div className="bg-white rounded-2xl p-8 text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading payment details...</p>
+        </div>
+      </div>,
+      document.body
+    );
+  }
 
   const modalContent = (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999999] p-4 animate-fadeIn">
@@ -151,7 +183,7 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
               </svg>
               <h4 className="font-bold text-gray-900">Payment Instructions</h4>
             </div>
-            {paymentDetails.upiId && (
+            {paymentDetails?.upiId ? (
               <div className="mb-4">
                 <label className="text-sm font-semibold text-gray-700 block mb-2">UPI ID:</label>
                 <div className="flex items-center gap-2">
@@ -168,22 +200,30 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
                   </button>
                 </div>
               </div>
+            ) : (
+              <div className="text-sm text-gray-600 bg-white p-4 rounded-lg border border-gray-200">
+                <p className="font-semibold">UPI ID not available. Please contact hostel manager.</p>
+              </div>
             )}
             
-            {paymentDetails.qrCode && (
+            {paymentDetails?.qrCode ? (
               <div className="mb-4">
                 <label className="text-sm font-semibold text-gray-700 block mb-2">Scan QR Code:</label>
                 <div className="bg-white p-4 rounded-lg border-2 border-gray-200 inline-block">
                   <img 
-                    src={`${API_URL}/uploads/${paymentDetails.qrCode}`} 
+                    src={`${API_URL}${paymentDetails.qrCode}`} 
                     alt="Payment QR Code"
                     className="w-48 h-48 object-contain"
                   />
                 </div>
               </div>
+            ) : (
+              <div className="text-sm text-gray-600 bg-white p-4 rounded-lg border border-gray-200">
+                <p className="font-semibold">QR Code not available. Please use UPI ID for payment.</p>
+              </div>
             )}
 
-            {paymentDetails.paymentInstructions && (
+            {paymentDetails?.paymentInstructions && (
               <div className="text-sm text-gray-700 whitespace-pre-wrap bg-white p-4 rounded-lg border border-gray-200">
                 {paymentDetails.paymentInstructions}
               </div>
