@@ -93,7 +93,7 @@ router.get('/hostels', auth, async (req, res) => {
 });
 
 // Add hostel - Create change request
-router.post('/hostels', auth, requireKYC, upload.any(), async (req, res) => {
+router.post('/hostels', auth, upload.any(), async (req, res) => {
   try {
     const manager = await HostelManager.findById(req.user.id);
     const hostelData = { ...req.body };
@@ -170,7 +170,7 @@ router.post('/hostels', auth, requireKYC, upload.any(), async (req, res) => {
 });
 
 // Update hostel - Create change request
-router.put('/hostels/:id', auth, requireKYC, upload.any(), async (req, res) => {
+router.put('/hostels/:id', auth, upload.any(), async (req, res) => {
   try {
     const manager = await HostelManager.findById(req.user.id);
     if (!manager.hostels.includes(req.params.id)) {
@@ -297,7 +297,7 @@ router.get('/change-requests/:id', auth, async (req, res) => {
 });
 
 // Delete hostel
-router.delete('/hostels/:id', auth, requireKYC, async (req, res) => {
+router.delete('/hostels/:id', auth, async (req, res) => {
   try {
     const manager = await HostelManager.findById(req.user.id);
     if (!manager.hostels.includes(req.params.id)) {

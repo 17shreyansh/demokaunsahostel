@@ -104,23 +104,15 @@ const HostelManagerHostels = () => {
             <p className="text-sm font-medium text-slate-500 mt-1 mb-0">Manage and monitor all your listings</p>
           </div>
           
-          {manager?.kyc?.status === 'verified' ? (
-            <Button 
-              type="primary" 
-              icon={<FiPlus />} 
-              size="large"
-              onClick={() => navigate('/hostel-manager/hostels/add')}
-              className="bg-slate-900 hover:bg-slate-800 shadow-lg hover:shadow-xl transition-all transform-gpu hover:-translate-y-0.5"
-            >
-              Add New Property
-            </Button>
-          ) : (
-            <Tooltip title="Complete KYC verification to add properties">
-              <Button size="large" disabled icon={<FiPlus />}>
-                Add New Property
-              </Button>
-            </Tooltip>
-          )}
+          <Button 
+            type="primary" 
+            icon={<FiPlus />} 
+            size="large"
+            onClick={() => navigate('/hostel-manager/hostels/add')}
+            className="bg-slate-900 hover:bg-slate-800 shadow-lg hover:shadow-xl transition-all transform-gpu hover:-translate-y-0.5"
+          >
+            Add New Property
+          </Button>
         </div>
 
         {/* Statistics Cards (Ant Design Native) */}
@@ -177,16 +169,14 @@ const HostelManagerHostels = () => {
               <p className="text-slate-500 mb-6 max-w-md mx-auto">
                 You haven't added any properties to your portfolio. Start listing to attract verified students.
               </p>
-              {manager?.kyc?.status === 'verified' && (
-                <Button 
-                  type="primary" 
-                  icon={<FiPlus />} 
-                  onClick={() => navigate('/hostel-manager/hostels/add')}
-                  className="bg-blue-600"
-                >
-                  Create First Listing
-                </Button>
-              )}
+              <Button 
+                type="primary" 
+                icon={<FiPlus />} 
+                onClick={() => navigate('/hostel-manager/hostels/add')}
+                className="bg-blue-600"
+              >
+                Create First Listing
+              </Button>
             </div>
           ) : (
             <Row gutter={[24, 24]}>

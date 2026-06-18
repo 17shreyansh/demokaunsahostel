@@ -107,7 +107,7 @@ const HostelManagerDashboard = () => {
       icon: <FiHome size={20} />,
       link: '/hostel-manager/hostels/add',
       color: 'text-blue-600 bg-blue-50 border-blue-100',
-      enabled: kycStatus === 'verified'
+      enabled: true
     },
     {
       title: 'Manage Listings',
@@ -226,15 +226,9 @@ const HostelManagerDashboard = () => {
                         <p className="text-sm text-slate-500 mb-4 flex-grow">{action.description}</p>
                         
                         <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
-                          {action.enabled ? (
-                            <span className="text-sm font-bold text-blue-600 flex items-center gap-1 group">
-                              Access tool <FiArrowRight className="transition-transform group-hover:translate-x-1" />
-                            </span>
-                          ) : (
-                            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100">
-                              Requires KYC
-                            </span>
-                          )}
+                          <span className="text-sm font-bold text-blue-600 flex items-center gap-1 group">
+                            Access tool <FiArrowRight className="transition-transform group-hover:translate-x-1" />
+                          </span>
                         </div>
                       </div>
                     </Card>
