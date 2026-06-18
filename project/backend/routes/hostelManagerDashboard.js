@@ -177,7 +177,7 @@ router.put('/hostels/:id', auth, upload.any(), async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
     
-    const existingHostel = await Hostel.findById(req.params.id).lean();
+    const existingHostel = await Hostel.findById(req.params.id);
     if (!existingHostel) {
       return res.status(404).json({ message: 'Hostel not found' });
     }
@@ -209,9 +209,6 @@ router.put('/hostels/:id', auth, upload.any(), async (req, res) => {
       const minPrice = Math.min(...updateData.sharingTypes.map(s => Number(s.price) || 0));
       if (minPrice > 0) updateData.price = minPrice;
     }
-    
-// Get existing hostel for contact info
-    const existingHostel = await Hostel.findById(req.params.id);
     
     // Handle contact info
     updateData.contactInfo = {
