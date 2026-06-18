@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import HostelCard from '../common/HostelCard';
 
 // 1. Extract static references outside the render cycle
@@ -50,6 +51,18 @@ const FeaturedHostels = memo(({ hostels = EMPTY_HOSTELS, loading = false }) => {
             <div className="text-6xl mb-4 transform-gpu">🏠</div>
             <h4 className="text-xl font-semibold mb-2 text-gray-900">No Featured Hostels Available</h4>
             <p className="text-gray-600">Please check back later or browse all hostels.</p>
+          </div>
+        )}
+
+        {/* View All Button */}
+        {processedHostels.length > 0 && (
+          <div className="text-center mt-8 sm:mt-10">
+            <Link 
+              to="/hostels" 
+              className="inline-block px-6 py-3 bg-yellow-custom text-gray-900 font-semibold rounded-lg hover:bg-yellow-500 transition-colors duration-300 shadow-md hover:shadow-lg"
+            >
+              View All Hostels
+            </Link>
           </div>
         )}
       </div>

@@ -35,6 +35,7 @@ const AdminAssignments = lazy(() => import('./pages/AdminAssignments'))
 const AdminPayments = lazy(() => import('./pages/AdminPayments'))
 const AdminBlogList = lazy(() => import('./pages/blog/AdminBlogList'))
 const AdminBlogEditor = lazy(() => import('./pages/blog/AdminBlogEditor'))
+const AdminFAQ = lazy(() => import('./pages/AdminFAQ'))
 const BlogList = lazy(() => import('./pages/blog/BlogListPage'))
 const BlogPost = lazy(() => import('./pages/blog/BlogPostPage'))
 const Chatbot = lazy(() => import('./components/Chatbot'))
@@ -150,6 +151,7 @@ function App() {
                   <Route path="blog" element={<AdminBlogList />} />
                   <Route path="blog/new" element={<AdminBlogEditor />} />
                   <Route path="blog/edit/:id" element={<AdminBlogEditor />} />
+                  <Route path="faq" element={<AdminFAQ />} />
                 </Route>
 
                 {/* Public Blog Routes */}

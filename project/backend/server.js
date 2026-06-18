@@ -60,6 +60,9 @@ app.use('/api/blog/analytics', analyticsRouter);
 // SEO Routes
 app.use('/api', require('./routes/seo.routes'));
 
+// FAQ Routes
+app.use('/api/faqs', require('./routes/faq'));
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });

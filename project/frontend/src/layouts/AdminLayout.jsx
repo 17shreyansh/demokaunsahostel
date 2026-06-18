@@ -17,6 +17,7 @@ const MENU_ITEMS = [
   { key: 'managers', label: 'Hostel Owners', icon: Users, path: '/admin/managers' },
   { key: 'reviews', label: 'Reviews', icon: Star, path: '/admin/reviews' },
   { key: 'blog', label: 'Blog Posts', icon: FileText, path: '/admin/blog' },
+  { key: 'faq', label: 'FAQ Management', icon: MessageSquare, path: '/admin/faq' },
   { key: 'nearbyplaces', label: 'Nearby Places', icon: MessageSquare, path: '/admin/nearbyplaces' },
   { key: 'leads', label: 'Bookings', icon: Folder, path: '/admin/leads' },
   { key: 'page-content', label: 'CMS Content', icon: FileText, path: '/admin/page-content' },

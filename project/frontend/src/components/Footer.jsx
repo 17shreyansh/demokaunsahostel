@@ -31,7 +31,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center mb-6 group">
-              <img src={logo} alt="Kaunsa Hostel Logo" className="h-16 w-auto bg-white rounded-lg p-2 group-hover:scale-105 transition-transform" />
+              <img src={logo} alt="Kaunsa Hostel Logo" className="h-32 w-auto group-hover:scale-105 transition-transform" />
             </Link>
             <p className="text-gray-200 leading-relaxed mb-6">
               Your trusted partner in finding premium hostels in Greater Noida. We create comfortable, safe, and vibrant communities for students and professionals.
@@ -46,6 +46,7 @@ const Footer = () => {
               <li><Link to="/hostels" className="text-gray-200 hover:text-yellow-custom hover:translate-x-1 transition-all duration-200 flex items-center group"><span className="w-2 h-2 bg-yellow-custom rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>All Hostels</Link></li>
               <li><Link to="/about" className="text-gray-200 hover:text-yellow-custom hover:translate-x-1 transition-all duration-200 flex items-center group"><span className="w-2 h-2 bg-yellow-custom rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>About Us</Link></li>
               <li><Link to="/contact" className="text-gray-200 hover:text-yellow-custom hover:translate-x-1 transition-all duration-200 flex items-center group"><span className="w-2 h-2 bg-yellow-custom rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>Contact Us</Link></li>
+              <li><Link to="/blog" className="text-gray-200 hover:text-yellow-custom hover:translate-x-1 transition-all duration-200 flex items-center group"><span className="w-2 h-2 bg-yellow-custom rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>Blog</Link></li>
             </ul>
           </div>
 
@@ -53,17 +54,9 @@ const Footer = () => {
           <div>
             <h5 className="font-bold text-xl mb-6 text-yellow-custom">For Hostel Owners</h5>
             <ul className="space-y-3">
-              <li>
-                <Link to="/hostel-manager/auth?mode=register" className="text-gray-200 hover:text-yellow-custom hover:translate-x-1 transition-all duration-200 flex items-center group">
-                  <span className="w-2 h-2 bg-yellow-custom rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  Register Your Hostel
-                </Link>
-              </li>
-             
+              <li><Link to="/hostel-manager/auth?mode=register" className="text-gray-200 hover:text-yellow-custom hover:translate-x-1 transition-all duration-200 flex items-center group"><span className="w-2 h-2 bg-yellow-custom rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>Register Your Hostel</Link></li>
+              <li><Link to="/hostel-manager/auth?mode=login" className="text-gray-200 hover:text-yellow-custom hover:translate-x-1 transition-all duration-200 flex items-center group"><span className="w-2 h-2 bg-yellow-custom rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>Hostel Owner Login</Link></li>
             </ul>
-            <p className="text-gray-300 text-sm mt-6 leading-relaxed">
-              List your hostel and reach thousands of students looking for accommodation.
-            </p>
           </div>
 
           {/* Contact Info */}

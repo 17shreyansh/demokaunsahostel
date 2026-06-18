@@ -207,17 +207,23 @@ const Header = memo(() => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.2 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden touch-none"
+              className="fixed inset-0 bg-black/50 z-40 md:hidden touch-none"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             />
             
             <motion.div
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
               className="fixed left-0 top-0 h-[100dvh] w-[280px] sm:w-80 max-w-[85vw] bg-white shadow-2xl z-50 md:hidden flex flex-col overscroll-contain"
+              style={{ 
+                transform: 'translateZ(0)',
+                WebkitOverflowScrolling: 'touch',
+                WebkitTapHighlightColor: 'transparent'
+              }}
             >
               <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-white flex-shrink-0">
                 <img src={logo} alt="Logo" className="h-12 sm:h-14 w-auto" />
@@ -232,7 +238,13 @@ const Header = memo(() => {
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5 py-6">
+              <div 
+                className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5 py-6"
+                style={{ 
+                  WebkitOverflowScrolling: 'touch',
+                  transform: 'translateZ(0)'
+                }}
+              >
                 {user && (
                   <div className="mb-6 p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl border border-yellow-200">
                     <div className="flex items-center gap-3 mb-3">

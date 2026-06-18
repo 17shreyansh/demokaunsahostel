@@ -7,6 +7,10 @@ import FeaturedHostels from '../components/home/FeaturedHostels';
 import ServicesSection from '../components/home/ServicesSection';
 import TestimonialsSection from '../components/home/TestimonialsSection';
 import OurPartners from '../components/home/OurPartners';
+import WhyTrustUs from '../components/home/WhyTrustUs';
+import BlogsSection from '../components/home/BlogsSection';
+import FAQSection from '../components/home/FAQSection';
+import TalkToUs from '../components/home/TalkToUs';
 
 // Memoized components
 const MemoizedHeroSection = memo(HeroSection);
@@ -15,6 +19,10 @@ const MemoizedFeaturedHostels = memo(FeaturedHostels);
 const MemoizedServicesSection = memo(ServicesSection);
 const MemoizedTestimonialsSection = memo(TestimonialsSection);
 const MemoizedOurPartners = memo(OurPartners);
+const MemoizedWhyTrustUs = memo(WhyTrustUs);
+const MemoizedBlogsSection = memo(BlogsSection);
+const MemoizedFAQSection = memo(FAQSection);
+const MemoizedTalkToUs = memo(TalkToUs);
 
 // Injected Hardware-Accelerated CSS Animations
 // Replaces expensive Framer Motion JS tweens with zero-cost GPU compositing
@@ -144,8 +152,11 @@ const Home = () => {
       <MemoizedSearchSection content={pageContent.search} />
       <MemoizedOurPartners />
       <MemoizedFeaturedHostels hostels={hostels} loading={loading} />
-      {/* <MemoizedServicesSection content={pageContent.services} /> */}
+      <MemoizedWhyTrustUs />
       <MemoizedTestimonialsSection content={pageContent.testimonials} />
+      <MemoizedBlogsSection />
+      <MemoizedFAQSection />
+      <MemoizedTalkToUs />
     </main>
   );
 };
