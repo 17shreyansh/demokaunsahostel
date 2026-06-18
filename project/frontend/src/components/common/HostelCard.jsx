@@ -115,6 +115,7 @@ const HostelCard = memo(({ hostel, variant = 'default' }) => {
               price={hostel.price}
               priceType={hostel.priceType || 'month'}
               sessionPrice={hostel.sessionPrice}
+              sharingTypes={hostel.sharingTypes}
               size={isCompact ? 'small' : 'default'}
             />
           </div>

@@ -52,6 +52,25 @@ const hostelSchema = new mongoose.Schema({
       default: 0
     }
   }],
+  sharingTypes: [{
+    name: {
+      type: String,
+      required: true
+    },
+    price: {
+      type: Number,
+      required: true
+    },
+    priceType: {
+      type: String,
+      enum: ['month', 'session'],
+      default: 'month'
+    },
+    available: {
+      type: Number,
+      default: 0
+    }
+  }],
   contactInfo: {
     phone: String,
     email: String,
@@ -165,7 +184,9 @@ const hostelSchema = new mongoose.Schema({
   }],
   roomTypes: [{
     name: String,
-    description: String
+    description: String,
+    price: Number,
+    available: Number
   }],
   capacity: {
     type: String,

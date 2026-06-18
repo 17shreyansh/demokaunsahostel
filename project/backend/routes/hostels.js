@@ -112,11 +112,30 @@ router.get('/', async (req, res) => {
       query.location = { $regex: sanitizedLocation, $options: 'i' };
     }
     
-    // Price range
+    // Price range — match on base price OR any sharingType price
     if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice && minPrice !== '') query.price.$gte = parseInt(minPrice);
-      if (maxPrice && maxPrice !== '') query.price.$lte = parseInt(maxPrice);
+      const priceConditions = [];
+      const baseCondition = {};
+      if (minPrice && minPrice !== '') baseCondition.$gte = parseInt(minPrice);
+      if (maxPrice && maxPrice !== '') baseCondition.$lte = parseInt(maxPrice);
+      priceConditions.push({ price: baseCondition });
+      if (minPrice && maxPrice) {
+        priceConditions.push({ 'sharingTypes': { $elemMatch: { price: { $gte: parseInt(minPrice), $lte: parseInt(maxPrice) } } } });
+      } else if (minPrice) {
+        priceConditions.push({ 'sharingTypes': { $elemMatch: { price: { $gte: parseInt(minPrice) } } } });
+      } else {
+        priceConditions.push({ 'sharingTypes': { $elemMatch: { price: { $lte: parseInt(maxPrice) } } } });
+      }
+      if (query.$and) {
+        query.$and.push({ $or: priceConditions });
+      } else if (query.$or) {
+        query = { $and: [{ $or: query.$or }, { $or: priceConditions }] };
+      } else {
+        query.$or = [...(query.$or || []), ...priceConditions];
+        // Use $and to avoid clobbering existing $or
+        query = Object.keys(query).reduce((acc, k) => { if (k !== '$or') acc[k] = query[k]; return acc; }, {});
+        query.$and = [...(query.$and || []), { $or: priceConditions }];
+      }
     }
     
     // Gender filter
@@ -205,7 +224,7 @@ router.get('/', async (req, res) => {
         {
           $project: {
             name: 1, slug: 1, description: 1, location: 1, price: 1, priceType: 1, sessionPrice: 1,
-            images: 1, amenities: 1, availability: 1, rating: 1,
+            sharingTypes: 1, images: 1, amenities: 1, availability: 1, rating: 1,
             featured: 1, gender: 1, type: 1, verified: 1
           }
         }
@@ -245,7 +264,7 @@ router.get('/', async (req, res) => {
     } else {
       [hostels, total] = await Promise.all([
         Hostel.find(query)
-          .select('name slug description location price priceType sessionPrice images amenities availability rating featured gender type verified')
+          .select('name slug description location price priceType sessionPrice sharingTypes images amenities availability rating featured gender type verified')
           .sort(sort)
           .skip(skip)
           .limit(parseInt(limit))
@@ -389,7 +408,7 @@ router.post('/', auth, upload.any(), async (req, res) => {
     const hostelData = { ...req.body };
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'reviews', 'mapCoordinates'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates'].forEach(field => {
       if (hostelData[field] && typeof hostelData[field] === 'string') {
         try {
           hostelData[field] = JSON.parse(hostelData[field]);
@@ -399,6 +418,12 @@ router.post('/', auth, upload.any(), async (req, res) => {
       }
     });
     
+    // Auto-compute base price from sharingTypes minimum
+    if (hostelData.sharingTypes && hostelData.sharingTypes.length > 0) {
+      const minPrice = Math.min(...hostelData.sharingTypes.map(s => Number(s.price) || 0));
+      if (minPrice > 0) hostelData.price = minPrice;
+    }
+
     // Handle contact info
     hostelData.contactInfo = {
       phone: hostelData.phone || '',
@@ -497,7 +522,7 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
     const updateData = { ...req.body };
     
     // Handle JSON fields
-    ['amenities', 'rules', 'info', 'roomTypes', 'reviews', 'mapCoordinates'].forEach(field => {
+    ['amenities', 'rules', 'info', 'roomTypes', 'sharingTypes', 'reviews', 'mapCoordinates'].forEach(field => {
       if (updateData[field] && typeof updateData[field] === 'string') {
         try {
           updateData[field] = JSON.parse(updateData[field]);
@@ -506,6 +531,12 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
         }
       }
     });
+
+    // Auto-compute base price from sharingTypes minimum
+    if (updateData.sharingTypes && updateData.sharingTypes.length > 0) {
+      const minPrice = Math.min(...updateData.sharingTypes.map(s => Number(s.price) || 0));
+      if (minPrice > 0) updateData.price = minPrice;
+    }
     
     // Get existing hostel for contact info
     const existingHostel = await Hostel.findById(req.params.id);
@@ -624,7 +655,7 @@ router.get('/featured/homepage', async (req, res) => {
     }
     
     const featuredHostels = await Hostel.find({ featured: true })
-      .select('name slug description location price priceType sessionPrice images amenities availability rating featured verified')
+      .select('name slug description location price priceType sessionPrice sharingTypes images amenities availability rating featured verified')
       .sort({ updatedAt: -1 })
       .limit(6)
       .lean();

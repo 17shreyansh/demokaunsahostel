@@ -8,7 +8,7 @@ import {
 import { 
   SaveOutlined, ArrowLeftOutlined, UploadOutlined, PlusOutlined, 
   DeleteOutlined, EnvironmentOutlined, InfoCircleOutlined, LayoutOutlined,
-  PictureOutlined, StarOutlined, PhoneOutlined
+  PictureOutlined, StarOutlined, PhoneOutlined, DollarOutlined
 } from '@ant-design/icons';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
 
@@ -154,6 +154,7 @@ const HostelManagerHostelForm = () => {
           checkIn: data.checkIn || '',
           amenities: data.amenities || [],
           rules: data.rules || [],
+          sharingTypes: data.sharingTypes?.length > 0 ? data.sharingTypes : [],
           info: data.info?.length > 0 ? data.info : [],
           roomTypes: data.roomTypes?.length > 0 ? data.roomTypes : [],
           address: data.contactInfo?.address || '',
@@ -208,6 +209,14 @@ const HostelManagerHostelForm = () => {
       // Filtered Arrays
       formData.append('info', JSON.stringify(values.info?.filter(i => i.title && i.value) || []));
       formData.append('roomTypes', JSON.stringify(values.roomTypes?.filter(r => r.name) || []));
+      formData.append('sharingTypes', JSON.stringify(
+        (values.sharingTypes || []).filter(s => s.name && s.price > 0).map(s => ({
+          name: s.name,
+          price: Number(s.price),
+          priceType: s.priceType || 'month',
+          available: Number(s.available) || 0
+        }))
+      ));
 
       // Coordinates
       if (values.coordinates) {
@@ -219,7 +228,7 @@ const HostelManagerHostelForm = () => {
 
       // Basic Text Fields
       Object.keys(values).forEach(key => {
-        if (!['amenities', 'rules', 'info', 'coordinates', 'roomTypes'].includes(key) && values[key] !== undefined && values[key] !== null) {
+        if (!['amenities', 'rules', 'info', 'coordinates', 'roomTypes', 'sharingTypes'].includes(key) && values[key] !== undefined && values[key] !== null) {
           formData.append(key, values[key]);
         }
       });
@@ -530,7 +539,71 @@ const HostelManagerHostelForm = () => {
             </Form.Item>
           </Card>
 
-          {/* Section 5: Dynamic Arrays */}
+          {/* Section 5: Bed-Based Pricing */}
+          <Card 
+            title={<span className="flex items-center gap-2"><DollarOutlined className="text-yellow-500" /> Bed-Based Pricing (Sharing Types)</span>}
+            bordered={false} className="shadow-sm rounded-2xl"
+          >
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
+              <p className="text-sm text-yellow-800 font-medium">
+                Define pricing for each sharing type. The lowest price will automatically be shown as the base price on listing cards.
+              </p>
+            </div>
+            <Form.List name="sharingTypes">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div key={key} className="p-4 border border-slate-200 rounded-xl bg-slate-50 relative mb-4">
+                      <Button 
+                        type="text" danger icon={<DeleteOutlined />} 
+                        onClick={() => remove(name)}
+                        className="absolute top-2 right-2"
+                      />
+                      <Row gutter={16} className="mt-2">
+                        <Col xs={24} md={8}>
+                          <Form.Item {...restField} name={[name, 'name']} label="Sharing Type" rules={[{ required: true, message: 'Required' }]} className="mb-0">
+                            <Input size="large" placeholder="e.g., Single Sharing" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={6}>
+                          <Form.Item {...restField} name={[name, 'price']} label="Price (₹)" rules={[{ required: true, message: 'Required' }]} className="mb-0">
+                            <InputNumber 
+                              size="large" style={{ width: '100%' }} min={0}
+                              formatter={v => `₹ ${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                              parser={v => v.replace(/₹\s?|(,*)/g, '')}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={6}>
+                          <Form.Item {...restField} name={[name, 'priceType']} label="Billing" initialValue="month" className="mb-0">
+                            <Select size="large">
+                              <Select.Option value="month">Per Month</Select.Option>
+                              <Select.Option value="session">Per Session</Select.Option>
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={4}>
+                          <Form.Item {...restField} name={[name, 'available']} label="Beds" initialValue={0} className="mb-0">
+                            <InputNumber size="large" style={{ width: '100%' }} min={0} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
+                  ))}
+                  <Button 
+                    type="dashed" 
+                    onClick={() => add({ name: '', price: 0, priceType: 'month', available: 0 })} 
+                    icon={<PlusOutlined />} 
+                    block
+                  >
+                    Add Sharing Type
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </Card>
+
+          {/* Section 6: Dynamic Arrays */}
           <Card title="Room Configurations" bordered={false} className="shadow-sm rounded-2xl">
             <Form.List name="roomTypes">
               {(fields, { add, remove }) => (

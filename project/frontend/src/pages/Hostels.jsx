@@ -272,7 +272,7 @@ const Hostels = () => {
 
         {/* Price Range */}
         <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range</label>
+          <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range <span className="text-gray-400 font-normal text-xs">(per month)</span></label>
           <div className="bg-gray-50 p-5 border border-gray-100 rounded-xl">
             <div className="space-y-5">
               <div>

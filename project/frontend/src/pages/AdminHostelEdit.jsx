@@ -165,6 +165,7 @@ const AdminHostelEdit = () => {
           rules: data.rules || [],
           info: data.info?.length > 0 ? data.info : [{ title: '', value: '' }],
           nearbyPlaces: data.nearbyPlaces || {},
+          sharingTypes: data.sharingTypes?.length > 0 ? data.sharingTypes : [],
           roomTypes: data.roomTypes?.length > 0 ? data.roomTypes : [{ name: '', description: '' }],
           reviews: data.reviews?.map(review => ({
             ...review,
@@ -222,6 +223,14 @@ const AdminHostelEdit = () => {
 
       formData.append('info', JSON.stringify(values.info?.filter(i => i.title && i.value) || []));
       formData.append('roomTypes', JSON.stringify(values.roomTypes?.filter(r => r.name) || []));
+      formData.append('sharingTypes', JSON.stringify(
+        (values.sharingTypes || []).filter(s => s.name && s.price > 0).map(s => ({
+          name: s.name,
+          price: Number(s.price),
+          priceType: s.priceType || 'month',
+          available: Number(s.available) || 0
+        }))
+      ));
       formData.append('reviews', JSON.stringify(values.reviews?.filter(r => r.name && r.comment).map(r => ({
         ...r, date: r.reviewDate ? r.reviewDate.format('YYYY-MM-DD') : r.date
       })) || []));
@@ -236,7 +245,7 @@ const AdminHostelEdit = () => {
       }
 
       Object.keys(values).forEach(key => {
-        if (!['amenities', 'rules', 'info', 'nearbyPlaces', 'coordinates', 'roomTypes', 'reviews'].includes(key) && values[key] !== undefined) {
+        if (!['amenities', 'rules', 'info', 'nearbyPlaces', 'coordinates', 'roomTypes', 'sharingTypes', 'reviews'].includes(key) && values[key] !== undefined) {
           formData.append(key, values[key]);
         }
       });
@@ -527,6 +536,66 @@ const AdminHostelEdit = () => {
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
                   >
                     <Plus size={18} /> Add Room Configuration
+                  </button>
+                </div>
+              )}
+            </Form.List>
+          </FormSection>
+
+          <FormSection title="Bed-Based Pricing (Sharing Types)" icon={Layout}>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-blue-900 mb-1">Bed-Based Pricing System</h4>
+                  <p className="text-sm text-blue-700">Define pricing for different sharing types (Single, Double, Triple, etc.). Users will see all pricing options on the hostel page.</p>
+                </div>
+              </div>
+            </div>
+            <Form.List name="sharingTypes">
+              {(fields, { add, remove }) => (
+                <div className="space-y-4">
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div key={key} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-300 rounded-xl p-4 relative group transition-all hover:border-blue-400 hover:shadow-sm">
+                      <div className="md:col-span-2">
+                        <Form.Item {...restField} name={[name, 'name']} label="Sharing Type" rules={[{ required: true, message: 'Required' }]} className="mb-0">
+                          <Input size="large" placeholder="e.g., Single Sharing" className="w-full" />
+                        </Form.Item>
+                      </div>
+                      <div>
+                        <Form.Item {...restField} name={[name, 'price']} label="Price (₹)" rules={[{ required: true, message: 'Required' }]} className="mb-0">
+                          <InputNumber size="large" className="w-full" min={0} formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={value => value.replace(/₹\s?|(,*)/g, '')} />
+                        </Form.Item>
+                      </div>
+                      <div>
+                        <Form.Item {...restField} name={[name, 'priceType']} label="Billing" initialValue="month" className="mb-0">
+                          <Select size="large" className="w-full">
+                            <Select.Option value="month">Per Month</Select.Option>
+                            <Select.Option value="session">Per Session</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </div>
+                      <div>
+                        <Form.Item {...restField} name={[name, 'available']} label="Available Beds" initialValue={0} className="mb-0">
+                          <InputNumber size="large" className="w-full" min={0} />
+                        </Form.Item>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => remove(name)}
+                        className="absolute -top-3 -right-3 md:relative md:top-auto md:right-auto md:self-end w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white rounded-full border border-gray-200 text-gray-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-sm"
+                        aria-label="Remove sharing type"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button 
+                    type="button" 
+                    onClick={() => add({ name: '', price: 0, priceType: 'month', available: 0 })} 
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                  >
+                    <Plus size={18} /> Add Sharing Type
                   </button>
                 </div>
               )}
