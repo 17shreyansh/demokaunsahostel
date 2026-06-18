@@ -356,25 +356,41 @@ router.get('/filters/options', async (req, res) => {
 // Get hostel payment details from manager's KYC
 router.get('/:id/payment-details', async (req, res) => {
   try {
-    const hostel = await Hostel.findById(req.params.id).populate({
-      path: 'manager',
-      select: 'kyc.paymentDetails'
-    });
+    const hostel = await Hostel.findById(req.params.id).populate('manager', 'kyc.paymentDetails kyc.bankDetails name email');
     
     if (!hostel) {
       return res.status(404).json({ message: 'Hostel not found' });
     }
 
+    // If hostel has assigned manager, use manager's payment details
+    if (hostel.manager && hostel.manager.kyc && hostel.manager.kyc.paymentDetails) {
+      return res.json({
+        success: true,
+        paymentDetails: hostel.manager.kyc.paymentDetails,
+        bankDetails: hostel.manager.kyc.bankDetails,
+        managerInfo: {
+          name: hostel.manager.name,
+          email: hostel.manager.email
+        }
+      });
+    }
+
+    // Fallback: Find manager by checking hostels array (for backward compatibility)
     const HostelManager = require('../models/HostelManager');
-    const manager = await HostelManager.findOne({ hostels: hostel._id }).select('kyc.paymentDetails');
+    const manager = await HostelManager.findOne({ hostels: hostel._id }).select('kyc.paymentDetails kyc.bankDetails name email');
     
     if (!manager || !manager.kyc || !manager.kyc.paymentDetails) {
-      return res.status(404).json({ message: 'Payment details not found' });
+      return res.status(404).json({ message: 'Payment details not found. Please assign a verified manager to this hostel.' });
     }
 
     res.json({
       success: true,
-      paymentDetails: manager.kyc.paymentDetails
+      paymentDetails: manager.kyc.paymentDetails,
+      bankDetails: manager.kyc.bankDetails,
+      managerInfo: {
+        name: manager.name,
+        email: manager.email
+      }
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

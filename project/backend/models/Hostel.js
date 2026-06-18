@@ -96,6 +96,11 @@ const hostelSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  manager: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'HostelManager',
+    default: null
+  },
   info: [{
     title: {
       type: String,

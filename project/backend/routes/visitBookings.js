@@ -126,11 +126,20 @@ router.post('/create-order', auth, async (req, res) => {
 router.get('/my-bookings', auth, async (req, res) => {
   try {
     const bookings = await VisitBooking.find({ user: req.user.id })
-      .populate('hostel', 'name images location')
-      .sort({ createdAt: -1 });
+      .populate({
+        path: 'hostel',
+        select: 'name images location',
+        options: { strictPopulate: false }
+      })
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json({ success: true, bookings });
+    // Filter out bookings where hostel no longer exists
+    const validBookings = bookings.filter(booking => booking.hostel);
+
+    res.json({ success: true, bookings: validBookings });
   } catch (error) {
+    console.error('Get my bookings error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -144,22 +153,35 @@ router.get('/admin/all', auth, adminOnly, async (req, res) => {
     if (status) query.paymentStatus = status;
 
     const bookings = await VisitBooking.find(query)
-      .populate('user', 'name email phone')
-      .populate('hostel', 'name location')
+      .populate({
+        path: 'user',
+        select: 'name email phone',
+        options: { strictPopulate: false }
+      })
+      .populate({
+        path: 'hostel',
+        select: 'name location',
+        options: { strictPopulate: false }
+      })
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
+
+    // Filter out bookings where user or hostel no longer exists
+    const validBookings = bookings.filter(booking => booking.user && booking.hostel);
 
     const total = await VisitBooking.countDocuments(query);
 
     res.json({
       success: true,
-      bookings,
-      total,
-      totalPages: Math.ceil(total / limit),
+      bookings: validBookings,
+      total: validBookings.length,
+      totalPages: Math.ceil(validBookings.length / limit),
       currentPage: parseInt(page)
     });
   } catch (error) {
+    console.error('Admin get bookings error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -169,9 +191,20 @@ router.patch('/admin/:id', auth, adminOnly, async (req, res) => {
   try {
     const { visitStatus, visitDate, notes } = req.body;
 
-    const booking = await VisitBooking.findById(req.params.id);
+    const booking = await VisitBooking.findById(req.params.id)
+      .populate('user', 'name email phone')
+      .populate('hostel', 'name location');
+      
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    if (!booking.user) {
+      return res.status(400).json({ success: false, message: 'Associated user no longer exists' });
+    }
+
+    if (!booking.hostel) {
+      return res.status(400).json({ success: false, message: 'Associated hostel no longer exists' });
     }
 
     if (visitStatus) booking.visitStatus = visitStatus;
@@ -182,6 +215,7 @@ router.patch('/admin/:id', auth, adminOnly, async (req, res) => {
 
     res.json({ success: true, message: 'Booking updated successfully', booking });
   } catch (error) {
+    console.error('Update booking error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

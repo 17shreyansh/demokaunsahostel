@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react'
 import { userAPI, hostelAPI } from '../services/api'
 import { 
   Edit2, X, Check, Home, Users, UserCheck, 
-  UserX, Star, Search, Trash2, Power, PowerOff, Loader2 
+  UserX, Star, Search, Trash2, Power, PowerOff, Loader2, AlertCircle 
 } from 'lucide-react'
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([])
   const [stats, setStats] = useState({})
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
@@ -31,18 +32,20 @@ const AdminUsers = () => {
       const response = await userAPI.getStats()
       setStats(response.data)
     } catch (error) {
-      console.error('Failed to fetch stats')
+      console.error('Failed to fetch stats:', error)
     }
   }
 
   const fetchUsers = async () => {
     try {
       setLoading(true)
+      setError(null)
       const response = await userAPI.getAll({ page, search, status, limit: 20 })
       setUsers(response.data.users)
       setTotalPages(response.data.totalPages)
     } catch (error) {
-      console.error('Failed to fetch users')
+      console.error('Failed to fetch users:', error)
+      setError('Failed to load users. Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
@@ -53,7 +56,7 @@ const AdminUsers = () => {
       const response = await hostelAPI.getAll()
       setAllHostels(response.data.hostels || [])
     } catch (error) {
-      console.error('Failed to fetch hostels')
+      console.error('Failed to fetch hostels:', error)
     }
   }
 
@@ -130,6 +133,23 @@ const AdminUsers = () => {
         <h1 className="text-2xl font-semibold tracking-tight text-gray-900">User Management</h1>
         <p className="text-sm text-gray-500 mt-1">Monitor, manage, and assign properties to registered users.</p>
       </div>
+
+      {/* Error State */}
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+          <div>
+            <h3 className="text-sm font-semibold text-red-900">Error Loading Users</h3>
+            <p className="text-sm text-red-700 mt-1">{error}</p>
+            <button
+              onClick={fetchUsers}
+              className="mt-3 text-sm font-medium text-red-600 hover:text-red-700 underline"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-8">

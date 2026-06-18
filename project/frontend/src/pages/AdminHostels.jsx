@@ -6,7 +6,7 @@ import { forceRefresh } from '../utils/cacheManager';
 import { message } from 'antd'; // Retained strictly for imperative toast notifications
 import { 
   Plus, RefreshCw, Pencil, Eye, Trash2, Home, 
-  CheckCircle2, AlertCircle, XCircle, Search, X, Loader2, MapPin, Star
+  CheckCircle2, AlertCircle, XCircle, Search, X, Loader2, MapPin, Star, UserCircle
 } from 'lucide-react';
 
 const AdminHostels = () => {
@@ -15,6 +15,11 @@ const AdminHostels = () => {
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedHostel, setSelectedHostel] = useState(null);
+  const [managers, setManagers] = useState([]);
+  const [loadingManagers, setLoadingManagers] = useState(false);
+  const [assigningManager, setAssigningManager] = useState(false);
 
   // Safe Network Fetching (Logic retained completely)
   const fetchHostels = useCallback(async (force = false, abortSignal) => {
@@ -96,6 +101,74 @@ const AdminHostels = () => {
     forceRefresh();
     hostelAPI.clearCache();
     fetchHostels(true);
+  };
+
+  // Manager Assignment
+  const fetchManagers = async () => {
+    setLoadingManagers(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/managers`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setManagers(data.managers);
+      }
+    } catch (error) {
+      message.error('Failed to load managers');
+    } finally {
+      setLoadingManagers(false);
+    }
+  };
+
+  const handleAssignManager = (hostel) => {
+    setSelectedHostel(hostel);
+    setShowAssignModal(true);
+    fetchManagers();
+  };
+
+  const assignManager = async (managerId) => {
+    setAssigningManager(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/hostels/${selectedHostel._id}/assign-manager`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ managerId })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        message.success(data.message);
+        setShowAssignModal(false);
+        fetchHostels(true);
+      } else {
+        message.error(data.message || 'Failed to assign manager');
+      }
+    } catch (error) {
+      message.error('Failed to assign manager');
+    } finally {
+      setAssigningManager(false);
+    }
+  };
+
+  const unassignManager = async (hostelId) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/hostels/${hostelId}/unassign-manager`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        message.success(data.message);
+        fetchHostels(true);
+      } else {
+        message.error(data.message || 'Failed to unassign manager');
+      }
+    } catch (error) {
+      message.error('Failed to unassign manager');
+    }
   };
 
   // UI Helpers
@@ -281,7 +354,7 @@ const AdminHostels = () => {
                 </div>
 
                 {/* Action Footer */}
-                <div className="grid grid-cols-3 divide-x divide-gray-100 border-t border-gray-100 bg-gray-50/50">
+                <div className="grid grid-cols-4 divide-x divide-gray-100 border-t border-gray-100 bg-gray-50/50">
                   <button 
                     onClick={() => handleEdit(hostel)}
                     className="flex flex-col items-center justify-center py-2.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-inset focus:ring-2 focus:ring-blue-500"
@@ -297,6 +370,14 @@ const AdminHostels = () => {
                     aria-label="View Live Page"
                   >
                     <Eye size={16} />
+                  </button>
+                  <button 
+                    onClick={() => handleAssignManager(hostel)}
+                    className="flex flex-col items-center justify-center py-2.5 text-gray-500 hover:text-purple-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-inset focus:ring-2 focus:ring-purple-500"
+                    title="Assign Manager"
+                    aria-label="Assign Manager"
+                  >
+                    <UserCircle size={16} />
                   </button>
                   <button 
                     onClick={() => {
@@ -316,6 +397,64 @@ const AdminHostels = () => {
           </div>
         )}
       </main>
+
+      {/* Assign Manager Modal */}
+      {showAssignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Assign Manager</h2>
+              <p className="text-sm text-gray-500 mt-1">{selectedHostel?.name}</p>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              {loadingManagers ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                </div>
+              ) : managers.length === 0 ? (
+                <div className="text-center py-12">
+                  <UserCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500">No managers found</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {managers.map((manager) => (
+                    <div
+                      key={manager._id}
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{manager.name}</h3>
+                        <p className="text-sm text-gray-500">{manager.email}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {manager.hostels?.length || 0} hostel(s) assigned
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => assignManager(manager._id)}
+                        disabled={assigningManager}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {assigningManager ? 'Assigning...' : 'Assign'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowAssignModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -133,6 +133,82 @@ router.patch('/managers/:id/toggle-status', auth, adminOnly, async (req, res) =>
   }
 });
 
+// Assign hostel to manager
+router.post('/hostels/:hostelId/assign-manager', auth, adminOnly, async (req, res) => {
+  try {
+    const { managerId } = req.body;
+    const { hostelId } = req.params;
+    
+    if (!managerId) {
+      return res.status(400).json({ message: 'Manager ID is required' });
+    }
+    
+    // Check if manager exists
+    const manager = await HostelManager.findById(managerId);
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found' });
+    }
+    
+    // Check if hostel exists
+    const hostel = await Hostel.findById(hostelId);
+    if (!hostel) {
+      return res.status(404).json({ message: 'Hostel not found' });
+    }
+    
+    // Update hostel with manager
+    hostel.manager = managerId;
+    await hostel.save();
+    
+    // Add hostel to manager's hostels array if not already there
+    if (!manager.hostels.includes(hostelId)) {
+      manager.hostels.push(hostelId);
+      await manager.save();
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Hostel "${hostel.name}" assigned to ${manager.name}`,
+      hostel,
+      manager: { id: manager._id, name: manager.name, email: manager.email }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Unassign hostel from manager
+router.delete('/hostels/:hostelId/unassign-manager', auth, adminOnly, async (req, res) => {
+  try {
+    const { hostelId } = req.params;
+    
+    const hostel = await Hostel.findById(hostelId);
+    if (!hostel) {
+      return res.status(404).json({ message: 'Hostel not found' });
+    }
+    
+    const oldManagerId = hostel.manager;
+    
+    // Remove manager from hostel
+    hostel.manager = null;
+    await hostel.save();
+    
+    // Remove hostel from manager's hostels array
+    if (oldManagerId) {
+      await HostelManager.findByIdAndUpdate(oldManagerId, {
+        $pull: { hostels: hostelId }
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Hostel unassigned from manager',
+      hostel
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get all pending change requests
 router.get('/change-requests/pending', auth, adminOnly, async (req, res) => {
   try {

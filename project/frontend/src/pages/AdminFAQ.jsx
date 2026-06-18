@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Loader2, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
 const AdminFAQ = () => {
   const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFAQ, setEditingFAQ] = useState(null);
   const [formData, setFormData] = useState({
@@ -20,12 +22,17 @@ const AdminFAQ = () => {
 
   const fetchFAQs = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/faqs`);
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/faqs`);
       if (response.data.success) {
         setFaqs(response.data.data);
       }
     } catch (error) {
       console.error('Error fetching FAQs:', error);
+      setError('Failed to load FAQs. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,13 +41,13 @@ const AdminFAQ = () => {
     try {
       if (editingFAQ) {
         await axios.put(
-          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/faqs/${editingFAQ._id}`,
+          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/faqs/${editingFAQ._id}`,
           formData,
           { withCredentials: true }
         );
       } else {
         await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/faqs`,
+          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/faqs`,
           formData,
           { withCredentials: true }
         );
@@ -49,7 +56,7 @@ const AdminFAQ = () => {
       closeModal();
     } catch (error) {
       console.error('Error saving FAQ:', error);
-      alert('Failed to save FAQ');
+      alert('Failed to save FAQ. Please check your permissions.');
     }
   };
 
@@ -57,13 +64,13 @@ const AdminFAQ = () => {
     if (!window.confirm('Are you sure you want to delete this FAQ?')) return;
     try {
       await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/faqs/${id}`,
+        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/faqs/${id}`,
         { withCredentials: true }
       );
       fetchFAQs();
     } catch (error) {
       console.error('Error deleting FAQ:', error);
-      alert('Failed to delete FAQ');
+      alert('Failed to delete FAQ. Please check your permissions.');
     }
   };
 
@@ -114,19 +121,50 @@ const AdminFAQ = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {faqs.map((faq) => (
+      {/* Error State */}
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+          <div>
+            <h3 className="text-sm font-semibold text-red-900">Error Loading FAQs</h3>
+            <p className="text-sm text-red-700 mt-1">{error}</p>
+            <button
+              onClick={fetchFAQs}
+              className="mt-3 text-sm font-medium text-red-600 hover:text-red-700 underline"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-4" />
+          <p className="text-sm font-medium text-gray-500">Loading FAQs...</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {faqs.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                    No FAQs found. Click "Add FAQ" to create one.
+                  </td>
+                </tr>
+              ) : (
+                faqs.map((faq) => (
               <tr key={faq._id}>
                 <td className="px-6 py-4 text-sm text-gray-900">{faq.question}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{faq.category}</td>
@@ -145,10 +183,12 @@ const AdminFAQ = () => {
                   </button>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                )))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

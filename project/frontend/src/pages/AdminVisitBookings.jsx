@@ -134,27 +134,27 @@ const AdminVisitBookings = () => {
                 {bookings.map((booking) => (
                   <tr key={booking._id} className="hover:bg-gray-50/80 transition-colors group">
                     
-                    {/* EXPANDED User Info Column with Phone Number */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    {/* User Info Column */}
+                    <td className="px-6 py-4">
                       <div className="flex items-start gap-3">
                         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center text-gray-700 font-semibold text-sm shadow-sm flex-shrink-0 mt-0.5">
-                          {booking.user?.name?.charAt(0).toUpperCase() || '?'}
+                          {booking.user?.name?.charAt(0).toUpperCase()}
                         </div>
-                        <div className="flex flex-col">
-                          <p className="font-semibold text-gray-900 text-sm leading-tight">{booking.user?.name || 'Unknown User'}</p>
-                          <p className="text-xs text-gray-500 mt-1">{booking.user?.email || 'No email provided'}</p>
-                          <p className="text-xs text-gray-400 mt-0.5 font-mono">{booking.user?.phone || 'No phone provided'}</p>
+                        <div className="flex flex-col min-w-0">
+                          <p className="font-semibold text-gray-900 text-sm leading-tight truncate">{booking.user?.name}</p>
+                          <p className="text-xs text-gray-500 mt-1 truncate" title={booking.user?.email}>{booking.user?.email}</p>
+                          <p className="text-xs text-gray-400 mt-0.5 font-mono">{booking.user?.phone}</p>
                         </div>
                       </div>
                     </td>
 
                     {/* Hostel Details Column */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-gray-900">{booking.hostel?.name || 'Unknown Property'}</span>
-                        <div className="flex items-center text-xs text-gray-500 mt-0.5 gap-1">
-                          <MapPin size={12} />
-                          <span className="truncate max-w-[150px]">{booking.hostel?.location || 'Location unavailable'}</span>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium text-gray-900 truncate">{booking.hostel?.name}</span>
+                        <div className="flex items-center text-xs text-gray-500 mt-0.5 gap-1 min-w-0">
+                          <MapPin size={12} className="flex-shrink-0" />
+                          <span className="truncate">{booking.hostel?.location}</span>
                         </div>
                       </div>
                     </td>
@@ -257,20 +257,20 @@ const AdminVisitBookings = () => {
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 bg-gray-50/50 border border-gray-100 rounded-xl p-5">
                   <div>
                     <dt className="text-xs font-medium text-gray-500 mb-1">Full Name</dt>
-                    <dd className="text-sm font-semibold text-gray-900">{selectedBooking.user?.name || 'Not Provided'}</dd>
+                    <dd className="text-sm font-semibold text-gray-900">{selectedBooking.user?.name}</dd>
                   </div>
                   <div>
                     <dt className="text-xs font-medium text-gray-500 mb-1">Email Address</dt>
-                    <dd className="text-sm font-semibold text-gray-900">{selectedBooking.user?.email || 'Not Provided'}</dd>
+                    <dd className="text-sm font-semibold text-gray-900 break-all">{selectedBooking.user?.email}</dd>
                   </div>
                   <div>
                     <dt className="text-xs font-medium text-gray-500 mb-1">Phone Number</dt>
-                    <dd className="text-sm font-semibold text-gray-900 font-mono">{selectedBooking.user?.phone || 'Not Provided'}</dd>
+                    <dd className="text-sm font-semibold text-gray-900 font-mono">{selectedBooking.user?.phone}</dd>
                   </div>
                   <div>
                     <dt className="text-xs font-medium text-gray-500 mb-1">User ID</dt>
                     <dd className="text-sm font-semibold text-gray-900 font-mono truncate" title={selectedBooking.user?._id}>
-                      {selectedBooking.user?._id || 'N/A'}
+                      {selectedBooking.user?._id}
                     </dd>
                   </div>
                 </dl>
@@ -284,15 +284,15 @@ const AdminVisitBookings = () => {
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 bg-gray-50/50 border border-gray-100 rounded-xl p-5">
                   <div className="col-span-1 sm:col-span-2">
                     <dt className="text-xs font-medium text-gray-500 mb-1">Property Name</dt>
-                    <dd className="text-sm font-semibold text-gray-900">{selectedBooking.hostel?.name || 'Unknown Property'}</dd>
+                    <dd className="text-sm font-semibold text-gray-900">{selectedBooking.hostel?.name}</dd>
                   </div>
                   <div className="col-span-1 sm:col-span-2">
                     <dt className="text-xs font-medium text-gray-500 mb-1">Location</dt>
-                    <dd className="text-sm font-semibold text-gray-900">{selectedBooking.hostel?.location || 'Not Provided'}</dd>
+                    <dd className="text-sm font-semibold text-gray-900">{selectedBooking.hostel?.location}</dd>
                   </div>
                   <div className="col-span-1 sm:col-span-2 pt-2 border-t border-gray-200">
                     <dt className="text-xs font-medium text-gray-500 mb-1">Hostel Reference ID</dt>
-                    <dd className="text-sm font-semibold text-gray-900 font-mono text-gray-500">{selectedBooking.hostel?._id || 'N/A'}</dd>
+                    <dd className="text-sm font-semibold text-gray-900 font-mono text-gray-500">{selectedBooking.hostel?._id}</dd>
                   </div>
                 </dl>
               </section>

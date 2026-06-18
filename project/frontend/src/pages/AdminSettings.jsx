@@ -14,7 +14,8 @@ const AdminSettings = () => {
   const [qrFile, setQrFile] = useState(null)
   const [qrPreview, setQrPreview] = useState(null)
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
+  const BASE_URL = API_URL.replace('/api', '') // For non-api routes like /uploads
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken')
@@ -28,7 +29,7 @@ const AdminSettings = () => {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('adminToken')
-      const response = await fetch(`${API_URL}/api/auth/profile`, {
+      const response = await fetch(`${API_URL}/auth/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       
@@ -43,7 +44,7 @@ const AdminSettings = () => {
 
   const checkApiKey = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/settings/status/api-key`)
+      const response = await fetch(`${API_URL}/settings/status/api-key`)
       if (response.ok) {
         const data = await response.json()
         setApiSaved(data.configured)
@@ -57,11 +58,11 @@ const AdminSettings = () => {
 
   const fetchPaymentSettings = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/settings/payment-config`, { withCredentials: true })
+      const response = await axios.get(`${API_URL}/settings/payment-config`, { withCredentials: true })
       if (response.data.success && response.data.settings) {
         setPaymentSettings(response.data.settings)
         if (response.data.settings.qrCode) {
-          setQrPreview(`${API_URL}/uploads/${response.data.settings.qrCode}`)
+          setQrPreview(`${BASE_URL}/uploads/${response.data.settings.qrCode}`)
         }
       }
     } catch (error) {
@@ -76,7 +77,7 @@ const AdminSettings = () => {
       const formData = new FormData(e.target)
       const token = localStorage.getItem('adminToken')
       
-      const response = await fetch(`${API_URL}/api/settings`, {
+      const response = await fetch(`${API_URL}/settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +127,7 @@ const AdminSettings = () => {
       }
       
       const token = localStorage.getItem('adminToken')
-      const response = await fetch(`${API_URL}/api/auth/profile`, {
+      const response = await fetch(`${API_URL}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +163,7 @@ const AdminSettings = () => {
         formData.append('qrCode', qrFile)
       }
 
-      const response = await axios.post(`${API_URL}/api/settings/payment-config`, formData, {
+      const response = await axios.post(`${API_URL}/settings/payment-config`, formData, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       })
