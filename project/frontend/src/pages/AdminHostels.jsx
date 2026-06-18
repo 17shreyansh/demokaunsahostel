@@ -107,7 +107,7 @@ const AdminHostels = () => {
   const fetchManagers = async () => {
     setLoadingManagers(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/managers`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/managers`, {
         credentials: 'include'
       });
       const data = await response.json();
@@ -130,7 +130,7 @@ const AdminHostels = () => {
   const assignManager = async (managerId) => {
     setAssigningManager(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/hostels/${selectedHostel._id}/assign-manager`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/hostels/${selectedHostel._id}/assign-manager`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
