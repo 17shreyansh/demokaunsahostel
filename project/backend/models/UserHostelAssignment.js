@@ -26,7 +26,18 @@ const userHostelAssignmentSchema = new mongoose.Schema({
   },
   notes: {
     type: String
-  }
+  },
+  selectedInstallmentPlan: {
+    type: mongoose.Schema.Types.ObjectId
+  },
+  installmentPayments: [{
+    installmentIndex: Number,
+    amount: Number,
+    paid: { type: Boolean, default: false },
+    paidDate: Date,
+    paymentMethod: String,
+    transactionId: String
+  }]
 }, {
   timestamps: true
 });

@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import { 
   Save, ArrowLeft, UploadCloud, Plus, 
   Trash2, MapPin, Info, Layout,
-  Image as ImageIcon, Star, Loader2
+  Image as ImageIcon, Star, Loader2, DollarSign, Percent
 } from 'lucide-react';
 import { hostelAPI } from '../services/api';
 import { invalidateData } from '../utils/stateManager';
@@ -166,6 +166,7 @@ const AdminHostelEdit = () => {
           info: data.info?.length > 0 ? data.info : [{ title: '', value: '' }],
           nearbyPlaces: data.nearbyPlaces || {},
           sharingTypes: data.sharingTypes?.length > 0 ? data.sharingTypes : [],
+          installmentPlans: data.installmentPlans || [],
           roomTypes: data.roomTypes?.length > 0 ? data.roomTypes : [{ name: '', description: '' }],
           reviews: data.reviews?.map(review => ({
             ...review,
@@ -231,6 +232,9 @@ const AdminHostelEdit = () => {
           available: Number(s.available) || 0
         }))
       ));
+      formData.append('installmentPlans', JSON.stringify(
+        (values.installmentPlans || []).filter(p => p.name && p.type && p.installments?.length > 0)
+      ));
       formData.append('reviews', JSON.stringify(values.reviews?.filter(r => r.name && r.comment).map(r => ({
         ...r, date: r.reviewDate ? r.reviewDate.format('YYYY-MM-DD') : r.date
       })) || []));
@@ -245,7 +249,7 @@ const AdminHostelEdit = () => {
       }
 
       Object.keys(values).forEach(key => {
-        if (!['amenities', 'rules', 'info', 'nearbyPlaces', 'coordinates', 'roomTypes', 'sharingTypes', 'reviews'].includes(key) && values[key] !== undefined) {
+        if (!['amenities', 'rules', 'info', 'nearbyPlaces', 'coordinates', 'roomTypes', 'sharingTypes', 'installmentPlans', 'reviews'].includes(key) && values[key] !== undefined) {
           formData.append(key, values[key]);
         }
       });
@@ -677,6 +681,111 @@ const AdminHostelEdit = () => {
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
                   >
                     <Plus size={18} /> Inject Customer Review
+                  </button>
+                </div>
+              )}
+            </Form.List>
+          </FormSection>
+
+          <FormSection title="Installment Plans (Post-Assignment Only)" icon={DollarSign}>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <Info size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-amber-900 mb-1">Installment Plans Visibility</h4>
+                  <p className="text-sm text-amber-700">These plans will NOT appear on listing/search/details pages. They are only available after a student is assigned to this hostel.</p>
+                </div>
+              </div>
+            </div>
+            <Form.List name="installmentPlans">
+              {(fields, { add, remove }) => (
+                <div className="space-y-6">
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div key={key} className="p-5 border-2 border-blue-200 rounded-2xl bg-blue-50/30 relative">
+                      <button 
+                        type="button"
+                        onClick={() => remove(name)}
+                        className="absolute top-4 right-4 p-2 text-gray-400 hover:text-rose-600 hover:bg-white rounded-lg transition-colors shadow-sm focus:outline-none"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pr-12">
+                        <Form.Item {...restField} name={[name, 'name']} label="Plan Name" rules={[{ required: true }]} className="mb-0">
+                          <Input size="large" placeholder="e.g., 3 Installment Plan" />
+                        </Form.Item>
+                        <Form.Item {...restField} name={[name, 'type']} label="Plan Type" rules={[{ required: true }]} className="mb-0">
+                          <Select size="large">
+                            <Select.Option value="percentage">Percentage Based</Select.Option>
+                            <Select.Option value="fixed">Fixed Amount</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </div>
+
+                      <Form.Item noStyle shouldUpdate={(prev, curr) => prev.installmentPlans?.[name]?.type !== curr.installmentPlans?.[name]?.type}>
+                        {({ getFieldValue }) => {
+                          const planType = getFieldValue(['installmentPlans', name, 'type']);
+                          return (
+                            <div className="bg-white rounded-xl p-4 border border-gray-200">
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm font-semibold text-gray-700">Installments</span>
+                                {planType === 'percentage' && (
+                                  <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
+                                    <Percent size={14} /> Total should equal 100%
+                                  </span>
+                                )}
+                              </div>
+                              <Form.List name={[name, 'installments']}>
+                                {(installmentFields, { add: addInstallment, remove: removeInstallment }) => (
+                                  <>
+                                    {installmentFields.map(({ key: iKey, name: iName, ...iRestField }, index) => (
+                                      <div key={iKey} className="flex items-center gap-3 mb-3">
+                                        <span className="text-sm font-medium text-gray-600 w-20">#{index + 1}</span>
+                                        <Form.Item {...iRestField} name={[iName, 'value']} className="mb-0 flex-1" rules={[{ required: true }]}>
+                                          <InputNumber 
+                                            size="large" 
+                                            className="w-full" 
+                                            min={0}
+                                            max={planType === 'percentage' ? 100 : undefined}
+                                            formatter={value => planType === 'percentage' ? `${value}%` : `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                            parser={value => value.replace(/[₹,%\s]/g, '')}
+                                            placeholder={planType === 'percentage' ? 'e.g., 30' : 'e.g., 10000'}
+                                          />
+                                        </Form.Item>
+                                        <Form.Item {...iRestField} name={[iName, 'dueDate']} className="mb-0 flex-1">
+                                          <Input size="large" placeholder="e.g., Upon Admission" />
+                                        </Form.Item>
+                                        <button 
+                                          type="button"
+                                          onClick={() => removeInstallment(iName)}
+                                          className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                        >
+                                          <Trash2 size={18} />
+                                        </button>
+                                      </div>
+                                    ))}
+                                    <button 
+                                      type="button" 
+                                      onClick={() => addInstallment({ value: 0, dueDate: '' })} 
+                                      className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-gray-50 border border-dashed border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:border-blue-400 hover:text-blue-600 transition-colors"
+                                    >
+                                      <Plus size={16} /> Add Installment
+                                    </button>
+                                  </>
+                                )}
+                              </Form.List>
+                            </div>
+                          );
+                        }}
+                      </Form.Item>
+                    </div>
+                  ))}
+                  <button 
+                    type="button" 
+                    onClick={() => add({ name: '', type: 'percentage', installments: [] })} 
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                  >
+                    <Plus size={18} /> Add Installment Plan
                   </button>
                 </div>
               )}

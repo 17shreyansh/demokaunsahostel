@@ -262,7 +262,7 @@ const ReviewManager = memo(() => {
 });
 ReviewManager.displayName = 'ReviewManager';
 
-// 4. Assigned Hostels Manager
+// 4. Assigned Hostels Manager with Installment Plans
 const AssignedHostelsManager = memo(() => {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -270,6 +270,7 @@ const AssignedHostelsManager = memo(() => {
   const [showReviewForm, setShowReviewForm] = useState(null);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [expandedInstallment, setExpandedInstallment] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -308,7 +309,6 @@ const AssignedHostelsManager = memo(() => {
       alert('✅ Review submitted successfully! It will be visible after admin approval.');
       setShowReviewForm(null);
       setReviewData({ rating: 5, comment: '' });
-      // Refresh assignments
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/assignments/my-assignments`, {
         credentials: 'include'
       });
@@ -319,6 +319,23 @@ const AssignedHostelsManager = memo(() => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // TODO: Implement full payment system later
+  // - Show hostel UPI/QR details
+  // - User uploads payment screenshot
+  // - User enters transaction ID
+  // - Hostel owner approves/rejects payment
+  // - Update installment payment status
+  const handleSelectInstallmentPlan = async (assignmentId, planId) => {
+    alert('Payment system coming soon! This will allow you to select installment plans and make payments.');
+    // TODO: Call API to select installment plan
+    // await fetch('/api/assignments/select-installment-plan', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   credentials: 'include',
+    //   body: JSON.stringify({ assignmentId, installmentPlanId: planId })
+    // });
   };
 
   if (loading) {
@@ -347,94 +364,248 @@ const AssignedHostelsManager = memo(() => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">My Assigned Hostels</h2>
-        <p className="text-gray-500 text-sm">Write reviews for hostels you've been assigned to.</p>
+        <p className="text-gray-500 text-sm">Manage your hostel assignments, payments, and reviews.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {assignments.map((assignment) => (
-          <motion.div
-            key={assignment._id}
-            className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-          >
-            <img
-              src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${assignment.hostel?.images?.[0]}`}
-              alt={assignment.hostel?.name}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-6">
-              <h3 className="font-bold text-gray-900 text-lg mb-2">{assignment.hostel?.name}</h3>
-              <p className="text-gray-500 text-sm mb-2">{assignment.hostel?.location}</p>
-              <p className="text-yellow-600 font-bold mb-4">₹{assignment.hostel?.price}/month</p>
-              
-              {assignment.hasReviewed ? (
-                <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-medium">
-                  ✓ Review submitted
+      <div className="space-y-6">
+        {assignments.map((assignment) => {
+          const hostel = assignment.hostel;
+          const hasInstallmentPlans = hostel?.installmentPlans?.length > 0;
+          const selectedPlan = hostel?.installmentPlans?.find(p => p._id === assignment.selectedInstallmentPlan);
+          
+          return (
+            <motion.div
+              key={assignment._id}
+              className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            >
+              {/* Hostel Header */}
+              <div className="p-6 border-b border-gray-100">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <img
+                    src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${hostel?.images?.[0]}`}
+                    alt={hostel?.name}
+                    className="w-full md:w-32 h-32 object-cover rounded-xl"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 text-xl mb-1">{hostel?.name}</h3>
+                    <p className="text-gray-500 text-sm mb-3">{hostel?.location}</p>
+                    <div className="flex items-center gap-4">
+                      <p className="text-yellow-600 font-bold text-lg">₹{hostel?.price}/month</p>
+                      {hostel?.rating > 0 && (
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <FiStar className="text-yellow-400 fill-current" />
+                          <span className="font-semibold">{hostel?.rating}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate(`/hostels/${hostel?.slug}`)}
+                    className="px-4 py-2 h-fit bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    View Details
+                  </button>
                 </div>
-              ) : (
-                <>
-                  {showReviewForm === assignment.hostel._id ? (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
-                        <div className="flex gap-2">
-                          {STARS.map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() => setReviewData(prev => ({ ...prev, rating: star }))}
-                              className="text-3xl"
-                            >
-                              <span className={star <= reviewData.rating ? 'text-yellow-400' : 'text-gray-200'}>★</span>
-                            </button>
-                          ))}
+              </div>
+
+              {/* Installment Plans Section - TODO: Full payment system */}
+              {hasInstallmentPlans && (
+                <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-b border-gray-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                        <FiSettings className="text-blue-600" />
+                        Payment Plans Available
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">Choose an installment plan for flexible payments</p>
+                    </div>
+                  </div>
+
+                  {/* TODO: Payment Summary Dashboard */}
+                  {selectedPlan && (
+                    <div className="bg-white rounded-xl p-5 mb-4 border-2 border-green-200">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Total Fees</p>
+                          <p className="text-2xl font-bold text-gray-900">₹{hostel?.price}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Paid Amount</p>
+                          <p className="text-2xl font-bold text-green-600">₹0</p>
+                          {/* TODO: Calculate from installmentPayments */}
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Remaining</p>
+                          <p className="text-2xl font-bold text-orange-600">₹{hostel?.price}</p>
+                          {/* TODO: Calculate remaining amount */}
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Selected Plan</p>
+                          <p className="text-lg font-bold text-blue-600">{selectedPlan.name}</p>
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Your Review</label>
-                        <textarea
-                          value={reviewData.comment}
-                          onChange={(e) => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
-                          rows="3"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-500"
-                          placeholder="Share your experience..."
-                        />
-                      </div>
-                      <div className="flex gap-2">
+
+                      {/* TODO: Installment Payment List */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h5 className="font-bold text-gray-900 mb-3">Payment Schedule</h5>
+                        <div className="space-y-2">
+                          {selectedPlan.installments?.map((inst, idx) => {
+                            const amount = selectedPlan.type === 'percentage' 
+                              ? (hostel?.price * inst.value / 100).toFixed(0)
+                              : inst.value;
+                            
+                            return (
+                              <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-lg">
+                                <div>
+                                  <p className="font-semibold text-gray-900">Installment #{idx + 1}</p>
+                                  {inst.dueDate && <p className="text-xs text-gray-500">{inst.dueDate}</p>}
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-gray-900">₹{amount}</p>
+                                  {/* TODO: Payment status badge */}
+                                  <span className="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full mt-1">
+                                    Pending
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* TODO: Add "Pay Now" button that shows UPI/QR, upload screenshot, enter transaction ID */}
                         <button
-                          onClick={() => handleReviewSubmit(assignment.hostel._id)}
-                          disabled={submitting}
-                          className="flex-1 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-lg hover:bg-yellow-600 disabled:opacity-50"
+                          disabled
+                          className="w-full mt-4 px-4 py-3 bg-gray-300 text-gray-600 font-bold rounded-lg cursor-not-allowed"
                         >
-                          {submitting ? 'Submitting...' : 'Submit Review'}
-                        </button>
-                        <button
-                          onClick={() => setShowReviewForm(null)}
-                          className="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200"
-                        >
-                          Cancel
+                          Payment System - Coming Soon
                         </button>
                       </div>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowReviewForm(assignment.hostel._id)}
-                      className="w-full px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-lg hover:bg-yellow-600 transition-colors"
-                    >
-                      Write Review
-                    </button>
                   )}
-                </>
+
+                  {/* Available Plans */}
+                  {!selectedPlan && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {hostel?.installmentPlans?.map((plan) => (
+                        <div
+                          key={plan._id}
+                          className="bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                          onClick={() => setExpandedInstallment(expandedInstallment === plan._id ? null : plan._id)}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h5 className="font-bold text-gray-900 text-lg">{plan.name}</h5>
+                              <p className="text-sm text-gray-500 capitalize">{plan.type} based</p>
+                            </div>
+                            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">
+                              {plan.installments?.length} Installments
+                            </span>
+                          </div>
+
+                          {expandedInstallment === plan._id && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              className="space-y-2 mb-4"
+                            >
+                              {plan.installments?.map((inst, idx) => {
+                                const amount = plan.type === 'percentage' 
+                                  ? (hostel?.price * inst.value / 100).toFixed(0)
+                                  : inst.value;
+                                
+                                return (
+                                  <div key={idx} className="flex justify-between text-sm bg-gray-50 p-2 rounded">
+                                    <span className="text-gray-600">
+                                      #{idx + 1} {inst.dueDate && `- ${inst.dueDate}`}
+                                    </span>
+                                    <span className="font-bold text-gray-900">₹{amount}</span>
+                                  </div>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectInstallmentPlan(assignment._id, plan._id);
+                            }}
+                            className="w-full px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            Select This Plan
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
-              
-              <button
-                onClick={() => navigate(`/hostels/${assignment.hostel?.slug}`)}
-                className="w-full mt-3 px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                View Details
-              </button>
-            </div>
-          </motion.div>
-        ))}
+
+              {/* Review Section */}
+              <div className="p-6">
+                {assignment.hasReviewed ? (
+                  <div className="bg-green-50 text-green-700 px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2">
+                    <FiStar className="fill-current" />
+                    Review submitted
+                  </div>
+                ) : (
+                  <>
+                    {showReviewForm === hostel._id ? (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
+                          <div className="flex gap-2">
+                            {STARS.map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setReviewData(prev => ({ ...prev, rating: star }))}
+                                className="text-3xl"
+                              >
+                                <span className={star <= reviewData.rating ? 'text-yellow-400' : 'text-gray-200'}>★</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Your Review</label>
+                          <textarea
+                            value={reviewData.comment}
+                            onChange={(e) => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
+                            rows="3"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-500"
+                            placeholder="Share your experience..."
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleReviewSubmit(hostel._id)}
+                            disabled={submitting}
+                            className="flex-1 px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-lg hover:bg-yellow-600 disabled:opacity-50"
+                          >
+                            {submitting ? 'Submitting...' : 'Submit Review'}
+                          </button>
+                          <button
+                            onClick={() => setShowReviewForm(null)}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setShowReviewForm(hostel._id)}
+                        className="w-full px-4 py-3 bg-yellow-500 text-gray-900 font-bold rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <FiStar /> Write Review
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </motion.div>
   );

@@ -73,14 +73,48 @@ router.get('/admin/all', auth, adminOnly, async (req, res) => {
   }
 });
 
-// User: Get assigned hostels
+// User: Get assigned hostels with installment plans
 router.get('/my-assignments', auth, async (req, res) => {
   try {
     const assignments = await UserHostelAssignment.find({ user: req.user.id })
-      .populate('hostel', 'name images location rating price')
+      .populate('hostel', 'name images location rating price installmentPlans')
       .sort({ createdAt: -1 });
 
     res.json({ success: true, assignments });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// User: Select installment plan
+router.post('/select-installment-plan', auth, async (req, res) => {
+  try {
+    const { assignmentId, installmentPlanId } = req.body;
+
+    const assignment = await UserHostelAssignment.findOne({
+      _id: assignmentId,
+      user: req.user.id
+    }).populate('hostel');
+
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: 'Assignment not found' });
+    }
+
+    const plan = assignment.hostel.installmentPlans.id(installmentPlanId);
+    if (!plan) {
+      return res.status(404).json({ success: false, message: 'Installment plan not found' });
+    }
+
+    assignment.selectedInstallmentPlan = installmentPlanId;
+    assignment.installmentPayments = plan.installments.map((inst, index) => ({
+      installmentIndex: index,
+      amount: plan.type === 'percentage' ? (assignment.hostel.price * inst.value / 100) : inst.value,
+      paid: false
+    }));
+
+    await assignment.save();
+
+    res.json({ success: true, message: 'Installment plan selected', assignment });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

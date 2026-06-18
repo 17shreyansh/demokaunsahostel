@@ -216,6 +216,24 @@ const hostelSchema = new mongoose.Schema({
       default: Date.now
     },
     ip: String
+  }],
+  installmentPlans: [{
+    name: {
+      type: String,
+      required: true
+    },
+    type: {
+      type: String,
+      enum: ['percentage', 'fixed'],
+      required: true
+    },
+    installments: [{
+      value: {
+        type: Number,
+        required: true
+      },
+      dueDate: String
+    }]
   }]
 }, {
   timestamps: true

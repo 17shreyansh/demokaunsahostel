@@ -8,7 +8,7 @@ import {
 import { 
   SaveOutlined, ArrowLeftOutlined, UploadOutlined, PlusOutlined, 
   DeleteOutlined, EnvironmentOutlined, InfoCircleOutlined, LayoutOutlined,
-  PictureOutlined, StarOutlined, PhoneOutlined, DollarOutlined
+  PictureOutlined, StarOutlined, PhoneOutlined, DollarOutlined, PercentageOutlined
 } from '@ant-design/icons';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
 
@@ -155,6 +155,7 @@ const HostelManagerHostelForm = () => {
           amenities: data.amenities || [],
           rules: data.rules || [],
           sharingTypes: data.sharingTypes?.length > 0 ? data.sharingTypes : [],
+          installmentPlans: data.installmentPlans || [],
           info: data.info?.length > 0 ? data.info : [],
           roomTypes: data.roomTypes?.length > 0 ? data.roomTypes : [],
           address: data.contactInfo?.address || '',
@@ -217,6 +218,9 @@ const HostelManagerHostelForm = () => {
           available: Number(s.available) || 0
         }))
       ));
+      formData.append('installmentPlans', JSON.stringify(
+        (values.installmentPlans || []).filter(p => p.name && p.type && p.installments?.length > 0)
+      ));
 
       // Coordinates
       if (values.coordinates) {
@@ -228,7 +232,7 @@ const HostelManagerHostelForm = () => {
 
       // Basic Text Fields
       Object.keys(values).forEach(key => {
-        if (!['amenities', 'rules', 'info', 'coordinates', 'roomTypes', 'sharingTypes'].includes(key) && values[key] !== undefined && values[key] !== null) {
+        if (!['amenities', 'rules', 'info', 'coordinates', 'roomTypes', 'sharingTypes', 'installmentPlans'].includes(key) && values[key] !== undefined && values[key] !== null) {
           formData.append(key, values[key]);
         }
       });
@@ -660,6 +664,120 @@ const HostelManagerHostelForm = () => {
                   ))}
                   <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} block>
                     Add Custom Field
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </Card>
+
+          <Card 
+            title={<span className="flex items-center gap-2"><DollarOutlined className="text-green-500" /> Installment Plans (Post-Assignment Only)</span>}
+            bordered={false} className="shadow-sm rounded-2xl"
+          >
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+              <p className="text-sm text-amber-800 font-medium flex items-start gap-2">
+                <InfoCircleOutlined className="mt-0.5" />
+                <span>These plans will NOT appear on listing/search/details pages. They are only available after a student is assigned to this hostel.</span>
+              </p>
+            </div>
+            <Form.List name="installmentPlans">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div key={key} className="p-4 border-2 border-blue-200 rounded-xl bg-blue-50 relative mb-4">
+                      <Button 
+                        type="text" danger icon={<DeleteOutlined />} 
+                        onClick={() => remove(name)}
+                        className="absolute top-2 right-2"
+                      />
+                      <Row gutter={16} className="mt-2 mb-4">
+                        <Col xs={24} md={12}>
+                          <Form.Item {...restField} name={[name, 'name']} label="Plan Name" rules={[{ required: true }]} className="mb-0">
+                            <Input size="large" placeholder="e.g., 3 Installment Plan" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <Form.Item {...restField} name={[name, 'type']} label="Plan Type" rules={[{ required: true }]} className="mb-0">
+                            <Select size="large">
+                              <Select.Option value="percentage">Percentage Based</Select.Option>
+                              <Select.Option value="fixed">Fixed Amount</Select.Option>
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      <Form.Item noStyle shouldUpdate={(prev, curr) => prev.installmentPlans?.[name]?.type !== curr.installmentPlans?.[name]?.type}>
+                        {({ getFieldValue }) => {
+                          const planType = getFieldValue(['installmentPlans', name, 'type']);
+                          return (
+                            <div className="bg-white rounded-lg p-3 border border-slate-200">
+                              <div className="flex items-center justify-between mb-3">
+                                <Text strong className="text-xs">Installments</Text>
+                                {planType === 'percentage' && (
+                                  <Text type="secondary" className="text-xs flex items-center gap-1">
+                                    <PercentageOutlined /> Total should equal 100%
+                                  </Text>
+                                )}
+                              </div>
+                              <Form.List name={[name, 'installments']}>
+                                {(installmentFields, { add: addInstallment, remove: removeInstallment }) => (
+                                  <>
+                                    {installmentFields.map(({ key: iKey, name: iName, ...iRestField }, index) => (
+                                      <Row key={iKey} gutter={12} className="mb-3" align="middle">
+                                        <Col flex="60px">
+                                          <Text className="text-sm font-medium">#{index + 1}</Text>
+                                        </Col>
+                                        <Col flex="auto">
+                                          <Form.Item {...iRestField} name={[iName, 'value']} className="mb-0" rules={[{ required: true }]}>
+                                            <InputNumber 
+                                              size="large" 
+                                              style={{ width: '100%' }}
+                                              min={0}
+                                              max={planType === 'percentage' ? 100 : undefined}
+                                              formatter={value => planType === 'percentage' ? `${value}%` : `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                              parser={value => value.replace(/[₹,%\s]/g, '')}
+                                              placeholder={planType === 'percentage' ? '30' : '10000'}
+                                            />
+                                          </Form.Item>
+                                        </Col>
+                                        <Col flex="auto">
+                                          <Form.Item {...iRestField} name={[iName, 'dueDate']} className="mb-0">
+                                            <Input size="large" placeholder="Upon Admission" />
+                                          </Form.Item>
+                                        </Col>
+                                        <Col flex="40px">
+                                          <Button 
+                                            type="text" danger icon={<DeleteOutlined />}
+                                            onClick={() => removeInstallment(iName)}
+                                          />
+                                        </Col>
+                                      </Row>
+                                    ))}
+                                    <Button 
+                                      type="dashed" 
+                                      onClick={() => addInstallment({ value: 0, dueDate: '' })} 
+                                      icon={<PlusOutlined />} 
+                                      size="small"
+                                      block
+                                    >
+                                      Add Installment
+                                    </Button>
+                                  </>
+                                )}
+                              </Form.List>
+                            </div>
+                          );
+                        }}
+                      </Form.Item>
+                    </div>
+                  ))}
+                  <Button 
+                    type="dashed" 
+                    onClick={() => add({ name: '', type: 'percentage', installments: [] })} 
+                    icon={<PlusOutlined />} 
+                    block
+                  >
+                    Add Installment Plan
                   </Button>
                 </>
               )}
