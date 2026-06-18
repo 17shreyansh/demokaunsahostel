@@ -183,7 +183,7 @@ const AdminFAQ = () => {
                   </button>
                 </td>
               </tr>
-                )))
+                ))
               )}
             </tbody>
           </table>
