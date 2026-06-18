@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 
-const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, bookingId, onSuccess }) => {
+const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, bookingId, onSuccess, assignmentId, installmentIndex }) => {
   const [upiTransactionId, setUpiTransactionId] = useState('');
   const [screenshot, setScreenshot] = useState(null);
   const [notes, setNotes] = useState('');
@@ -49,6 +49,11 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
       return;
     }
 
+    if (paymentType === 'installment' && (assignmentId === undefined || installmentIndex === undefined)) {
+      setError('Invalid installment payment data');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -66,10 +71,17 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
       if (paymentType === 'reservation') {
         formData.append('sharingType', sharingType);
       }
+      
+      if (paymentType === 'installment') {
+        formData.append('assignmentId', assignmentId);
+        formData.append('installmentIndex', installmentIndex);
+      }
 
       const endpoint = paymentType === 'visit' 
         ? `${API_URL}/api/manual-payments/visit`
-        : `${API_URL}/api/manual-payments/reservation`;
+        : paymentType === 'reservation'
+        ? `${API_URL}/api/manual-payments/reservation`
+        : `${API_URL}/api/manual-payments/installment`;
 
       const response = await axios.post(endpoint, formData, {
         withCredentials: true,
@@ -123,7 +135,9 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
               </div>
               <div className="bg-white/50 backdrop-blur-sm px-4 py-2 rounded-lg">
                 <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                  {paymentType === 'visit' ? 'Visit Booking' : 'Seat Reservation'}
+                  {paymentType === 'visit' ? 'Visit Booking' : 
+                   paymentType === 'reservation' ? 'Seat Reservation' : 
+                   `Installment #${(installmentIndex || 0) + 1}`}
                 </p>
               </div>
             </div>

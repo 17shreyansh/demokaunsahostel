@@ -13,7 +13,7 @@ const paymentRequestSchema = new mongoose.Schema({
   },
   paymentType: {
     type: String,
-    enum: ['visit', 'reservation'],
+    enum: ['visit', 'reservation', 'installment'],
     required: true
   },
   amount: {
@@ -56,6 +56,13 @@ const paymentRequestSchema = new mongoose.Schema({
   relatedReservation: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'SeatReservation'
+  },
+  relatedAssignment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserHostelAssignment'
+  },
+  installmentIndex: {
+    type: Number
   }
 }, {
   timestamps: true

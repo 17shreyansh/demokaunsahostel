@@ -813,7 +813,21 @@ const PaymentRequestsManager = memo(() => {
   };
 
   const getTypeColor = (type) => {
-    return type === 'visit' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
+    switch (type) {
+      case 'visit': return 'bg-blue-100 text-blue-800';
+      case 'reservation': return 'bg-purple-100 text-purple-800';
+      case 'installment': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getTypeLabel = (type) => {
+    switch (type) {
+      case 'visit': return 'Visit Booking';
+      case 'reservation': return 'Seat Reservation';
+      case 'installment': return 'Installment Payment';
+      default: return type;
+    }
   };
 
   if (loading) {
@@ -859,7 +873,7 @@ const PaymentRequestsManager = memo(() => {
                     {request.status.toUpperCase()}
                   </span>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTypeColor(request.paymentType)}`}>
-                    {request.paymentType === 'visit' ? 'Visit Booking' : 'Seat Reservation'}
+                    {getTypeLabel(request.paymentType)}
                   </span>
                 </div>
                 <p className="text-gray-500 text-sm">{request.hostel?.location}</p>

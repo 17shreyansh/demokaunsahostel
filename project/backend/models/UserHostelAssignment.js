@@ -36,7 +36,16 @@ const userHostelAssignmentSchema = new mongoose.Schema({
     paid: { type: Boolean, default: false },
     paidDate: Date,
     paymentMethod: String,
-    transactionId: String
+    transactionId: String,
+    paymentRequest: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'PaymentRequest'
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+    }
   }]
 }, {
   timestamps: true

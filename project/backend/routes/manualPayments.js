@@ -131,6 +131,69 @@ router.post('/reservation', auth, upload.single('screenshot'), async (req, res) 
   }
 });
 
+// Submit installment payment
+router.post('/installment', auth, upload.single('screenshot'), async (req, res) => {
+  try {
+    const { assignmentId, installmentIndex, upiTransactionId, notes } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Payment screenshot required' });
+    }
+
+    const UserHostelAssignment = require('../models/UserHostelAssignment');
+    const assignment = await UserHostelAssignment.findOne({
+      _id: assignmentId,
+      user: req.user.id
+    }).populate('hostel');
+
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: 'Assignment not found' });
+    }
+
+    if (!assignment.selectedInstallmentPlan) {
+      return res.status(400).json({ success: false, message: 'No installment plan selected' });
+    }
+
+    const installmentPayment = assignment.installmentPayments[installmentIndex];
+    if (!installmentPayment) {
+      return res.status(404).json({ success: false, message: 'Installment not found' });
+    }
+
+    if (installmentPayment.paid) {
+      return res.status(400).json({ success: false, message: 'Installment already paid' });
+    }
+
+    // Create payment request
+    const paymentRequest = new PaymentRequest({
+      user: req.user.id,
+      hostel: assignment.hostel._id,
+      paymentType: 'installment',
+      amount: installmentPayment.amount,
+      upiTransactionId,
+      screenshot: req.file.filename,
+      notes,
+      relatedAssignment: assignmentId,
+      installmentIndex
+    });
+
+    await paymentRequest.save();
+
+    // Mark installment as pending approval
+    assignment.installmentPayments[installmentIndex].paymentRequest = paymentRequest._id;
+    assignment.installmentPayments[installmentIndex].status = 'pending';
+    await assignment.save();
+
+    res.json({
+      success: true,
+      message: 'Installment payment submitted successfully. Awaiting hostel approval.',
+      paymentRequest
+    });
+  } catch (error) {
+    console.error('Installment payment error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Get user's payment requests
 router.get('/my-requests', auth, async (req, res) => {
   try {

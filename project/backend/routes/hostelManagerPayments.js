@@ -64,7 +64,7 @@ router.patch('/payment-requests/:id/approve', auth, verifyHostelOwnership, async
     paymentRequest.reviewedAt = new Date();
     await paymentRequest.save();
 
-    // Update related booking/reservation
+    // Update related booking/reservation/installment
     if (paymentRequest.paymentType === 'visit' && paymentRequest.relatedBooking) {
       const booking = await VisitBooking.findById(paymentRequest.relatedBooking);
       if (booking) {
@@ -77,6 +77,16 @@ router.patch('/payment-requests/:id/approve', auth, verifyHostelOwnership, async
       if (reservation) {
         reservation.status = 'confirmed';
         await reservation.save();
+      }
+    } else if (paymentRequest.paymentType === 'installment' && paymentRequest.relatedAssignment) {
+      const UserHostelAssignment = require('../models/UserHostelAssignment');
+      const assignment = await UserHostelAssignment.findById(paymentRequest.relatedAssignment);
+      if (assignment && assignment.installmentPayments[paymentRequest.installmentIndex]) {
+        assignment.installmentPayments[paymentRequest.installmentIndex].paid = true;
+        assignment.installmentPayments[paymentRequest.installmentIndex].paidDate = new Date();
+        assignment.installmentPayments[paymentRequest.installmentIndex].status = 'approved';
+        assignment.installmentPayments[paymentRequest.installmentIndex].transactionId = paymentRequest.upiTransactionId;
+        await assignment.save();
       }
     }
 
@@ -112,7 +122,7 @@ router.patch('/payment-requests/:id/reject', auth, verifyHostelOwnership, async 
     paymentRequest.rejectionReason = reason || 'No reason provided';
     await paymentRequest.save();
 
-    // Update related booking/reservation
+    // Update related booking/reservation/installment
     if (paymentRequest.paymentType === 'visit' && paymentRequest.relatedBooking) {
       const booking = await VisitBooking.findById(paymentRequest.relatedBooking);
       if (booking) {
@@ -124,6 +134,13 @@ router.patch('/payment-requests/:id/reject', auth, verifyHostelOwnership, async 
       if (reservation) {
         reservation.status = 'cancelled';
         await reservation.save();
+      }
+    } else if (paymentRequest.paymentType === 'installment' && paymentRequest.relatedAssignment) {
+      const UserHostelAssignment = require('../models/UserHostelAssignment');
+      const assignment = await UserHostelAssignment.findById(paymentRequest.relatedAssignment);
+      if (assignment && assignment.installmentPayments[paymentRequest.installmentIndex]) {
+        assignment.installmentPayments[paymentRequest.installmentIndex].status = 'rejected';
+        await assignment.save();
       }
     }
 
