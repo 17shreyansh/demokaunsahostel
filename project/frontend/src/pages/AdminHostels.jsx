@@ -154,7 +154,7 @@ const AdminHostels = () => {
 
   const unassignManager = async (hostelId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/hostels/${hostelId}/unassign-manager`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/hostels/${hostelId}/unassign-manager`, {
         method: 'DELETE',
         credentials: 'include'
       });
