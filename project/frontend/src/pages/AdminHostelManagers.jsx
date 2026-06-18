@@ -24,8 +24,8 @@ const AdminHostelManagers = () => {
   const fetchData = async () => {
     try {
       const [allRes, pendingRes] = await Promise.all([
-        axios.get('/api/admin/managers', { withCredentials: true }),
-        axios.get('/api/admin/managers/kyc/pending', { withCredentials: true })
+        axios.get(`${API_BASE_URL}/admin/managers`, { withCredentials: true }),
+        axios.get(`${API_BASE_URL}/admin/managers/kyc/pending`, { withCredentials: true })
       ]);
       setManagers(allRes.data.managers);
       setPendingKYC(pendingRes.data.managers);
@@ -40,7 +40,7 @@ const AdminHostelManagers = () => {
   const handleApprove = async (id) => {
     if (!window.confirm('Are you sure you want to approve this KYC? This will verify the manager and all their hostels.')) return;
     try {
-      await axios.post(`/api/admin/managers/${id}/kyc/approve`, {}, { withCredentials: true });
+      await axios.post(`${API_BASE_URL}/admin/managers/${id}/kyc/approve`, {}, { withCredentials: true });
       alert('✅ KYC approved successfully! Manager can now list hostels.');
       fetchData();
       setSelectedManager(null);
@@ -56,7 +56,7 @@ const AdminHostelManagers = () => {
     }
     
     try {
-      await axios.post(`/api/admin/managers/${rejectionModal._id}/kyc/reject`, 
+      await axios.post(`${API_BASE_URL}/admin/managers/${rejectionModal._id}/kyc/reject`, 
         { reason: rejectionReason }, 
         { withCredentials: true }
       );
@@ -72,7 +72,7 @@ const AdminHostelManagers = () => {
 
   const toggleStatus = async (id) => {
     try {
-      await axios.patch(`/api/admin/managers/${id}/toggle-status`, {}, { withCredentials: true });
+      await axios.patch(`${API_BASE_URL}/admin/managers/${id}/toggle-status`, {}, { withCredentials: true });
       fetchData();
     } catch (error) {
       alert('Failed to update status');
