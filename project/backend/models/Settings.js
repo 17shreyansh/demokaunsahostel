@@ -5,7 +5,12 @@ const settingsSchema = new mongoose.Schema({
   value: { type: String, required: true },
   encrypted: { type: Boolean, default: false },
   description: { type: String },
-  category: { type: String, default: 'general' }
+  category: { type: String, default: 'general' },
+  adminPayment: {
+    upiId: String,
+    qrCode: String,
+    instructions: String
+  }
 }, { timestamps: true });
 
 // Simple methods without encryption for now

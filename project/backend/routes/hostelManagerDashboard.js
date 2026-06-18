@@ -2,6 +2,7 @@ const express = require('express');
 const HostelManager = require('../models/HostelManager');
 const Hostel = require('../models/Hostel');
 const Review = require('../models/Review');
+const HostelChangeRequest = require('../models/HostelChangeRequest');
 const auth = require('../middleware/auth');
 const multer = require('multer');
 const router = express.Router();
@@ -59,11 +60,17 @@ router.get('/dashboard', auth, async (req, res) => {
       ? (manager.hostels.reduce((sum, h) => sum + (h.rating || 0), 0) / totalHostels)
       : 0;
     
+    const pendingChanges = await HostelChangeRequest.countDocuments({ 
+      manager: req.user.id, 
+      status: 'pending' 
+    });
+    
     res.json({
       totalHostels,
       totalReviews,
       avgRating: avgRating.toFixed(1),
       kycStatus: manager.kyc?.status || 'pending',
+      pendingChanges,
       success: true
     });
   } catch (error) {
@@ -85,7 +92,7 @@ router.get('/hostels', auth, async (req, res) => {
   }
 });
 
-// Add hostel
+// Add hostel - Create change request
 router.post('/hostels', auth, requireKYC, upload.any(), async (req, res) => {
   try {
     const manager = await HostelManager.findById(req.user.id);
@@ -141,25 +148,38 @@ router.post('/hostels', auth, requireKYC, upload.any(), async (req, res) => {
       hostelData.images = imageFiles.map(file => file.filename);
     }
     
-    const hostel = new Hostel(hostelData);
-    await hostel.save();
+    // Create change request for admin approval
+    const changeRequest = new HostelChangeRequest({
+      manager: req.user.id,
+      requestType: 'create',
+      changeData: hostelData,
+      status: 'pending'
+    });
     
-    // Add hostel to manager's list
-    await HostelManager.findByIdAndUpdate(req.user.id, { $push: { hostels: hostel._id } });
+    await changeRequest.save();
     
-    res.status(201).json({ hostel, success: true, message: 'Hostel added successfully' });
+    res.status(201).json({ 
+      success: true, 
+      message: 'Hostel submitted for admin approval. You will be notified once approved.',
+      changeRequest 
+    });
   } catch (error) {
     console.error('Create hostel error:', error);
     res.status(400).json({ message: error.message });
   }
 });
 
-// Update hostel
+// Update hostel - Create change request
 router.put('/hostels/:id', auth, requireKYC, upload.any(), async (req, res) => {
   try {
     const manager = await HostelManager.findById(req.user.id);
     if (!manager.hostels.includes(req.params.id)) {
       return res.status(403).json({ message: 'Unauthorized' });
+    }
+    
+    const existingHostel = await Hostel.findById(req.params.id).lean();
+    if (!existingHostel) {
+      return res.status(404).json({ message: 'Hostel not found' });
     }
     
     const updateData = { ...req.body };
@@ -190,7 +210,7 @@ router.put('/hostels/:id', auth, requireKYC, upload.any(), async (req, res) => {
       if (minPrice > 0) updateData.price = minPrice;
     }
     
-    // Get existing hostel for contact info
+// Get existing hostel for contact info
     const existingHostel = await Hostel.findById(req.params.id);
     
     // Handle contact info
@@ -217,11 +237,62 @@ router.put('/hostels/:id', auth, requireKYC, upload.any(), async (req, res) => {
     }
     updateData.images = finalImages;
     
-    const hostel = await Hostel.findByIdAndUpdate(req.params.id, updateData, { new: true });
-    res.json({ hostel, success: true, message: 'Hostel updated successfully' });
+    // Create change request for admin approval
+    const changeRequest = new HostelChangeRequest({
+      manager: req.user.id,
+      hostel: req.params.id,
+      requestType: 'update',
+      changeData: updateData,
+      previousData: existingHostel,
+      status: 'pending'
+    });
+    
+    await changeRequest.save();
+    
+    res.json({ 
+      success: true, 
+      message: 'Changes submitted for admin approval. You will be notified once approved.',
+      changeRequest 
+    });
   } catch (error) {
     console.error('Update hostel error:', error);
     res.status(400).json({ message: error.message });
+  }
+});
+
+// Get change requests for manager
+router.get('/change-requests', auth, async (req, res) => {
+  try {
+    const { status } = req.query;
+    const query = { manager: req.user.id };
+    if (status) query.status = status;
+    
+    const requests = await HostelChangeRequest.find(query)
+      .populate('hostel', 'name location images')
+      .sort({ createdAt: -1 });
+    
+    res.json({ success: true, requests });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get specific change request details
+router.get('/change-requests/:id', auth, async (req, res) => {
+  try {
+    const request = await HostelChangeRequest.findOne({
+      _id: req.params.id,
+      manager: req.user.id
+    }).populate('hostel', 'name location')
+      .populate('reviewedBy', 'username');
+    
+    if (!request) {
+      return res.status(404).json({ message: 'Change request not found' });
+    }
+    
+    res.json({ success: true, request });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

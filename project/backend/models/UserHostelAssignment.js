@@ -27,6 +27,14 @@ const userHostelAssignmentSchema = new mongoose.Schema({
   notes: {
     type: String
   },
+  selectedSharingType: {
+    type: String
+  },
+  useHostelPayment: {
+    type: Boolean,
+    default: true,
+    comment: 'If true, payments go to hostel owner. If false, payments go to admin.'
+  },
   selectedInstallmentPlan: {
     type: mongoose.Schema.Types.ObjectId
   },

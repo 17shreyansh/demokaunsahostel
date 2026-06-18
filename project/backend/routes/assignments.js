@@ -10,7 +10,7 @@ const router = express.Router();
 // Admin: Assign user to hostel
 router.post('/assign', auth, adminOnly, async (req, res) => {
   try {
-    const { userId, hostelId, notes } = req.body;
+    const { userId, hostelId, notes, selectedSharingType, useHostelPayment } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -31,7 +31,9 @@ router.post('/assign', auth, adminOnly, async (req, res) => {
       user: userId,
       hostel: hostelId,
       assignedBy: req.user.id,
-      notes
+      notes,
+      selectedSharingType,
+      useHostelPayment: useHostelPayment === true || useHostelPayment === 'true'
     });
 
     await assignment.save();
@@ -77,10 +79,60 @@ router.get('/admin/all', auth, adminOnly, async (req, res) => {
 router.get('/my-assignments', auth, async (req, res) => {
   try {
     const assignments = await UserHostelAssignment.find({ user: req.user.id })
-      .populate('hostel', 'name images location rating price installmentPlans')
+      .populate('hostel', 'name images location rating price installmentPlans paymentDetails')
       .sort({ createdAt: -1 });
 
     res.json({ success: true, assignments });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// User: Get payment details for assignment
+router.get('/assignment/:id/payment-info', auth, async (req, res) => {
+  try {
+    const assignment = await UserHostelAssignment.findOne({
+      _id: req.params.id,
+      user: req.user.id
+    }).populate('hostel', 'name paymentDetails');
+
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: 'Assignment not found' });
+    }
+
+    // Get admin payment settings if not using hostel payment
+    let paymentInfo = null;
+    
+    if (assignment.useHostelPayment) {
+      // Use hostel owner's payment details
+      paymentInfo = {
+        useHostelPayment: true,
+        upiId: assignment.hostel.paymentDetails?.upiId,
+        qrCode: assignment.hostel.paymentDetails?.qrCode,
+        instructions: assignment.hostel.paymentDetails?.paymentInstructions
+      };
+    } else {
+      // Use admin payment details
+      const Settings = require('../models/Settings');
+      const settings = await Settings.findOne();
+      paymentInfo = {
+        useHostelPayment: false,
+        upiId: settings?.adminPayment?.upiId,
+        qrCode: settings?.adminPayment?.qrCode,
+        instructions: settings?.adminPayment?.instructions || 'Please pay to admin UPI and upload screenshot'
+      };
+    }
+
+    res.json({ 
+      success: true, 
+      paymentInfo,
+      assignment: {
+        _id: assignment._id,
+        hostelName: assignment.hostel.name,
+        selectedSharingType: assignment.selectedSharingType,
+        useHostelPayment: assignment.useHostelPayment
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -131,6 +183,75 @@ router.delete('/admin/:id', auth, adminOnly, async (req, res) => {
     await assignment.deleteOne();
 
     res.json({ success: true, message: 'Assignment removed successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get all users (for assignment dropdown)
+router.get('/users/all', auth, adminOnly, async (req, res) => {
+  try {
+    const { search } = req.query;
+    const query = { role: 'user', isActive: true };
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const users = await User.find(query)
+      .select('name email phone')
+      .sort({ name: 1 })
+      .limit(50);
+    
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get admin payment settings
+router.get('/admin-payment-settings', auth, adminOnly, async (req, res) => {
+  try {
+    const Settings = require('../models/Settings');
+    const settings = await Settings.findOne();
+    
+    res.json({ 
+      success: true, 
+      adminPayment: settings?.adminPayment || null
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update admin payment settings
+router.put('/admin-payment-settings', auth, adminOnly, async (req, res) => {
+  try {
+    const { upiId, qrCode, instructions } = req.body;
+    const Settings = require('../models/Settings');
+    
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = new Settings();
+    }
+    
+    settings.adminPayment = {
+      upiId,
+      qrCode,
+      instructions
+    };
+    
+    await settings.save();
+    
+    res.json({ 
+      success: true, 
+      message: 'Admin payment settings updated',
+      adminPayment: settings.adminPayment
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

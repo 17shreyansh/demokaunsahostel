@@ -42,6 +42,7 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/visit-bookings', require('./routes/visitBookings'));
 app.use('/api/assignments', require('./routes/assignments'));
+app.use('/api/admin/assignments', require('./routes/adminAssignments'));
 app.use('/api/manual-payments', require('./routes/manualPayments'));
 app.use('/api/reservations', require('./routes/reservations'));
 app.use('/api/hostel-manager/payments', require('./routes/hostelManagerPayments'));
