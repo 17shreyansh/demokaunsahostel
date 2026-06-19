@@ -58,7 +58,11 @@ const AdminSettings = () => {
 
   const fetchPaymentSettings = async () => {
     try {
-      const response = await axios.get(`${API_URL}/settings/payment-config`, { withCredentials: true })
+      const token = localStorage.getItem('adminToken')
+      const response = await axios.get(`${API_URL}/settings/payment-config`, { 
+        withCredentials: true,
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
       if (response.data.success && response.data.settings) {
         setPaymentSettings(response.data.settings)
         if (response.data.settings.qrCode) {
@@ -156,6 +160,7 @@ const AdminSettings = () => {
     e.preventDefault()
     setPaymentLoading(true)
     try {
+      const token = localStorage.getItem('adminToken')
       const formData = new FormData()
       formData.append('upiId', paymentSettings.upiId)
       formData.append('paymentInstructions', paymentSettings.paymentInstructions)
@@ -165,7 +170,9 @@ const AdminSettings = () => {
 
       const response = await axios.post(`${API_URL}/settings/payment-config`, formData, {
         withCredentials: true,
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 
+          'Authorization': `Bearer ${token}`
+        }
       })
 
       if (response.data.success) {

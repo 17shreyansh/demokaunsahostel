@@ -1,18 +1,18 @@
-import React, { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-  Card, Form, Input, Select, Upload, Button, Row, Col, 
-  InputNumber, Checkbox, Typography, Spin, message, Tooltip
+  Form, Input, Select, Upload, message, 
+  InputNumber, Checkbox 
 } from 'antd';
 import { 
-  SaveOutlined, ArrowLeftOutlined, UploadOutlined, PlusOutlined, 
-  DeleteOutlined, EnvironmentOutlined, InfoCircleOutlined, LayoutOutlined,
-  PictureOutlined, StarOutlined, PhoneOutlined, DollarOutlined, PercentageOutlined
-} from '@ant-design/icons';
+  Save, ArrowLeft, UploadCloud, Plus, 
+  Trash2, MapPin, Info, Layout,
+  Image as ImageIcon, Star, Loader2, DollarSign, Percent
+} from 'lucide-react';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
+import NearbyPlacesSelector from '../components/NearbyPlacesSelector.jsx';
 
-const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 /* -------------------------------------------------------------------------- */
@@ -71,38 +71,44 @@ const AMENITIES_OPTIONS = [
 /* -------------------------------------------------------------------------- */
 
 const AmenitiesCheckbox = memo(({ value = [], onChange }) => (
-  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 max-h-64 overflow-y-auto">
+  <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 max-h-[300px] overflow-y-auto custom-scrollbar">
     <Checkbox.Group value={value} onChange={onChange} className="w-full">
-      <Row gutter={[16, 12]}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-4 gap-x-6">
         {AMENITIES_OPTIONS.map((amenity) => (
-          <Col xs={24} sm={12} md={8} xl={6} key={amenity.value}>
-            <Checkbox value={amenity.value}>
-              <span className="text-sm text-slate-700">{amenity.label}</span>
-            </Checkbox>
-          </Col>
+          <Checkbox value={amenity.value} key={amenity.value} className="flex items-center m-0">
+            <span className="text-sm font-medium text-gray-700 ml-1">{amenity.label}</span>
+          </Checkbox>
         ))}
-      </Row>
+      </div>
     </Checkbox.Group>
   </div>
 ));
 AmenitiesCheckbox.displayName = 'AmenitiesCheckbox';
 
 const MemoizedMapPreview = memo(({ coordinates }) => {
-  if (!coordinates || !coordinates.includes(',')) return null;
+  if (!coordinates || !coordinates.includes(',')) {
+    return (
+      <div className="w-full h-[280px] bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
+        <MapPin size={32} className="mb-2 opacity-50" />
+        <span className="text-sm font-medium">Enter coordinates to preview map</span>
+      </div>
+    );
+  }
+  
   const [lat, lng] = coordinates.split(',').map(c => c.trim());
   if (isNaN(lat) || isNaN(lng)) return null;
 
   return (
-    <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50 h-[200px] relative">
+    <div className="w-full h-[280px] rounded-xl overflow-hidden border border-gray-200 shadow-inner bg-gray-50 relative group">
       <iframe
         title="Location Preview"
         width="100%"
         height="100%"
         frameBorder="0"
-        src={`http://googleusercontent.com/maps.google.com/6${lat},${lng}&hl=en&z=15&output=embed`}
+        src={`http://googleusercontent.com/maps.google.com/5${lat},${lng}&hl=en&z=15&output=embed`}
         allowFullScreen
         loading="lazy"
-        className="absolute inset-0"
+        className="absolute inset-0 transition-opacity duration-300"
       />
     </div>
   );
@@ -122,8 +128,8 @@ const HostelManagerHostelForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
+  const [mapCoordinates, setMapCoordinates] = useState({ lat: 28.6139, lng: 77.2090 });
 
-  // Antd optimized watch for map preview without React state thrashing
   const rawCoordinates = Form.useWatch('coordinates', form);
 
   useEffect(() => {
@@ -134,30 +140,31 @@ const HostelManagerHostelForm = () => {
       }
       
       try {
-        const res = await axios.get(`/api/hostels/${id}`);
-        const data = res.data;
+        const response = await axios.get(`/api/hostels/${id}`);
+        const data = response.data;
         
         form.setFieldsValue({
           name: data.name || '',
           location: data.location || '',
           description: data.description || '',
-          price: data.price || '',
+          price: data.price || 0,
           priceType: data.priceType || 'month',
-          sessionPrice: data.sessionPrice || '',
+          sessionPrice: data.sessionPrice || 0,
           availability: data.availability || 'Available',
-          rating: data.rating || '',
+          rating: data.rating || 0,
           type: data.type || 'PG',
           gender: data.gender || 'Co-ed',
-          availableBeds: data.availableBeds || data.availableRooms || '',
-          securityDeposit: data.securityDeposit || '',
+          availableBeds: data.availableBeds || data.availableRooms || 0,
+          securityDeposit: data.securityDeposit || 0,
           capacity: data.capacity || '',
           checkIn: data.checkIn || '',
           amenities: data.amenities || [],
           rules: data.rules || [],
+          info: data.info?.length > 0 ? data.info : [{ title: '', value: '' }],
+          nearbyPlaces: data.nearbyPlaces || {},
           sharingTypes: data.sharingTypes?.length > 0 ? data.sharingTypes : [],
           installmentPlans: data.installmentPlans || [],
-          info: data.info?.length > 0 ? data.info : [],
-          roomTypes: data.roomTypes?.length > 0 ? data.roomTypes : [],
+          roomTypes: data.roomTypes?.length > 0 ? data.roomTypes : [{ name: '', description: '' }],
           address: data.contactInfo?.address || '',
           contactPersonName: data.contactInfo?.contactPersonName || '',
           jobTitle: data.contactInfo?.jobTitle || '',
@@ -165,9 +172,11 @@ const HostelManagerHostelForm = () => {
           coordinates: data.mapCoordinates ? `${data.mapCoordinates.lat}, ${data.mapCoordinates.lng}` : '',
           videoTourUrl: data.videoTourUrl || '',
           paymentDetails: data.paymentDetails || { upiId: '', qrCode: '', paymentInstructions: '' },
-          reservationEnabled: data.reservationEnabled || false,
-          reservationAmount: data.reservationAmount || 0
+          reservationEnabled: data.reservationEnabled === true,
+          reservationAmount: data.reservationAmount ? Number(data.reservationAmount) : 0
         });
+
+        if (data.mapCoordinates) setMapCoordinates(data.mapCoordinates);
 
         if (data.images) {
           setFileList(data.images.map((img, index) => ({
@@ -200,17 +209,15 @@ const HostelManagerHostelForm = () => {
 
   const handleSubmit = async (values) => {
     setSubmitting(true);
-    const hideLoading = message.loading('Saving property details...', 0);
+    const hideLoading = message.loading('Saving property configuration...', 0);
     
     try {
       const formData = new FormData();
       
-      // JSON Payloads
-      ['amenities', 'rules'].forEach(key => {
-        formData.append(key, JSON.stringify(values[key] || []));
+      ['amenities', 'rules', 'nearbyPlaces'].forEach(key => {
+        formData.append(key, JSON.stringify(values[key] || (key === 'nearbyPlaces' ? {} : [])));
       });
 
-      // Filtered Arrays
       formData.append('info', JSON.stringify(values.info?.filter(i => i.title && i.value) || []));
       formData.append('roomTypes', JSON.stringify(values.roomTypes?.filter(r => r.name) || []));
       formData.append('sharingTypes', JSON.stringify(
@@ -225,17 +232,17 @@ const HostelManagerHostelForm = () => {
         (values.installmentPlans || []).filter(p => p.name && p.type && p.installments?.length > 0)
       ));
 
-      // Coordinates
       if (values.coordinates) {
         const coords = values.coordinates.split(',').map(c => c.trim());
         if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
           formData.append('mapCoordinates', JSON.stringify({ lat: parseFloat(coords[0]), lng: parseFloat(coords[1]) }));
         }
+      } else if (mapCoordinates?.lat) {
+        formData.append('mapCoordinates', JSON.stringify(mapCoordinates));
       }
 
-      // Basic Text Fields
       Object.keys(values).forEach(key => {
-        if (!['amenities', 'rules', 'info', 'coordinates', 'roomTypes', 'sharingTypes', 'installmentPlans', 'paymentDetails'].includes(key) && values[key] !== undefined && values[key] !== null) {
+        if (!['amenities', 'rules', 'info', 'nearbyPlaces', 'coordinates', 'roomTypes', 'sharingTypes', 'installmentPlans', 'paymentDetails', 'reservationEnabled', 'reservationAmount'].includes(key) && values[key] !== undefined) {
           formData.append(key, values[key]);
         }
       });
@@ -244,16 +251,14 @@ const HostelManagerHostelForm = () => {
       if (values.paymentDetails) {
         formData.append('paymentDetails', JSON.stringify(values.paymentDetails));
       }
-      if (values.reservationEnabled !== undefined) {
-        formData.append('reservationEnabled', values.reservationEnabled ? 'true' : 'false');
-      }
-      if (values.reservationAmount !== undefined && values.reservationAmount !== null && !isNaN(values.reservationAmount)) {
-        formData.append('reservationAmount', Number(values.reservationAmount) || 0);
-      } else {
-        formData.append('reservationAmount', 0);
-      }
+      
+      // Reservation settings - explicitly handle boolean and number
+      const reservationEnabled = values.reservationEnabled === true;
+      formData.append('reservationEnabled', reservationEnabled.toString());
+      
+      const reservationAmount = Number(values.reservationAmount) || 0;
+      formData.append('reservationAmount', reservationAmount.toString());
 
-      // Images
       const newImages = fileList.filter(file => file.originFileObj);
       const keepImages = fileList.filter(file => file.isExisting && file.status === 'done');
       
@@ -267,7 +272,6 @@ const HostelManagerHostelForm = () => {
       
       formData.append('finalImages', JSON.stringify([...keepImages.map(f => f.name), ...newImages.map(f => f.name || `new-${Date.now()}`)]));
 
-      // Network Call
       let response;
       if (id && id !== 'new') {
         response = await axios.put(`/api/hostel-manager/hostels/${id}`, formData, { 
@@ -292,575 +296,509 @@ const HostelManagerHostelForm = () => {
   if (loading) {
     return (
       <HostelManagerLayout>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <Spin size="large" tip="Loading property details..." />
+        <div className="min-h-[80vh] flex flex-col items-center justify-center bg-[#FAFAFA]">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
+          <p className="text-gray-500 font-medium">Loading property details...</p>
         </div>
       </HostelManagerLayout>
     );
   }
 
+  // Common Section Container Component
+  const FormSection = ({ title, icon: Icon, children, className = "" }) => (
+    <section className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden ${className}`}>
+      <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+        <div className="p-2 bg-white rounded-lg shadow-sm border border-gray-100">
+          <Icon size={18} className="text-blue-600" />
+        </div>
+        <h2 className="text-lg font-semibold text-gray-900 tracking-tight">{title}</h2>
+      </div>
+      <div className="p-6">
+        {children}
+      </div>
+    </section>
+  );
+
   return (
     <HostelManagerLayout>
-      <div className="pb-12 max-w-6xl mx-auto">
+      <div className="pb-16 bg-[#FAFAFA] min-h-screen font-sans text-gray-900">
         
         {/* Sticky Enterprise Header */}
-        <div className="sticky top-0 z-40 bg-slate-50/90 backdrop-blur-xl border-b border-slate-200 pb-4 pt-2 mb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200 px-4 sm:px-6 py-4 mb-8">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Button 
-                icon={<ArrowLeftOutlined />} 
+              <button 
+                type="button"
                 onClick={() => navigate('/hostel-manager/hostels')}
-                type="text"
-                className="text-slate-500 hover:bg-slate-200"
-              />
+                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Go back"
+              >
+                <ArrowLeft size={20} />
+              </button>
               <div>
-                <Title level={4} className="!m-0 text-slate-900">
-                  {id === 'new' ? 'Add New Property' : 'Edit Property Details'}
-                </Title>
-                <Text type="secondary" className="text-xs font-medium">Manage your listing details, rules, and media.</Text>
+                <h1 className="text-xl font-semibold tracking-tight text-gray-900 m-0">
+                  {id === 'new' ? 'Add New Property' : 'Edit Property Configuration'}
+                </h1>
+                <p className="text-sm font-medium text-gray-500 mt-0.5">Manage listing details, rules, and media.</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button onClick={() => navigate('/hostel-manager/hostels')} disabled={submitting}>
-                Discard
-              </Button>
-              <Button 
-                type="primary" 
-                icon={<SaveOutlined />}
-                onClick={() => form.submit()}
-                loading={submitting}
-                className="bg-blue-600 shadow-md hover:shadow-lg transform-gpu hover:-translate-y-0.5 transition-all"
+            <div className="flex w-full sm:w-auto items-center gap-3">
+              <button 
+                type="button"
+                onClick={() => navigate('/hostel-manager/hostels')} 
+                disabled={submitting}
+                className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all disabled:opacity-50"
               >
+                Discard
+              </button>
+              <button 
+                type="button"
+                onClick={() => form.submit()}
+                disabled={submitting}
+                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
+              >
+                {submitting ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 {id === 'new' ? 'Create Listing' : 'Save Changes'}
-              </Button>
+              </button>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Main Form Container */}
-        <Form
-          id="hostel-form"
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          className="space-y-6 px-2"
-          requiredMark="optional"
-        >
-          {/* Section 1: Basic Information */}
-          <Card 
-            title={<span className="flex items-center gap-2"><InfoCircleOutlined className="text-blue-500" /> Basic Information</span>}
-            bordered={false} className="shadow-sm rounded-2xl"
+        <main className="max-w-7xl mx-auto px-4 sm:px-6">
+          <Form
+            id="hostel-form"
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            requiredMark="optional"
+            // Advanced Tailwind injected styling to force Antd components to look modern
+            className="space-y-8 [&_.ant-form-item-label>label]:font-medium [&_.ant-form-item-label>label]:text-gray-700 [&_.ant-input]:rounded-lg [&_.ant-select-selector]:rounded-lg [&_.ant-input-number]:rounded-lg [&_.ant-input]:border-gray-300 [&_.ant-select-selector]:border-gray-300 [&_.ant-picker]:rounded-lg [&_.ant-picker]:border-gray-300"
           >
-            <Row gutter={24}>
-              <Col xs={24} md={12}>
-                <Form.Item name="name" label="Property Name" rules={[{ required: true, message: 'Required' }]}>
-                  <Input size="large" placeholder="e.g., Sunrise Student Living" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item name="location" label="City / Area" rules={[{ required: true, message: 'Required' }]}>
-                  <Input size="large" placeholder="e.g., Knowledge Park, Greater Noida" />
-                </Form.Item>
-              </Col>
-            </Row>
             
-            <Form.Item name="address" label="Full Street Address">
-              <TextArea rows={2} placeholder="Complete address for map routing" />
-            </Form.Item>
+            {/* Section 1: Basic Information */}
+            <FormSection title="Basic Information" icon={Info}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                <Form.Item name="name" label="Property Name" rules={[{ required: true, message: 'Property name is required' }]}>
+                  <Input size="large" placeholder="e.g., Sunrise Student Living" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
+                </Form.Item>
+                <Form.Item name="location" label="City / Area" rules={[{ required: true, message: 'Location is required' }]}>
+                  <Input size="large" placeholder="e.g., Knowledge Park, Greater Noida" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
+                </Form.Item>
+              </div>
+              
+              <Form.Item name="address" label="Full Street Address" className="mt-2">
+                <TextArea rows={2} placeholder="Complete address for map routing" className="rounded-lg hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
+              </Form.Item>
 
-            <Form.Item name="description" label="Property Description" rules={[{ required: true, message: 'Required' }]}>
-              <TextArea rows={4} placeholder="Describe the atmosphere, community, and key selling points..." showCount maxLength={1000} />
-            </Form.Item>
-          </Card>
+              <Form.Item name="description" label="Property Description" rules={[{ required: true, message: 'Description is required' }]} className="mb-0 mt-2">
+                <TextArea rows={4} placeholder="Describe the atmosphere, community, and key selling points..." className="rounded-lg hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
+              </Form.Item>
+            </FormSection>
 
-          {/* Section 2: Pricing & Configuration */}
-          <Card 
-            title={<span className="flex items-center gap-2"><LayoutOutlined className="text-emerald-500" /> Pricing & Configuration</span>}
-            bordered={false} className="shadow-sm rounded-2xl"
-          >
-            <Row gutter={24}>
-              <Col xs={24} md={8}>
+            {/* Section 2: Mapping & Location */}
+            <FormSection title="Location & Mapping" icon={MapPin}>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <div className="flex flex-col gap-4">
+                  <Form.Item 
+                    name="coordinates" 
+                    label="GPS Coordinates" 
+                    extra={<span className="text-xs text-gray-500 mt-1 block">Format: Latitude, Longitude (e.g., 28.4643, 77.4993)</span>}
+                    className="mb-0"
+                  >
+                    <Input size="large" placeholder="Paste coordinates from Google Maps" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
+                  </Form.Item>
+                  <div className="flex-1 bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+                    <Form.Item name="nearbyPlaces" label="Points of Interest" className="mb-0">
+                      <NearbyPlacesSelector coordinates={mapCoordinates} />
+                    </Form.Item>
+                  </div>
+                </div>
+                <div className="flex flex-col h-full">
+                  <span className="block mb-2 font-medium text-gray-700">Map Verification Preview</span>
+                  <MemoizedMapPreview coordinates={rawCoordinates} />
+                </div>
+              </div>
+            </FormSection>
+
+            {/* Section 3: Pricing & Configuration */}
+            <FormSection title="Pricing & Configuration" icon={Layout}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4">
                 <Form.Item name="priceType" label="Billing Cycle" rules={[{ required: true }]}>
-                  <Select size="large">
+                  <Select size="large" className="w-full">
                     <Select.Option value="month">Per Month</Select.Option>
                     <Select.Option value="session">Per Session</Select.Option>
                   </Select>
                 </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
+                
                 <Form.Item 
                   noStyle 
                   shouldUpdate={(prev, curr) => prev.priceType !== curr.priceType}
                 >
                   {({ getFieldValue }) => (
                     <Form.Item name="price" label={`Price (per ${getFieldValue('priceType') || 'month'})`} rules={[{ required: true }]}>
-                      <InputNumber size="large" style={{ width: '100%' }} formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+                      <InputNumber size="large" className="w-full" formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
                     </Form.Item>
                   )}
                 </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
-                <Form.Item name="sessionPrice" label="Secondary Price (Optional)">
-                  <InputNumber size="large" style={{ width: '100%' }} formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} placeholder="Alternative cycle price" />
+                
+                <Form.Item name="securityDeposit" label="Security Deposit">
+                  <InputNumber size="large" className="w-full" formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
                 </Form.Item>
-              </Col>
-            </Row>
+                
+                <Form.Item name="availability" label="Current Status" rules={[{ required: true }]}>
+                  <Select size="large" className="w-full">
+                    <Select.Option value="Available"><span className="text-emerald-600 font-semibold">● Available</span></Select.Option>
+                    <Select.Option value="Limited"><span className="text-amber-600 font-semibold">● Limited</span></Select.Option>
+                    <Select.Option value="Full"><span className="text-rose-600 font-semibold">● Full</span></Select.Option>
+                  </Select>
+                </Form.Item>
 
-            <Row gutter={24}>
-              <Col xs={24} md={6}>
                 <Form.Item name="type" label="Property Type">
-                  <Select size="large">
+                  <Select size="large" className="w-full">
                     <Select.Option value="PG">PG</Select.Option>
                     <Select.Option value="Hostel">Hostel</Select.Option>
                     <Select.Option value="Apartment">Apartment</Select.Option>
                   </Select>
                 </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
+                
                 <Form.Item name="gender" label="Gender Restriction">
-                  <Select size="large">
+                  <Select size="large" className="w-full">
                     <Select.Option value="Boys">Boys Only</Select.Option>
                     <Select.Option value="Girls">Girls Only</Select.Option>
                     <Select.Option value="Co-ed">Co-ed</Select.Option>
                   </Select>
                 </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="availability" label="Current Status" rules={[{ required: true }]}>
-                  <Select size="large">
-                    <Select.Option value="Available"><span className="text-green-600 font-medium">● Available</span></Select.Option>
-                    <Select.Option value="Limited"><span className="text-yellow-600 font-medium">● Limited</span></Select.Option>
-                    <Select.Option value="Full"><span className="text-red-600 font-medium">● Full</span></Select.Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="rating" label="Internal Rating">
-                  <InputNumber size="large" style={{ width: '100%' }} min={0} max={5} step={0.1} placeholder="0.0 - 5.0" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={24}>
-              <Col xs={24} md={8}>
+                
                 <Form.Item name="capacity" label="Total Capacity">
                   <Input size="large" placeholder="e.g., 50 Students" />
                 </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
+                
                 <Form.Item name="availableBeds" label="Open Beds">
-                  <InputNumber size="large" style={{ width: '100%' }} min={0} />
+                  <InputNumber size="large" className="w-full" min={0} />
                 </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
-                <Form.Item name="securityDeposit" label="Security Deposit">
-                  <InputNumber size="large" style={{ width: '100%' }} formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Card>
+              </div>
 
-          {/* Section 3: Contact & Location */}
-          <Row gutter={24}>
-            <Col xs={24} lg={12}>
-              <Card 
-                title={<span className="flex items-center gap-2"><PhoneOutlined className="text-orange-500" /> Contact Details</span>}
-                bordered={false} className="shadow-sm rounded-2xl h-full"
-              >
-                <Row gutter={16}>
-                  <Col xs={24} md={12}>
-                    <Form.Item name="contactPersonName" label="Contact Person">
-                      <Input size="large" placeholder="e.g., John Doe" />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Form.Item name="jobTitle" label="Job Title">
-                      <Input size="large" placeholder="e.g., Property Manager" />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Form.Item name="phone" label="Phone Number">
-                  <Input size="large" placeholder="+91 9876543210" />
+              <div className="mt-6 p-5 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl">
+                <div className="flex items-start gap-3 mb-4">
+                  <DollarSign size={20} className="text-purple-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-purple-900 mb-1">Reservation Settings</h4>
+                    <p className="text-sm text-purple-700">Allow users to reserve this hostel by paying an advance amount</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Form.Item name="reservationEnabled" valuePropName="checked" className="mb-0">
+                    <Checkbox className="text-gray-700 font-medium">
+                      Enable Reservation System
+                    </Checkbox>
+                  </Form.Item>
+                  
+                  <Form.Item 
+                    noStyle 
+                    shouldUpdate={(prev, curr) => prev.reservationEnabled !== curr.reservationEnabled}
+                  >
+                    {({ getFieldValue }) => (
+                      <Form.Item 
+                        name="reservationAmount" 
+                        label="Reservation Amount" 
+                        className="mb-0"
+                      >
+                        <InputNumber 
+                          size="large" 
+                          className="w-full" 
+                          min={0}
+                          disabled={!getFieldValue('reservationEnabled')}
+                          formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} 
+                          parser={value => value.replace(/₹\s?|(,*)/g, '')}
+                          placeholder="Enter reservation amount"
+                        />
+                      </Form.Item>
+                    )}
+                  </Form.Item>
+                </div>
+              </div>
+            </FormSection>
+
+            {/* Section 4: Amenities & Media (Grid) */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              <FormSection title="Amenities & Rules" icon={Star} className="h-full">
+                <Form.Item name="amenities" label="Available Amenities" className="mb-6">
+                  <AmenitiesCheckbox />
                 </Form.Item>
-                <Form.Item label="Profile Photo" className="mb-0">
+                <Form.Item name="rules" label="House Rules" className="mb-0">
+                  <Select mode="tags" size="large" placeholder="Type a rule and press Enter..." className="w-full" />
+                </Form.Item>
+              </FormSection>
+              
+              <FormSection title="Media Gallery" icon={ImageIcon} className="h-full">
+                <Form.Item name="images" label="Property Photos" extra={<span className="text-xs text-gray-500 mt-1 block">Supported: JPG, PNG, WebP. Max 10 images.</span>}>
                   <Upload
                     listType="picture-card"
-                    fileList={profileImage ? [profileImage] : []}
-                    onChange={({ fileList }) => setProfileImage(fileList[0] || null)}
+                    fileList={fileList}
+                    onChange={({ fileList: newFileList }) => setFileList(newFileList)}
                     beforeUpload={() => false}
+                    multiple
                     accept="image/*"
-                    maxCount={1}
+                    className="[&_.ant-upload]:!rounded-xl [&_.ant-upload-list-item]:!rounded-xl"
                   >
-                    {!profileImage && (
-                      <div className="flex flex-col items-center text-slate-400">
-                        <UploadOutlined className="text-xl mb-1" />
-                        <span className="text-xs">Upload</span>
+                    {fileList.length >= 10 ? null : (
+                      <div className="flex flex-col items-center justify-center text-gray-400 hover:text-blue-500 transition-colors w-full h-full">
+                        <UploadCloud size={24} className="mb-2" />
+                        <span className="text-sm font-medium">Upload</span>
                       </div>
                     )}
                   </Upload>
                 </Form.Item>
-              </Card>
-            </Col>
-
-            <Col xs={24} lg={12}>
-              <Card 
-                title={<span className="flex items-center gap-2"><EnvironmentOutlined className="text-teal-500" /> Map Coordinates</span>}
-                bordered={false} className="shadow-sm rounded-2xl h-full"
-              >
-                <Form.Item 
-                  name="coordinates" 
-                  label="GPS Coordinates" 
-                  extra="Format: Latitude, Longitude (e.g., 28.4643, 77.4993)"
-                  className="mb-2"
-                >
-                  <Input size="large" placeholder="Paste coordinates from Google Maps" />
+                <Form.Item name="videoTourUrl" label="Virtual Tour (YouTube URL)" className="mt-6 mb-0">
+                  <Input size="large" placeholder="https://www.youtube.com/watch?v=..." className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
                 </Form.Item>
-                <MemoizedMapPreview coordinates={rawCoordinates} />
-              </Card>
-            </Col>
-          </Row>
+              </FormSection>
+            </div>
 
-          {/* Section 4: Amenities & Media */}
-          <Card 
-            title={<span className="flex items-center gap-2"><StarOutlined className="text-indigo-500" /> Amenities & Rules</span>}
-            bordered={false} className="shadow-sm rounded-2xl"
-          >
-            <Form.Item name="amenities" label="Available Amenities">
-              <AmenitiesCheckbox />
-            </Form.Item>
-            <Form.Item name="rules" label="House Rules" extra="Press enter to add multiple tags">
-              <Select mode="tags" size="large" placeholder="Type a rule and press Enter..." style={{ width: '100%' }} />
-            </Form.Item>
-          </Card>
-
-          <Card 
-            title={<span className="flex items-center gap-2"><PictureOutlined className="text-pink-500" /> Media Gallery</span>}
-            bordered={false} className="shadow-sm rounded-2xl"
-          >
-            <Form.Item name="images" label="Property Photos" extra="Supported: JPG, PNG, WebP. Max 10 images.">
-              <Upload
-                listType="picture-card"
-                fileList={fileList}
-                onChange={({ fileList: newFileList }) => setFileList(newFileList)}
-                beforeUpload={() => false}
-                multiple
-                accept="image/*"
-              >
-                {fileList.length >= 10 ? null : (
-                  <div className="flex flex-col items-center text-slate-400 hover:text-blue-500 transition-colors">
-                    <UploadOutlined className="text-xl mb-2" />
-                    <span className="text-sm font-medium">Upload</span>
+            {/* Section 5: Dynamic Arrays */}
+            <FormSection title="Room Types Configuration" icon={Layout}>
+              <Form.List name="roomTypes">
+                {(fields, { add, remove }) => (
+                  <div className="space-y-4">
+                    {fields.map(({ key, name, ...restField }) => (
+                      <div key={key} className="flex flex-col md:flex-row gap-4 items-start md:items-center bg-gray-50 border border-gray-200 rounded-xl p-4 relative group transition-colors hover:border-gray-300">
+                        <div className="flex-1 w-full">
+                          <Form.Item {...restField} name={[name, 'name']} className="mb-0">
+                            <Input size="large" placeholder="Room Type (e.g., Single AC)" className="w-full" />
+                          </Form.Item>
+                        </div>
+                        <div className="flex-[2] w-full">
+                          <Form.Item {...restField} name={[name, 'description']} className="mb-0">
+                            <Input size="large" placeholder="Brief description of the room..." className="w-full" />
+                          </Form.Item>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => remove(name)}
+                          className="absolute -top-3 -right-3 md:relative md:top-0 md:right-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white md:bg-transparent rounded-full md:rounded-lg border md:border-0 border-gray-200 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-sm md:shadow-none"
+                          aria-label="Remove room configuration"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    ))}
+                    <button 
+                      type="button" 
+                      onClick={() => add()} 
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                    >
+                      <Plus size={18} /> Add Room Configuration
+                    </button>
                   </div>
                 )}
-              </Upload>
-            </Form.Item>
-            <Form.Item name="videoTourUrl" label="Virtual Tour (YouTube URL)" className="mb-0">
-              <Input size="large" placeholder="https://www.youtube.com/watch?v=..." />
-            </Form.Item>
-          </Card>
+              </Form.List>
+            </FormSection>
 
-          {/* Section 5: Bed-Based Pricing */}
-          <Card 
-            title={<span className="flex items-center gap-2"><DollarOutlined className="text-yellow-500" /> Bed-Based Pricing (Sharing Types)</span>}
-            bordered={false} className="shadow-sm rounded-2xl"
-          >
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
-              <p className="text-sm text-yellow-800 font-medium">
-                Define pricing for each sharing type. The lowest price will automatically be shown as the base price on listing cards.
-              </p>
-            </div>
-            <Form.List name="sharingTypes">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <div key={key} className="p-4 border border-slate-200 rounded-xl bg-slate-50 relative mb-4">
-                      <Button 
-                        type="text" danger icon={<DeleteOutlined />} 
-                        onClick={() => remove(name)}
-                        className="absolute top-2 right-2"
-                      />
-                      <Row gutter={16} className="mt-2">
-                        <Col xs={24} md={8}>
+            <FormSection title="Bed-Based Pricing (Sharing Types)" icon={Layout}>
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-blue-900 mb-1">Bed-Based Pricing System</h4>
+                    <p className="text-sm text-blue-700">Define pricing for different sharing types (Single, Double, Triple, etc.). Users will see all pricing options on the hostel page.</p>
+                  </div>
+                </div>
+              </div>
+              <Form.List name="sharingTypes">
+                {(fields, { add, remove }) => (
+                  <div className="space-y-4">
+                    {fields.map(({ key, name, ...restField }) => (
+                      <div key={key} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-300 rounded-xl p-4 relative group transition-all hover:border-blue-400 hover:shadow-sm">
+                        <div className="md:col-span-2">
                           <Form.Item {...restField} name={[name, 'name']} label="Sharing Type" rules={[{ required: true, message: 'Required' }]} className="mb-0">
-                            <Input size="large" placeholder="e.g., Single Sharing" />
+                            <Input size="large" placeholder="e.g., Single Sharing" className="w-full" />
                           </Form.Item>
-                        </Col>
-                        <Col xs={24} md={6}>
+                        </div>
+                        <div>
                           <Form.Item {...restField} name={[name, 'price']} label="Price (₹)" rules={[{ required: true, message: 'Required' }]} className="mb-0">
-                            <InputNumber 
-                              size="large" style={{ width: '100%' }} min={0}
-                              formatter={v => `₹ ${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={v => v.replace(/₹\s?|(,*)/g, '')}
-                            />
+                            <InputNumber size="large" className="w-full" min={0} formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={value => value.replace(/₹\s?|(,*)/g, '')} />
                           </Form.Item>
-                        </Col>
-                        <Col xs={24} md={6}>
+                        </div>
+                        <div>
                           <Form.Item {...restField} name={[name, 'priceType']} label="Billing" initialValue="month" className="mb-0">
-                            <Select size="large">
+                            <Select size="large" className="w-full">
                               <Select.Option value="month">Per Month</Select.Option>
                               <Select.Option value="session">Per Session</Select.Option>
                             </Select>
                           </Form.Item>
-                        </Col>
-                        <Col xs={24} md={4}>
-                          <Form.Item {...restField} name={[name, 'available']} label="Beds" initialValue={0} className="mb-0">
-                            <InputNumber size="large" style={{ width: '100%' }} min={0} />
+                        </div>
+                        <div>
+                          <Form.Item {...restField} name={[name, 'available']} label="Available Beds" initialValue={0} className="mb-0">
+                            <InputNumber size="large" className="w-full" min={0} />
                           </Form.Item>
-                        </Col>
-                      </Row>
-                    </div>
-                  ))}
-                  <Button 
-                    type="dashed" 
-                    onClick={() => add({ name: '', price: 0, priceType: 'month', available: 0 })} 
-                    icon={<PlusOutlined />} 
-                    block
-                  >
-                    Add Sharing Type
-                  </Button>
-                </>
-              )}
-            </Form.List>
-          </Card>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => remove(name)}
+                          className="absolute -top-3 -right-3 md:relative md:top-auto md:right-auto md:self-end w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white rounded-full border border-gray-200 text-gray-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-sm"
+                          aria-label="Remove sharing type"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    ))}
+                    <button 
+                      type="button" 
+                      onClick={() => add({ name: '', price: 0, priceType: 'month', available: 0 })} 
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                    >
+                      <Plus size={18} /> Add Sharing Type
+                    </button>
+                  </div>
+                )}
+              </Form.List>
+            </FormSection>
 
-          {/* Section 6: Payment Settings */}
-          <Card 
-            title={<span className="flex items-center gap-2"><DollarOutlined className="text-green-600" /> Payment Settings (Manual Payment System)</span>}
-            bordered={false} className="shadow-sm rounded-2xl"
-          >
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-              <p className="text-sm text-blue-800 font-medium">
-                Configure your payment details for manual payment collection. Students will see this information when booking visits or reserving seats.
-              </p>
-            </div>
-            <Row gutter={24}>
-              <Col xs={24} md={12}>
-                <Form.Item name={['paymentDetails', 'upiId']} label="UPI ID">
-                  <Input size="large" placeholder="yourname@upi" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item label="QR Code (Upload)">
-                  <Upload
-                    listType="picture-card"
-                    maxCount={1}
-                    beforeUpload={() => false}
-                    accept="image/*"
-                  >
-                    <div className="flex flex-col items-center text-slate-400">
-                      <UploadOutlined className="text-xl mb-1" />
-                      <span className="text-xs">Upload QR</span>
-                    </div>
-                  </Upload>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Form.Item name={['paymentDetails', 'paymentInstructions']} label="Payment Instructions">
-              <TextArea rows={3} placeholder="Additional instructions for students making payments..." />
-            </Form.Item>
-            
-            <div className="border-t border-slate-200 pt-4 mt-4">
-              <Title level={5}>Seat Reservation Settings</Title>
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <Form.Item name="reservationEnabled" valuePropName="checked" className="mb-2">
-                    <Checkbox>Enable Seat Reservation</Checkbox>
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item name="reservationAmount" label="Reservation Amount (₹)">
-                    <InputNumber 
-                      size="large" 
-                      style={{ width: '100%' }} 
-                      min={0}
-                      defaultValue={0}
-                      formatter={value => value ? `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
-                      placeholder="5000"
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
-          </Card>
-
-          {/* Section 7: Dynamic Arrays */}
-          <Card title="Room Configurations" bordered={false} className="shadow-sm rounded-2xl">
-            <Form.List name="roomTypes">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <div key={key} className="p-4 border border-slate-200 rounded-xl bg-slate-50 relative mb-4">
-                      <Button 
-                        type="text" danger icon={<DeleteOutlined />} 
-                        onClick={() => remove(name)}
-                        className="absolute top-2 right-2"
-                      />
-                      <Row gutter={16} className="mt-2">
-                        <Col xs={24} md={8}>
-                          <Form.Item {...restField} name={[name, 'name']} className="mb-0" label="Room Type">
-                            <Input placeholder="e.g., Single AC" />
+            <FormSection title="Custom Information Fields" icon={Info}>
+              <Form.List name="info">
+                {(fields, { add, remove }) => (
+                  <div className="space-y-4">
+                    {fields.map(({ key, name, ...restField }) => (
+                      <div key={key} className="flex flex-col md:flex-row gap-4 items-start md:items-center bg-gray-50 border border-gray-200 rounded-xl p-4 relative transition-colors hover:border-gray-300">
+                        <div className="flex-1 w-full">
+                          <Form.Item {...restField} name={[name, 'title']} className="mb-0">
+                            <Input size="large" placeholder="Field Title (e.g., Notice Period)" className="w-full" />
                           </Form.Item>
-                        </Col>
-                        <Col xs={24} md={16}>
-                          <Form.Item {...restField} name={[name, 'description']} className="mb-0" label="Description">
-                            <Input placeholder="Brief description of the room..." />
+                        </div>
+                        <div className="flex-[2] w-full">
+                          <Form.Item {...restField} name={[name, 'value']} className="mb-0">
+                            <Input size="large" placeholder="Value (e.g., 30 Days)" className="w-full" />
                           </Form.Item>
-                        </Col>
-                      </Row>
-                    </div>
-                  ))}
-                  <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} block>
-                    Add Room Configuration
-                  </Button>
-                </>
-              )}
-            </Form.List>
-          </Card>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => remove(name)}
+                          className="absolute -top-3 -right-3 md:relative md:top-0 md:right-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white md:bg-transparent rounded-full md:rounded-lg border md:border-0 border-gray-200 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors focus:outline-none shadow-sm md:shadow-none"
+                          aria-label="Remove custom field"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    ))}
+                    <button 
+                      type="button" 
+                      onClick={() => add()} 
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                    >
+                      <Plus size={18} /> Add Custom Field
+                    </button>
+                  </div>
+                )}
+              </Form.List>
+            </FormSection>
 
-          <Card title="Custom Information Fields" bordered={false} className="shadow-sm rounded-2xl">
-            <Form.List name="info">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <Row key={key} gutter={16} className="mb-4">
-                      <Col xs={24} md={8}>
-                        <Form.Item {...restField} name={[name, 'title']} className="mb-0">
-                          <Input size="large" placeholder="Field Title (e.g., Notice Period)" />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={14}>
-                        <Form.Item {...restField} name={[name, 'value']} className="mb-0">
-                          <Input size="large" placeholder="Value (e.g., 30 Days)" />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={2} className="flex items-center justify-end">
-                        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(name)} />
-                      </Col>
-                    </Row>
-                  ))}
-                  <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} block>
-                    Add Custom Field
-                  </Button>
-                </>
-              )}
-            </Form.List>
-          </Card>
-
-          <Card 
-            title={<span className="flex items-center gap-2"><DollarOutlined className="text-green-500" /> Installment Plans (Post-Assignment Only)</span>}
-            bordered={false} className="shadow-sm rounded-2xl"
-          >
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-              <p className="text-sm text-amber-800 font-medium flex items-start gap-2">
-                <InfoCircleOutlined className="mt-0.5" />
-                <span>These plans will NOT appear on listing/search/details pages. They are only available after a student is assigned to this hostel.</span>
-              </p>
-            </div>
-            <Form.List name="installmentPlans">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <div key={key} className="p-4 border-2 border-blue-200 rounded-xl bg-blue-50 relative mb-4">
-                      <Button 
-                        type="text" danger icon={<DeleteOutlined />} 
-                        onClick={() => remove(name)}
-                        className="absolute top-2 right-2"
-                      />
-                      <Row gutter={16} className="mt-2 mb-4">
-                        <Col xs={24} md={12}>
+            <FormSection title="Installment Plans (Post-Assignment Only)" icon={DollarSign}>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <Info size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-amber-900 mb-1">Installment Plans Visibility</h4>
+                    <p className="text-sm text-amber-700">These plans will NOT appear on listing/search/details pages. They are only available after a student is assigned to this hostel.</p>
+                  </div>
+                </div>
+              </div>
+              <Form.List name="installmentPlans">
+                {(fields, { add, remove }) => (
+                  <div className="space-y-6">
+                    {fields.map(({ key, name, ...restField }) => (
+                      <div key={key} className="p-5 border-2 border-blue-200 rounded-2xl bg-blue-50/30 relative">
+                        <button 
+                          type="button"
+                          onClick={() => remove(name)}
+                          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-rose-600 hover:bg-white rounded-lg transition-colors shadow-sm focus:outline-none"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pr-12">
                           <Form.Item {...restField} name={[name, 'name']} label="Plan Name" rules={[{ required: true }]} className="mb-0">
                             <Input size="large" placeholder="e.g., 3 Installment Plan" />
                           </Form.Item>
-                        </Col>
-                        <Col xs={24} md={12}>
                           <Form.Item {...restField} name={[name, 'type']} label="Plan Type" rules={[{ required: true }]} className="mb-0">
                             <Select size="large">
                               <Select.Option value="percentage">Percentage Based</Select.Option>
                               <Select.Option value="fixed">Fixed Amount</Select.Option>
                             </Select>
                           </Form.Item>
-                        </Col>
-                      </Row>
+                        </div>
 
-                      <Form.Item noStyle shouldUpdate={(prev, curr) => prev.installmentPlans?.[name]?.type !== curr.installmentPlans?.[name]?.type}>
-                        {({ getFieldValue }) => {
-                          const planType = getFieldValue(['installmentPlans', name, 'type']);
-                          return (
-                            <div className="bg-white rounded-lg p-3 border border-slate-200">
-                              <div className="flex items-center justify-between mb-3">
-                                <Text strong className="text-xs">Installments</Text>
-                                {planType === 'percentage' && (
-                                  <Text type="secondary" className="text-xs flex items-center gap-1">
-                                    <PercentageOutlined /> Total should equal 100%
-                                  </Text>
-                                )}
-                              </div>
-                              <Form.List name={[name, 'installments']}>
-                                {(installmentFields, { add: addInstallment, remove: removeInstallment }) => (
-                                  <>
-                                    {installmentFields.map(({ key: iKey, name: iName, ...iRestField }, index) => (
-                                      <Row key={iKey} gutter={12} className="mb-3" align="middle">
-                                        <Col flex="60px">
-                                          <Text className="text-sm font-medium">#{index + 1}</Text>
-                                        </Col>
-                                        <Col flex="auto">
-                                          <Form.Item {...iRestField} name={[iName, 'value']} className="mb-0" rules={[{ required: true }]}>
+                        <Form.Item noStyle shouldUpdate={(prev, curr) => prev.installmentPlans?.[name]?.type !== curr.installmentPlans?.[name]?.type}>
+                          {({ getFieldValue }) => {
+                            const planType = getFieldValue(['installmentPlans', name, 'type']);
+                            return (
+                              <div className="bg-white rounded-xl p-4 border border-gray-200">
+                                <div className="flex items-center justify-between mb-3">
+                                  <span className="text-sm font-semibold text-gray-700">Installments</span>
+                                  {planType === 'percentage' && (
+                                    <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
+                                      <Percent size={14} /> Total should equal 100%
+                                    </span>
+                                  )}
+                                </div>
+                                <Form.List name={[name, 'installments']}>
+                                  {(installmentFields, { add: addInstallment, remove: removeInstallment }) => (
+                                    <>
+                                      {installmentFields.map(({ key: iKey, name: iName, ...iRestField }, index) => (
+                                        <div key={iKey} className="flex items-center gap-3 mb-3">
+                                          <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center font-semibold text-gray-500">
+                                            {index + 1}
+                                          </div>
+                                          <Form.Item {...iRestField} name={[iName, 'value']} className="mb-0 flex-1" rules={[{ required: true }]}>
                                             <InputNumber 
                                               size="large" 
-                                              style={{ width: '100%' }}
+                                              className="w-full" 
+                                              placeholder={planType === 'percentage' ? 'Percentage %' : 'Amount ₹'}
                                               min={0}
                                               max={planType === 'percentage' ? 100 : undefined}
-                                              formatter={value => planType === 'percentage' ? `${value}%` : `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                              parser={value => value.replace(/[₹,%\s]/g, '')}
-                                              placeholder={planType === 'percentage' ? '30' : '10000'}
+                                              addonAfter={planType === 'percentage' ? '%' : '₹'}
                                             />
                                           </Form.Item>
-                                        </Col>
-                                        <Col flex="auto">
-                                          <Form.Item {...iRestField} name={[iName, 'dueDate']} className="mb-0">
-                                            <Input size="large" placeholder="Upon Admission" />
-                                          </Form.Item>
-                                        </Col>
-                                        <Col flex="40px">
-                                          <Button 
-                                            type="text" danger icon={<DeleteOutlined />}
+                                          <button 
+                                            type="button"
                                             onClick={() => removeInstallment(iName)}
-                                          />
-                                        </Col>
-                                      </Row>
-                                    ))}
-                                    <Button 
-                                      type="dashed" 
-                                      onClick={() => addInstallment({ value: 0, dueDate: '' })} 
-                                      icon={<PlusOutlined />} 
-                                      size="small"
-                                      block
-                                    >
-                                      Add Installment
-                                    </Button>
-                                  </>
-                                )}
-                              </Form.List>
-                            </div>
-                          );
-                        }}
-                      </Form.Item>
-                    </div>
-                  ))}
-                  <Button 
-                    type="dashed" 
-                    onClick={() => add({ name: '', type: 'percentage', installments: [] })} 
-                    icon={<PlusOutlined />} 
-                    block
-                  >
-                    Add Installment Plan
-                  </Button>
-                </>
-              )}
-            </Form.List>
-          </Card>
+                                            className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors focus:outline-none"
+                                          >
+                                            <Trash2 size={16} />
+                                          </button>
+                                        </div>
+                                      ))}
+                                      <button 
+                                        type="button" 
+                                        onClick={() => addInstallment()} 
+                                        className="mt-2 text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 focus:outline-none"
+                                      >
+                                        <Plus size={14} /> Add Installment Breakup
+                                      </button>
+                                    </>
+                                  )}
+                                </Form.List>
+                              </div>
+                            );
+                          }}
+                        </Form.Item>
+                      </div>
+                    ))}
+                    <button 
+                      type="button" 
+                      onClick={() => add({ type: 'percentage' })} 
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                    >
+                      <Plus size={18} /> Add New Plan
+                    </button>
+                  </div>
+                )}
+              </Form.List>
+            </FormSection>
 
-        </Form>
+          </Form>
+        </main>
       </div>
     </HostelManagerLayout>
   );
