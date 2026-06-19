@@ -499,32 +499,20 @@ const Hostels = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowFilters(false)}
-              className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] lg:hidden"
+              className="fixed inset-0 bg-gray-900/50 z-[100] lg:hidden"
             />
 
-            {/* Draggable Bottom Sheet */}
+            {/* Bottom Sheet */}
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 26, stiffness: 220 }}
-              drag="y"
-              dragConstraints={{ top: 0 }}
-              dragElastic={0.15}
-              onDragEnd={(e, { offset, velocity }) => {
-                if (offset.y > 150 || velocity.y > 500) {
-                  setShowFilters(false)
-                }
-              }}
-              className="fixed inset-x-0 bottom-0 z-[110] bg-white rounded-t-[32px] shadow-2xl lg:hidden flex flex-col h-[85vh]"
+              className="fixed inset-x-0 bottom-0 z-[110] bg-white rounded-t-[32px] shadow-2xl lg:hidden flex flex-col h-[85vh] will-change-transform"
             >
-              {/* Drag Handle Indicator */}
-              <div className="w-full flex justify-center pt-4 pb-2 cursor-grab active:cursor-grabbing shrink-0">
-                <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
-              </div>
 
               {/* Scrollable Filter Area */}
-              <div className="px-6 pb-6 overflow-y-auto overscroll-contain flex-1 relative">
+              <div className="p-6 overflow-y-auto overscroll-contain flex-1 relative">
                 <FilterContentBlocks />
               </div>
             </motion.div>
