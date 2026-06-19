@@ -46,9 +46,11 @@ const HostelManagerHostelForm = lazy(() => import('./pages/HostelManagerHostelFo
 const HostelManagerReviews = lazy(() => import('./pages/HostelManagerReviews'))
 const HostelManagerPayments = lazy(() => import('./pages/HostelManagerPayments'))
 const HostelManagerStudents = lazy(() => import('./pages/HostelManagerStudents'))
+const AdminChangeRequests = lazy(() => import('./pages/AdminChangeRequests'))
 const AdminHostelManagers = lazy(() => import('./pages/AdminHostelManagers'))
 const HostelManagerProfile = lazy(() => import('./pages/HostelManagerProfile'))
 const HostelManagerSettings = lazy(() => import('./pages/HostelManagerSettings'))
+const HostelManagerChangeRequests = lazy(() => import('./pages/HostelManagerChangeRequests'))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -101,6 +103,7 @@ function App() {
                   <Route path="hostels" element={<AdminHostels />} />
                   <Route path="hostels/new" element={<AdminHostelEdit />} />
                   <Route path="hostels/:id" element={<AdminHostelEdit />} />
+                  <Route path="change-requests" element={<AdminChangeRequests />} />
                   <Route path="nearbyplaces" element={<AdminNearbyPlaces />} />
                   <Route path="leads" element={<AdminLeads />} />
                   <Route path="users" element={<AdminUsers />} />
@@ -129,6 +132,7 @@ function App() {
                 <Route path="/hostel-manager/reviews" element={<HostelManagerProtectedRoute><HostelManagerReviews /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/payments" element={<HostelManagerProtectedRoute><HostelManagerPayments /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/students" element={<HostelManagerProtectedRoute><HostelManagerStudents /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/change-requests" element={<HostelManagerProtectedRoute><HostelManagerChangeRequests /></HostelManagerProtectedRoute>} />
               </Routes>
             </Suspense>
           </div>

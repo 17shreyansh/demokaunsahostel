@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiHome, FiStar, FiUser, FiLogOut, FiMenu, FiX, 
   FiCheckCircle, FiAlertCircle, FiClock, FiBell, FiSettings,
-  FiChevronUp, FiGrid, FiBriefcase, FiUsers
+  FiChevronUp, FiGrid, FiBriefcase, FiUsers, FiFileText
 } from 'react-icons/fi';
 
 /* -------------------------------------------------------------------------- */
@@ -65,6 +65,7 @@ const HostelManagerLayout = ({ children }) => {
   const navigation = useMemo(() => [
     { name: 'Dashboard', href: '/hostel-manager/dashboard', icon: FiGrid },
     { name: 'My Properties', href: '/hostel-manager/hostels', icon: FiHome, badge: manager?.hostels?.length || 0 },
+    { name: 'Change Requests', href: '/hostel-manager/change-requests', icon: FiFileText },
     { name: 'Payments', href: '/hostel-manager/payments', icon: FiBriefcase },
     { name: 'Reviews', href: '/hostel-manager/reviews', icon: FiStar },
     { name: 'My Users', href: '/hostel-manager/students', icon: FiUsers },

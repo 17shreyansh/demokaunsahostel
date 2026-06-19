@@ -13,6 +13,7 @@ import {
 const MENU_ITEMS = [
   { key: 'dashboard', label: 'Dashboard', icon: Home, path: '/admin/dashboard' },
   { key: 'hostels', label: 'Properties', icon: LayoutGrid, path: '/admin/hostels' },
+  { key: 'change-requests', label: 'Change Requests', icon: FileText, path: '/admin/change-requests' },
   { key: 'users', label: 'Users', icon: Users, path: '/admin/users' },
   { key: 'managers', label: 'Hostel Owners', icon: Users, path: '/admin/managers' },
   { key: 'reviews', label: 'Reviews', icon: Star, path: '/admin/reviews' },

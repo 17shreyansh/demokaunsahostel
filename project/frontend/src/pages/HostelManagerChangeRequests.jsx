@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Typography, Card, Tag, Button, Segmented, Row, Col, Skeleton, Empty, Modal, Badge } from 'antd';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FiFileText, FiClock, FiCheckCircle, FiXCircle, 
+  FiPlus, FiMapPin, FiInfo, FiExternalLink
+} from 'react-icons/fi';
+import HostelManagerLayout from '../layouts/HostelManagerLayout';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const { Title, Text } = Typography;
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const HostelManagerChangeRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -10,191 +18,242 @@ const HostelManagerChangeRequests = () => {
   const [filter, setFilter] = useState('all');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchRequests();
-  }, [filter]);
-
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       setLoading(true);
       const params = filter !== 'all' ? { status: filter } : {};
-      const response = await axios.get(`${API_URL}/hostel-manager/change-requests`, {
+      const response = await axios.get(`${API_URL}/api/hostel-manager/change-requests`, {
         params,
         withCredentials: true
       });
-      setRequests(response.data.requests);
+      setRequests(response.data.requests || []);
     } catch (error) {
       console.error('Error fetching requests:', error);
-      alert('Failed to fetch change requests');
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
-  const getStatusBadge = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800'
-    };
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[status]}`}>
-        {status.toUpperCase()}
-      </span>
-    );
-  };
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
-  const getRequestTypeBadge = (type) => {
-    const colors = {
-      create: 'bg-blue-100 text-blue-800',
-      update: 'bg-purple-100 text-purple-800'
+  const stats = useMemo(() => {
+    return {
+      all: requests.length,
+      pending: requests.filter(r => r.status === 'pending').length,
+      approved: requests.filter(r => r.status === 'approved').length,
+      rejected: requests.filter(r => r.status === 'rejected').length,
     };
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[type]}`}>
-        {type === 'create' ? 'NEW HOSTEL' : 'UPDATE'}
-      </span>
-    );
+  }, [requests]);
+
+  const getStatusConfig = (status) => {
+    switch(status) {
+      case 'pending': return { color: 'warning', icon: <FiClock />, text: 'Under Review', bg: 'bg-amber-50 border-amber-200 text-amber-700' };
+      case 'approved': return { color: 'success', icon: <FiCheckCircle />, text: 'Approved', bg: 'bg-emerald-50 border-emerald-200 text-emerald-700' };
+      case 'rejected': return { color: 'error', icon: <FiXCircle />, text: 'Rejected', bg: 'bg-red-50 border-red-200 text-red-700' };
+      default: return { color: 'default', icon: <FiInfo />, text: 'Unknown', bg: 'bg-slate-50 border-slate-200 text-slate-700' };
+    }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">My Change Requests</h1>
-        <button
-          onClick={() => navigate('/hostel-manager/hostels/new')}
-          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-        >
-          Submit New Hostel
-        </button>
-      </div>
-
-      <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-6">
-        <p className="text-blue-800">
-          <strong>Note:</strong> All hostel submissions and updates require admin approval before going live. 
-          You'll be notified once your request is reviewed.
-        </p>
-      </div>
-
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded ${filter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setFilter('pending')}
-          className={`px-4 py-2 rounded ${filter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200'}`}
-        >
-          Pending
-        </button>
-        <button
-          onClick={() => setFilter('approved')}
-          className={`px-4 py-2 rounded ${filter === 'approved' ? 'bg-green-500 text-white' : 'bg-gray-200'}`}
-        >
-          Approved
-        </button>
-        <button
-          onClick={() => setFilter('rejected')}
-          className={`px-4 py-2 rounded ${filter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-200'}`}
-        >
-          Rejected
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      ) : requests.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-500 text-lg">No change requests found</p>
-          <button
-            onClick={() => navigate('/hostel-manager/hostels/new')}
-            className="mt-4 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+    <HostelManagerLayout>
+      <div className="max-w-6xl mx-auto pb-12">
+        
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <Title level={3} className="!m-0 text-slate-900 flex items-center gap-2">
+              <FiFileText className="text-blue-600" /> My Change Requests
+            </Title>
+            <Text type="secondary" className="font-medium text-slate-500">
+              Track the approval status of your new properties and edits.
+            </Text>
+          </div>
+          <Button 
+            type="primary" 
+            size="large"
+            icon={<FiPlus />}
+            onClick={() => navigate('/hostel-manager/hostels/add')}
+            className="bg-blue-600 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
           >
-            Submit Your First Hostel
-          </button>
+            Submit New Property
+          </Button>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {requests.map((request) => (
-            <div key={request._id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    {getRequestTypeBadge(request.requestType)}
-                    {getStatusBadge(request.status)}
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800">
-                    {request.changeData?.name}
-                  </h3>
-                  <p className="text-gray-600 mt-1">
-                    {request.changeData?.location}
-                  </p>
-                  <p className="text-gray-500 text-sm mt-2">
-                    Submitted: {new Date(request.createdAt).toLocaleString()}
-                  </p>
-                </div>
-                {request.changeData?.images?.[0] && (
-                  <img 
-                    src={`${API_URL.replace('/api', '')}/uploads/${request.changeData.images[0]}`}
-                    alt={request.changeData.name}
-                    className="w-24 h-24 object-cover rounded ml-4"
-                  />
-                )}
+
+        {/* Filter Section */}
+        <Card bordered={false} className="shadow-sm mb-8 rounded-2xl" bodyStyle={{ padding: '16px 24px' }}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <Segmented
+              options={[
+                { label: 'All Requests', value: 'all' },
+                { label: 'Under Review', value: 'pending' },
+                { label: 'Approved', value: 'approved' },
+                { label: 'Rejected', value: 'rejected' },
+              ]}
+              value={filter}
+              onChange={setFilter}
+              size="large"
+              className="bg-slate-100/80 p-1"
+            />
+            <div className="flex gap-4">
+              <div className="text-center px-4 py-1 bg-slate-50 rounded-lg border border-slate-100">
+                <div className="text-xs font-bold text-slate-400 uppercase">Pending</div>
+                <div className="text-lg font-black text-amber-600">{stats.pending}</div>
               </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 p-4 bg-gray-50 rounded">
-                <div>
-                  <p className="text-xs text-gray-500">Price</p>
-                  <p className="font-semibold">₹{request.changeData?.price}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Gender</p>
-                  <p className="font-semibold">{request.changeData?.gender}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Type</p>
-                  <p className="font-semibold">{request.changeData?.type}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Amenities</p>
-                  <p className="font-semibold">{request.changeData?.amenities?.length || 0}</p>
-                </div>
+              <div className="text-center px-4 py-1 bg-slate-50 rounded-lg border border-slate-100">
+                <div className="text-xs font-bold text-slate-400 uppercase">Approved</div>
+                <div className="text-lg font-black text-emerald-600">{stats.approved}</div>
               </div>
-
-              {request.status === 'rejected' && request.rejectionReason && (
-                <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded">
-                  <p className="font-semibold text-red-800 mb-1">Rejection Reason:</p>
-                  <p className="text-red-700">{request.rejectionReason}</p>
-                  <p className="text-xs text-red-600 mt-2">
-                    Please fix the issues and resubmit your hostel.
-                  </p>
-                </div>
-              )}
-
-              {request.status === 'approved' && request.reviewedAt && (
-                <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded">
-                  <p className="text-green-800">
-                    ✓ Approved on {new Date(request.reviewedAt).toLocaleString()}
-                  </p>
-                  {request.hostel && (
-                    <button
-                      onClick={() => navigate(`/hostels/${request.hostel._id}`)}
-                      className="mt-2 text-blue-600 hover:underline text-sm"
-                    >
-                      View Live Hostel →
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          </div>
+        </Card>
+
+        {/* Content Section */}
+        {loading ? (
+          <Row gutter={[24, 24]}>
+            {[1, 2, 3].map(i => (
+              <Col xs={24} key={i}>
+                <Card className="rounded-2xl border border-slate-100 shadow-sm"><Skeleton active avatar paragraph={{ rows: 2 }} /></Card>
+              </Col>
+            ))}
+          </Row>
+        ) : requests.length === 0 ? (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+            <Card className="rounded-2xl border-dashed border-2 border-slate-200 bg-slate-50/50 py-16 text-center shadow-none">
+              <Empty 
+                description={<span className="text-slate-500 font-medium text-lg">No {filter !== 'all' ? filter : ''} requests found.</span>}
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              >
+                <Button type="primary" onClick={() => navigate('/hostel-manager/hostels/add')} className="mt-4 bg-blue-600">
+                  Create Your First Listing
+                </Button>
+              </Empty>
+            </Card>
+          </motion.div>
+        ) : (
+          <AnimatePresence>
+            <div className="space-y-4">
+              {requests.map((request, index) => {
+                const statusConfig = getStatusConfig(request.status);
+                const isCreate = request.requestType === 'create';
+                
+                return (
+                  <motion.div
+                    key={request._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card 
+                      bordered={false} 
+                      className="shadow-sm hover:shadow-md transition-shadow border border-slate-100 rounded-2xl overflow-hidden group"
+                      bodyStyle={{ padding: 0 }}
+                    >
+                      <div className="flex flex-col md:flex-row h-full">
+                        
+                        {/* Image Section */}
+                        <div className="w-full md:w-48 h-48 md:h-auto bg-slate-100 relative shrink-0">
+                          {request.changeData?.images?.[0] ? (
+                            <img 
+                              src={`${API_URL}/uploads/${request.changeData.images[0]}`}
+                              alt="Property"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                              <FiHome size={40} />
+                            </div>
+                          )}
+                          <div className="absolute top-3 left-3 flex gap-2">
+                            <Tag color={isCreate ? 'blue' : 'purple'} className="m-0 border-none shadow-sm font-bold backdrop-blur-md bg-white/90 text-slate-800">
+                              {isCreate ? 'NEW LISTING' : 'UPDATE REQUEST'}
+                            </Tag>
+                          </div>
+                        </div>
+
+                        {/* Content Section */}
+                        <div className="p-6 flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h3 className="text-xl font-bold text-slate-900 leading-tight mb-1">
+                                  {request.changeData?.name || 'Unnamed Property'}
+                                </h3>
+                                <p className="text-sm text-slate-500 font-medium flex items-center gap-1.5">
+                                  <FiMapPin className="text-slate-400" /> {request.changeData?.location || 'No location provided'}
+                                </p>
+                              </div>
+                              <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 font-bold text-sm ${statusConfig.bg}`}>
+                                {statusConfig.icon}
+                                <span className="uppercase tracking-wider text-xs">{statusConfig.text}</span>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+                              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <Text type="secondary" className="text-xs font-bold uppercase tracking-wider block mb-0.5">Price</Text>
+                                <Text className="font-black text-slate-800 text-lg leading-none">₹{request.changeData?.price || 0}</Text>
+                              </div>
+                              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <Text type="secondary" className="text-xs font-bold uppercase tracking-wider block mb-0.5">Gender</Text>
+                                <Text className="font-bold text-slate-700">{request.changeData?.gender || 'Co-ed'}</Text>
+                              </div>
+                              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <Text type="secondary" className="text-xs font-bold uppercase tracking-wider block mb-0.5">Type</Text>
+                                <Text className="font-bold text-slate-700">{request.changeData?.type || 'PG'}</Text>
+                              </div>
+                              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <Text type="secondary" className="text-xs font-bold uppercase tracking-wider block mb-0.5">Submitted On</Text>
+                                <Text className="font-bold text-slate-700">{new Date(request.createdAt).toLocaleDateString('en-GB')}</Text>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action / Feedback Section */}
+                          <div className="mt-6 pt-4 border-t border-slate-100">
+                            {request.status === 'rejected' && request.rejectionReason ? (
+                              <div className="flex items-start gap-3 bg-red-50/50 p-3 rounded-xl border border-red-100">
+                                <FiXCircle className="text-red-500 mt-0.5 shrink-0" size={18} />
+                                <div>
+                                  <p className="text-sm font-bold text-red-900 m-0">Admin Feedback</p>
+                                  <p className="text-sm text-red-700 mt-0.5 m-0">{request.rejectionReason}</p>
+                                </div>
+                              </div>
+                            ) : request.status === 'approved' && request.reviewedAt ? (
+                              <div className="flex items-center justify-between">
+                                <Text type="secondary" className="text-sm font-medium">
+                                  Approved on {new Date(request.reviewedAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                                </Text>
+                                {request.hostel && (
+                                  <Button 
+                                    type="link" 
+                                    icon={<FiExternalLink />} 
+                                    onClick={() => navigate(`/hostels/${request.hostel._id || request.hostel}`)}
+                                    className="font-bold p-0"
+                                  >
+                                    View Live Listing
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <Text type="secondary" className="text-sm italic">
+                                Your request is currently in the queue. Most requests are reviewed within 24 hours.
+                              </Text>
+                            )}
+                          </div>
+                        </div>
+
+                      </div>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </AnimatePresence>
+        )}
+      </div>
+    </HostelManagerLayout>
   );
 };
 

@@ -268,19 +268,19 @@ const HostelManagerHostelForm = () => {
       formData.append('finalImages', JSON.stringify([...keepImages.map(f => f.name), ...newImages.map(f => f.name || `new-${Date.now()}`)]));
 
       // Network Call
+      let response;
       if (id && id !== 'new') {
-        await axios.put(`/api/hostel-manager/hostels/${id}`, formData, { 
+        response = await axios.put(`/api/hostel-manager/hostels/${id}`, formData, { 
           withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' } 
         });
-        message.success('Property updated successfully');
       } else {
-        await axios.post('/api/hostel-manager/hostels', formData, { 
+        response = await axios.post('/api/hostel-manager/hostels', formData, { 
           withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' } 
         });
-        message.success('Property created successfully');
       }
       
-      navigate('/hostel-manager/hostels', { replace: true });
+      message.success(response.data.message || 'Changes submitted for admin approval.');
+      navigate('/hostel-manager/change-requests', { replace: true });
     } catch (error) {
       message.error(`Failed to save: ${error.response?.data?.message || error.message}`);
     } finally {

@@ -279,9 +279,34 @@ router.post('/change-requests/:id/approve', auth, adminOnly, async (req, res) =>
     
     let hostel;
     
+    let dataToApply = request.changeData;
+    if (request.changeData && request.changeData.toObject) {
+      dataToApply = request.changeData.toObject();
+    } else if (request.changeData) {
+      dataToApply = JSON.parse(JSON.stringify(request.changeData));
+    }
+
+    const complexArrayFields = ['installmentPlans', 'roomTypes', 'sharingTypes', 'info', 'nearbyPlaces', 'reviews', 'images', 'amenities', 'rules'];
+    
+    complexArrayFields.forEach(field => {
+      if (dataToApply && typeof dataToApply[field] === 'string') {
+        try {
+          // If it's a stringified JSON array, parse it
+          if (dataToApply[field].startsWith('[') || dataToApply[field].startsWith('{')) {
+            dataToApply[field] = JSON.parse(dataToApply[field]);
+          }
+        } catch (e) {
+          // Fallback to empty array for document arrays if parsing fails
+          if (['installmentPlans', 'roomTypes', 'sharingTypes', 'info', 'nearbyPlaces', 'reviews'].includes(field)) {
+            dataToApply[field] = [];
+          }
+        }
+      }
+    });
+    
     if (request.requestType === 'create') {
       // Create new hostel
-      hostel = new Hostel(request.changeData);
+      hostel = new Hostel(dataToApply);
       await hostel.save();
       
       // Add to manager's hostels
@@ -294,7 +319,7 @@ router.post('/change-requests/:id/approve', auth, adminOnly, async (req, res) =>
       // Update existing hostel
       hostel = await Hostel.findByIdAndUpdate(
         request.hostel,
-        request.changeData,
+        dataToApply,
         { new: true }
       );
       
