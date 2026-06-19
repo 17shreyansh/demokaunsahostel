@@ -218,9 +218,8 @@ const Header = memo(() => {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-              className="fixed left-0 top-0 h-[100dvh] w-[280px] sm:w-80 max-w-[85vw] bg-white shadow-2xl z-50 md:hidden flex flex-col overscroll-contain"
+              className="fixed left-0 top-0 h-[100dvh] w-[280px] sm:w-80 max-w-[85vw] bg-white shadow-2xl z-50 md:hidden flex flex-col overscroll-contain will-change-transform"
               style={{ 
-                transform: 'translateZ(0)',
                 WebkitOverflowScrolling: 'touch',
                 WebkitTapHighlightColor: 'transparent'
               }}
@@ -241,8 +240,7 @@ const Header = memo(() => {
               <div 
                 className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5 py-6"
                 style={{ 
-                  WebkitOverflowScrolling: 'touch',
-                  transform: 'translateZ(0)'
+                  WebkitOverflowScrolling: 'touch'
                 }}
               >
                 {user && (
