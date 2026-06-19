@@ -3,6 +3,7 @@ const HostelManager = require('../models/HostelManager');
 const Hostel = require('../models/Hostel');
 const Review = require('../models/Review');
 const HostelChangeRequest = require('../models/HostelChangeRequest');
+const UserHostelAssignment = require('../models/UserHostelAssignment');
 const auth = require('../middleware/auth');
 const multer = require('multer');
 const router = express.Router();
@@ -326,6 +327,26 @@ router.get('/reviews', auth, async (req, res) => {
     res.json({ reviews: reviews || [], success: true });
   } catch (error) {
     console.error('Get reviews error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get students/assigned users for manager's hostels
+router.get('/students', auth, async (req, res) => {
+  try {
+    const manager = await HostelManager.findById(req.user.id);
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found' });
+    }
+    
+    const assignments = await UserHostelAssignment.find({ hostel: { $in: manager.hostels || [] } })
+      .populate('hostel', 'name location images')
+      .populate('user', 'name email phone profilePicture')
+      .sort('-createdAt');
+    
+    res.json({ students: assignments || [], success: true });
+  } catch (error) {
+    console.error('Get students error:', error);
     res.status(500).json({ message: error.message });
   }
 });

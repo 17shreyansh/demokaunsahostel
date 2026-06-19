@@ -45,6 +45,7 @@ const HostelManagerHostels = lazy(() => import('./pages/HostelManagerHostels'))
 const HostelManagerHostelForm = lazy(() => import('./pages/HostelManagerHostelForm'))
 const HostelManagerReviews = lazy(() => import('./pages/HostelManagerReviews'))
 const HostelManagerPayments = lazy(() => import('./pages/HostelManagerPayments'))
+const HostelManagerStudents = lazy(() => import('./pages/HostelManagerStudents'))
 const AdminHostelManagers = lazy(() => import('./pages/AdminHostelManagers'))
 const HostelManagerProfile = lazy(() => import('./pages/HostelManagerProfile'))
 const HostelManagerSettings = lazy(() => import('./pages/HostelManagerSettings'))
@@ -127,6 +128,7 @@ function App() {
                 <Route path="/hostel-manager/hostels/edit/:id" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/reviews" element={<HostelManagerProtectedRoute><HostelManagerReviews /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/payments" element={<HostelManagerProtectedRoute><HostelManagerPayments /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager/students" element={<HostelManagerProtectedRoute><HostelManagerStudents /></HostelManagerProtectedRoute>} />
               </Routes>
             </Suspense>
           </div>

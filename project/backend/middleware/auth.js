@@ -2,8 +2,13 @@ const jwt = require('jsonwebtoken');
 
 const auth = async (req, res, next) => {
   try {
-    // Check for token in cookies first, then fall back to Authorization header
-    let token = req.cookies?.token || req.cookies?.manager_token;
+    // Check for token in cookies first, prioritize manager_token for hostel-manager routes
+    let token;
+    if (req.originalUrl && req.originalUrl.includes('/hostel-manager')) {
+      token = req.cookies?.manager_token || req.cookies?.token;
+    } else {
+      token = req.cookies?.token || req.cookies?.manager_token;
+    }
     
     if (!token) {
       const authHeader = req.headers.authorization;

@@ -2,7 +2,7 @@ import { useState, useEffect, memo } from 'react';
 import { hostelAPI, pageAPI } from '../services/api';
 import { stateManager } from '../utils/stateManager';
 import HeroSection from '../components/home/HeroSection';
-import SearchSection from '../components/home/SearchSection';
+import HowItWorks from '../components/home/SearchSection';
 import FeaturedHostels from '../components/home/FeaturedHostels';
 import ServicesSection from '../components/home/ServicesSection';
 import TestimonialsSection from '../components/home/TestimonialsSection';
@@ -14,7 +14,7 @@ import TalkToUs from '../components/home/TalkToUs';
 
 // Memoized components
 const MemoizedHeroSection = memo(HeroSection);
-const MemoizedSearchSection = memo(SearchSection);
+const MemoizedHowItWorks = memo(HowItWorks);
 const MemoizedFeaturedHostels = memo(FeaturedHostels);
 const MemoizedServicesSection = memo(ServicesSection);
 const MemoizedTestimonialsSection = memo(TestimonialsSection);
@@ -149,7 +149,7 @@ const Home = () => {
       </div>
       
       <MemoizedHeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
-      <MemoizedSearchSection content={pageContent.search} />
+      <MemoizedHowItWorks content={pageContent.howItWorks} />
       <MemoizedOurPartners />
       <MemoizedFeaturedHostels hostels={hostels} loading={loading} />
       <MemoizedWhyTrustUs />
