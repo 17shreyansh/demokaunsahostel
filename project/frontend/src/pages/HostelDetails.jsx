@@ -299,7 +299,7 @@ const HostelDetails = () => {
                 <>
                   <button
                     onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                    className="hidden md:flex absolute left-6 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/70 text-white p-3.5 rounded-full transition-all duration-300 shadow-xl z-10 items-center justify-center hover:scale-105"
+                    className="hidden md:flex absolute left-6 top-1/2 transform -translate-y-1/2 bg-black/40  hover:bg-black/70 text-white p-3.5 rounded-full transition-all duration-300 shadow-xl z-10 items-center justify-center hover:scale-105"
                     aria-label="Previous image"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,7 +308,7 @@ const HostelDetails = () => {
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                    className="hidden md:flex absolute right-6 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/70 text-white p-3.5 rounded-full transition-all duration-300 shadow-xl z-10 items-center justify-center hover:scale-105"
+                    className="hidden md:flex absolute right-6 top-1/2 transform -translate-y-1/2 bg-black/40  hover:bg-black/70 text-white p-3.5 rounded-full transition-all duration-300 shadow-xl z-10 items-center justify-center hover:scale-105"
                     aria-label="Next image"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,7 +321,7 @@ const HostelDetails = () => {
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-yellow-custom via-orange-400 to-red-500 flex items-center justify-center">
               <div className="text-center text-white">
-                <div className="bg-white/20 backdrop-blur-sm rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <div className="bg-white/20  rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-6 shadow-inner">
                   <svg className="w-16 h-16 opacity-90" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                   </svg>
@@ -847,7 +847,7 @@ const HostelDetails = () => {
             <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-12">
               <button
                 onClick={() => setIsFullscreen(false)}
-                className="absolute top-6 right-6 bg-white/10 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/20 transition-all duration-300 z-50 hover:scale-105"
+                className="absolute top-6 right-6 bg-white/10  text-white p-3 rounded-full hover:bg-white/20 transition-all duration-300 z-50 hover:scale-105"
                 aria-label="Close fullscreen"
               >
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -874,7 +874,7 @@ const HostelDetails = () => {
                 <>
                   <button
                     onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                    className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/10 backdrop-blur-md text-white p-4 rounded-full hover:bg-white/20 transition-all duration-300 hover:scale-105 z-40"
+                    className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/10  text-white p-4 rounded-full hover:bg-white/20 transition-all duration-300 hover:scale-105 z-40"
                     aria-label="Previous image"
                   >
                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -883,7 +883,7 @@ const HostelDetails = () => {
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                    className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white/10 backdrop-blur-md text-white p-4 rounded-full hover:bg-white/20 transition-all duration-300 hover:scale-105 z-40"
+                    className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white/10  text-white p-4 rounded-full hover:bg-white/20 transition-all duration-300 hover:scale-105 z-40"
                     aria-label="Next image"
                   >
                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -893,7 +893,7 @@ const HostelDetails = () => {
                 </>
               )}
               
-              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-md text-white px-5 py-2.5 rounded-full z-40 shadow-lg">
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/60  text-white px-5 py-2.5 rounded-full z-40 shadow-lg">
                 <span className="text-sm font-bold tracking-wide">
                   {currentImageIndex + 1} / {hostel.images.length} • {hostel.name}
                 </span>

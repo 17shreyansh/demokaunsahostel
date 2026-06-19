@@ -324,7 +324,7 @@ const HostelManagerHostelForm = () => {
       <div className="pb-16 bg-[#FAFAFA] min-h-screen font-sans text-gray-900">
         
         {/* Sticky Enterprise Header */}
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200 px-4 sm:px-6 py-4 mb-8">
+        <header className="sticky top-0 z-40 bg-white/80  border-b border-gray-200 px-4 sm:px-6 py-4 mb-8">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button 

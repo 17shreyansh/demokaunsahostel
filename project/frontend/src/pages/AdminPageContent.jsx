@@ -783,7 +783,7 @@ const AdminPageContent = () => {
     <div className={`transition-colors duration-300 min-h-screen p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto font-sans ${isDark ? 'bg-[#0A0A0A]' : 'bg-[#FAFAFA]'}`}>
       
       {/* Sticky Header */}
-      <div className={`sticky top-0 z-40 pb-4 mb-8 border-b backdrop-blur-xl transition-colors ${isDark ? 'border-gray-800 bg-[#0A0A0A]/80' : 'border-gray-200 bg-[#FAFAFA]/80'}`}>
+      <div className={`sticky top-0 z-40 pb-4 mb-8 border-b  transition-colors ${isDark ? 'border-gray-800 bg-[#0A0A0A]/80' : 'border-gray-200 bg-[#FAFAFA]/80'}`}>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4">
           <div>
             <h1 className={`text-2xl font-semibold tracking-tight transition-colors mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>

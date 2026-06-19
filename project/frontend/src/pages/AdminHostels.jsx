@@ -288,7 +288,7 @@ const AdminHostels = () => {
       {/* Properties Grid Area */}
       <main className="relative min-h-[400px]">
         {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[2px] rounded-xl transition-all duration-300">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 -[2px] rounded-xl transition-all duration-300">
             <div className="bg-white p-4 rounded-full shadow-lg border border-gray-100">
               <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
             </div>
@@ -324,7 +324,7 @@ const AdminHostels = () => {
                     </div>
                   )}
                   {/* Price Tag */}
-                  <div className="absolute bottom-3 right-3 bg-gray-900/80 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-sm font-semibold border border-white/10 shadow-lg tracking-tight">
+                  <div className="absolute bottom-3 right-3 bg-gray-900/80  text-white px-2.5 py-1 rounded-lg text-sm font-semibold border border-white/10 shadow-lg tracking-tight">
                     ₹{Number(hostel.price || 0).toLocaleString()} <span className="text-gray-300 font-medium text-xs">/{hostel.priceType || 'mo'}</span>
                   </div>
                 </div>
@@ -400,7 +400,7 @@ const AdminHostels = () => {
 
       {/* Assign Manager Modal */}
       {showAssignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 ">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">Assign Manager</h2>

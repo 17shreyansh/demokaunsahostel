@@ -201,7 +201,7 @@ const HostelManagerHostels = () => {
                           </div>
                         )}
                         {/* Price Tag Overlay */}
-                        <div className="absolute bottom-3 right-3 bg-slate-900/85 backdrop-blur-md text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg border border-white/10">
+                        <div className="absolute bottom-3 right-3 bg-slate-900/85  text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg border border-white/10">
                           ₹{Number(hostel.price || 0).toLocaleString()}
                           <span className="text-[10px] font-medium text-slate-300 ml-1">/{hostel.priceType || 'mo'}</span>
                         </div>

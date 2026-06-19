@@ -39,7 +39,7 @@ const CTASection = memo(({ content }) => {
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="absolute top-10 right-10 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm"
+            className="absolute top-10 right-10 w-16 h-16 bg-white/20 rounded-2xl "
           />
           <motion.div
             animate={{ 
@@ -52,7 +52,7 @@ const CTASection = memo(({ content }) => {
               ease: "easeInOut",
               delay: 1
             }}
-            className="absolute bottom-10 left-10 w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm"
+            className="absolute bottom-10 left-10 w-20 h-20 bg-white/20 rounded-full "
           />
 
           <div className="relative z-10 py-12 sm:py-16 lg:py-20 px-6 sm:px-8 lg:px-12 xl:px-16 text-center">
@@ -62,7 +62,7 @@ const CTASection = memo(({ content }) => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-md text-white rounded-full text-sm font-medium mb-6 border border-white/30"
+              className="inline-flex items-center px-4 py-2 bg-white/20  text-white rounded-full text-sm font-medium mb-6 border border-white/30"
             >
               <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -118,7 +118,7 @@ const CTASection = memo(({ content }) => {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link 
                   to={content?.secondaryButton?.link || '/contact'}
-                  className="group inline-flex items-center px-8 py-4 bg-transparent text-white font-bold rounded-2xl border-2 border-white/50 hover:bg-white/10 hover:border-white transform transition-all duration-300 text-lg backdrop-blur-sm"
+                  className="group inline-flex items-center px-8 py-4 bg-transparent text-white font-bold rounded-2xl border-2 border-white/50 hover:bg-white/10 hover:border-white transform transition-all duration-300 text-lg "
                 >
                   <svg className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />

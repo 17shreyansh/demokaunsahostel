@@ -161,13 +161,13 @@ const ReasonBlock = ({ reason, index, isEven }) => {
             {reason.renderArt()}
           </div>
 
-          {/* Floating UI Pill 1 — solid bg instead of backdrop-blur */}
+          {/* Floating UI Pill 1 — solid bg instead of  */}
           <div className={`absolute top-[15%] ${isEven ? 'left-[10%]' : 'right-[10%]'} bg-white border border-gray-100 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 shadow-sm flex items-center gap-2.5 z-20 transform transition-transform duration-500 group-hover:-translate-y-2`}>
             <div className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
             <span className="text-xs sm:text-sm font-bold text-gray-800 tracking-wide">{reason.pill1}</span>
           </div>
 
-          {/* Floating UI Pill 2 — solid bg instead of backdrop-blur */}
+          {/* Floating UI Pill 2 — solid bg instead of  */}
           <div className={`absolute bottom-[15%] ${isEven ? 'right-[10%]' : 'left-[10%]'} bg-white border border-gray-100 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 shadow-sm flex items-center gap-2.5 z-20 transform transition-transform duration-500 group-hover:translate-y-2`}>
             <div className="w-2 h-2 rounded-full bg-green-500" />
             <span className="text-xs sm:text-sm font-bold text-gray-600 tracking-wide">{reason.pill2}</span>

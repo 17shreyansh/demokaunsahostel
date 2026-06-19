@@ -132,7 +132,7 @@ const HostelManagerAuth = () => {
           
           {/* Features List */}
           <div className="space-y-4 lg:space-y-6">
-            <div className="flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
+            <div className="flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/5 border border-white/5  hover:bg-white/10 transition-colors">
               <div className="w-10 h-10 lg:w-12 lg:h-12 bg-yellow-500/20 rounded-lg lg:rounded-xl flex items-center justify-center flex-shrink-0 text-yellow-500">
                 <FiPieChart size={20} className="lg:w-6 lg:h-6" />
               </div>
@@ -142,7 +142,7 @@ const HostelManagerAuth = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
+            <div className="flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/5 border border-white/5  hover:bg-white/10 transition-colors">
               <div className="w-10 h-10 lg:w-12 lg:h-12 bg-yellow-500/20 rounded-lg lg:rounded-xl flex items-center justify-center flex-shrink-0 text-yellow-500">
                 <FiTrendingUp size={20} className="lg:w-6 lg:h-6" />
               </div>
@@ -152,7 +152,7 @@ const HostelManagerAuth = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
+            <div className="flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/5 border border-white/5  hover:bg-white/10 transition-colors">
               <div className="w-10 h-10 lg:w-12 lg:h-12 bg-yellow-500/20 rounded-lg lg:rounded-xl flex items-center justify-center flex-shrink-0 text-yellow-500">
                 <FiShield size={20} className="lg:w-6 lg:h-6" />
               </div>

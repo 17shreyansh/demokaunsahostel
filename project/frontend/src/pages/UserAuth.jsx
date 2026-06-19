@@ -103,7 +103,7 @@ const UserAuth = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="bg-white/80 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl shadow-2xl border border-white/60">
+        <div className="bg-white/80  p-8 sm:p-10 rounded-3xl shadow-2xl border border-white/60">
           
           {/* Header */}
           <div className="text-center mb-8">

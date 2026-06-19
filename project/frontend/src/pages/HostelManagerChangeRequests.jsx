@@ -166,7 +166,7 @@ const HostelManagerChangeRequests = () => {
                             </div>
                           )}
                           <div className="absolute top-3 left-3 flex gap-2">
-                            <Tag color={isCreate ? 'blue' : 'purple'} className="m-0 border-none shadow-sm font-bold backdrop-blur-md bg-white/90 text-slate-800">
+                            <Tag color={isCreate ? 'blue' : 'purple'} className="m-0 border-none shadow-sm font-bold  bg-white/90 text-slate-800">
                               {isCreate ? 'NEW LISTING' : 'UPDATE REQUEST'}
                             </Tag>
                           </div>

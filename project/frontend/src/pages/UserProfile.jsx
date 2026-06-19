@@ -981,7 +981,7 @@ const UserProfile = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="bg-white/80 backdrop-blur-2xl rounded-3xl shadow-xl border border-white/60 overflow-hidden">
+        <div className="bg-white/80  rounded-3xl shadow-xl border border-white/60 overflow-hidden">
           
           {/* Hardware-Accelerated Tab Navigation */}
           <div className="flex border-b border-gray-100 overflow-x-auto no-scrollbar">

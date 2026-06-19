@@ -224,7 +224,7 @@ const AdminVisitBookings = () => {
       {/* COMPREHENSIVE BOOKING DETAILS MODAL */}
       {selectedBooking && (
         <div 
-          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-gray-900/40  flex items-center justify-center p-4 z-50 animate-in fade-in duration-200"
           onClick={() => setSelectedBooking(null)}
           role="dialog"
           aria-modal="true"

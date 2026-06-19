@@ -411,7 +411,7 @@ const HeroSection = memo(({ hostels, loading, content }) => {
 
   return (
     <section className="relative min-h-screen lg:h-screen overflow-hidden flex items-center bg-transparent transform-gpu">
-      {/* Light Overlay (no backdrop-blur — too expensive for full viewport) */}
+      {/* Light Overlay (no  — too expensive for full viewport) */}
       <div className="absolute inset-0 bg-white/5 pointer-events-none" />
 
       <div className="relative container mx-auto px-4 sm:px-6 w-full py-8 lg:py-0">
@@ -462,12 +462,12 @@ const HeroSection = memo(({ hostels, loading, content }) => {
             {/* Floating background elements */}
             <div className="absolute inset-0 pointer-events-none">
               <motion.div 
-                className="absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-yellow-300/30 to-orange-300/30 rounded-full blur-xl will-change-transform"
+                className="absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-yellow-300/30 to-orange-300/30 rounded-full will-change-transform"
                 animate={bgAnimationOpts}
                 transition={bgTransitionOpts}
               />
               <motion.div 
-                className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-blue-300/25 to-purple-300/25 rounded-2xl blur-lg will-change-transform"
+                className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-blue-300/25 to-purple-300/25 rounded-2xl will-change-transform"
                 animate={bgFloatOpts}
                 transition={bgFloatTransitionOpts}
               />

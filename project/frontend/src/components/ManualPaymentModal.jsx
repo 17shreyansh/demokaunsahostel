@@ -126,7 +126,7 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
 
   if (loadingPaymentDetails) {
     return createPortal(
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999999] p-4">
+      <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-[999999] p-4">
         <div className="bg-white rounded-2xl p-8 text-center">
           <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
           <p className="text-gray-600">Loading payment details...</p>
@@ -137,7 +137,7 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
   }
 
   const modalContent = (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999999] p-4 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-[999999] p-4 animate-fadeIn">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-slideUp">
         <div className="sticky top-0 bg-white z-10 p-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
@@ -165,7 +165,7 @@ const ManualPaymentModal = ({ isOpen, onClose, hostel, paymentType, amount, book
                 <p className="text-gray-600 font-medium">Amount to Pay:</p>
                 <p className="text-3xl font-bold text-blue-600">₹{amount?.toLocaleString()}</p>
               </div>
-              <div className="bg-white/50 backdrop-blur-sm px-4 py-2 rounded-lg">
+              <div className="bg-white/50  px-4 py-2 rounded-lg">
                 <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                   {paymentType === 'visit' ? 'Visit Booking' : 
                    paymentType === 'reservation' ? 'Seat Reservation' : 

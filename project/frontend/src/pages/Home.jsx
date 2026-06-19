@@ -24,34 +24,9 @@ const MemoizedBlogsSection = memo(BlogsSection);
 const MemoizedFAQSection = memo(FAQSection);
 const MemoizedTalkToUs = memo(TalkToUs);
 
-// Injected Hardware-Accelerated CSS Animations
-// Replaces expensive Framer Motion JS tweens with zero-cost GPU compositing
+// Simplified Background Styles to resolve severe mobile lag
+// Replaces expensive continuous blur and scale animations with static gradients
 const backgroundStyles = `
-  @keyframes blob1 {
-    0%, 100% { transform: translate3d(0px, 0px, 0) scale(1); }
-    50% { transform: translate3d(30px, -20px, 0) scale(1.2); }
-  }
-  @keyframes blob2 {
-    0%, 100% { transform: translate3d(0px, 0px, 0) scale(1); }
-    50% { transform: translate3d(-40px, 30px, 0) scale(1.1); }
-  }
-  @keyframes blobRotate {
-    0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
-    50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.05); }
-    100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
-  }
-  @keyframes blob3 {
-    0%, 100% { transform: translate3d(0px, 0px, 0) rotate(0deg); }
-    50% { transform: translate3d(0px, -20px, 0) rotate(180deg); }
-  }
-  @keyframes blob4 {
-    0%, 100% { transform: translate3d(0px, 0px, 0) scale(1); }
-    50% { transform: translate3d(0px, 25px, 0) scale(1.2); }
-  }
-  @keyframes floatingDot {
-    0%, 100% { transform: translate3d(0px, 0px, 0) scale(1); opacity: 0.3; }
-    50% { transform: translate3d(0px, -10px, 0) scale(1.5); opacity: 0.7; }
-  }
   .gpu-layer {
     will-change: transform, opacity;
     backface-visibility: hidden;
@@ -113,36 +88,30 @@ const Home = () => {
     <main className="relative">
       <style>{backgroundStyles}</style>
 
-      {/* Fixed GPU-Accelerated Background */}
+      {/* Fixed Static Background - GPU Optimized */}
       <div className="fixed top-0 left-0 w-full h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
         <div 
-          className="absolute top-20 -left-20 w-80 h-80 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-full opacity-20 blur-3xl gpu-layer"
-          style={{ animation: 'blob1 8s ease-in-out infinite' }}
+          className="absolute top-20 -left-20 w-80 h-80 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-full opacity-20 blur-3xl"
         />
         <div 
-          className="absolute bottom-20 -right-20 w-96 h-96 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full opacity-20 blur-3xl gpu-layer"
-          style={{ animation: 'blob2 10s ease-in-out infinite 2s' }}
+          className="absolute bottom-20 -right-20 w-96 h-96 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full opacity-20 blur-3xl"
         />
         <div 
-          className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full opacity-10 blur-3xl gpu-layer"
-          style={{ animation: 'blobRotate 20s linear infinite' }}
+          className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full opacity-10 blur-3xl transform -translate-x-1/2 -translate-y-1/2"
         />
         <div 
-          className="absolute top-32 left-1/4 w-16 h-16 bg-gradient-to-br from-yellow-300 to-orange-300 rounded-2xl opacity-30 blur-sm gpu-layer"
-          style={{ animation: 'blob3 6s ease-in-out infinite' }}
+          className="absolute top-32 left-1/4 w-16 h-16 bg-gradient-to-br from-yellow-300 to-orange-300 rounded-2xl opacity-30 blur-sm"
         />
         <div 
-          className="absolute bottom-40 right-1/4 w-12 h-12 bg-gradient-to-br from-blue-300 to-purple-300 rounded-full opacity-40 blur-sm gpu-layer"
-          style={{ animation: 'blob4 4s ease-in-out infinite 1s' }}
+          className="absolute bottom-40 right-1/4 w-12 h-12 bg-gradient-to-br from-blue-300 to-purple-300 rounded-full opacity-40 blur-sm"
         />
         {[...Array(6)].map((_, i) => (
           <div
             key={`floating-dot-${i}`}
-            className="absolute w-2 h-2 bg-yellow-400 rounded-full gpu-layer"
+            className="absolute w-2 h-2 bg-yellow-400 rounded-full opacity-30"
             style={{ 
               left: `${20 + i * 15}%`, 
-              top: `${30 + (i % 3) * 20}%`,
-              animation: `floatingDot ${3 + i * 0.5}s ease-in-out infinite ${i * 0.3}s`
+              top: `${30 + (i % 3) * 20}%`
             }}
           />
         ))}

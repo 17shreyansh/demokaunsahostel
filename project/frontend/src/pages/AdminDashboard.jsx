@@ -194,7 +194,7 @@ const AdminDashboard = () => {
       
       {/* Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm rounded-xl">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60  rounded-xl">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
             <p className="text-sm font-medium text-gray-600">Syncing Data...</p>

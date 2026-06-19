@@ -208,7 +208,7 @@ export default function AdminBlogList() {
         {/* Flat Table */}
         <div className="flex-1 relative">
           {loading && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 -[1px]">
               <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
             </div>
           )}

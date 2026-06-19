@@ -48,7 +48,7 @@ const BlogCard = memo(({ blog, index }) => {
           {/* Category Badge - Premium Look */}
           {blog.category && (
             <div className="absolute top-4 left-4">
-              <span className="px-3 py-1.5 bg-white/90 backdrop-blur-md text-gray-900 text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-sm">
+              <span className="px-3 py-1.5 bg-white/90  text-gray-900 text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-sm">
                 {blog.category}
               </span>
             </div>

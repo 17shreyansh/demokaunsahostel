@@ -81,7 +81,7 @@ const HostelManagerLayout = ({ children }) => {
       {/* -------------------------------------------------------------------------- */}
       {/* MOBILE OVERLAY & HEADER                                                    */}
       {/* -------------------------------------------------------------------------- */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200 h-16 flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 border-b border-gray-200 h-16 flex items-center justify-between px-4">
         <button
           onClick={() => setSidebarOpen(true)}
           className="p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
@@ -103,7 +103,7 @@ const HostelManagerLayout = ({ children }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="lg:hidden fixed inset-0 bg-slate-900/60 z-40 backdrop-blur-sm"
+            className="lg:hidden fixed inset-0 bg-slate-900/60 z-40"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -232,7 +232,7 @@ const HostelManagerLayout = ({ children }) => {
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden pt-16 lg:pt-0">
         
         {/* Desktop Header */}
-        <header className="hidden lg:flex h-20 bg-white/80 backdrop-blur-xl border-b border-gray-200 items-center justify-between px-8 z-30 flex-shrink-0">
+        <header className="hidden lg:flex h-20 bg-white/95 border-b border-gray-200 items-center justify-between px-8 z-30 flex-shrink-0">
           <div>
             <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               {activeRouteName}

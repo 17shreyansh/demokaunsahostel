@@ -85,7 +85,7 @@ const AdminLoginContent = () => {
       {/* Theme Toggle Button */}
       {/* <button
         onClick={toggleTheme}
-        className={`fixed top-6 right-6 p-3.5 rounded-full backdrop-blur-md shadow-lg transition-all duration-300 transform-gpu hover:scale-110 z-50 ${
+        className={`fixed top-6 right-6 p-3.5 rounded-full  shadow-lg transition-all duration-300 transform-gpu hover:scale-110 z-50 ${
           isDark ? 'bg-gray-800/80 text-yellow-400 hover:bg-gray-700' : 'bg-white/80 text-gray-700 hover:bg-gray-100'
         }`}
         aria-label="Toggle Theme"
@@ -109,7 +109,7 @@ const AdminLoginContent = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className={`backdrop-blur-2xl p-8 sm:p-10 rounded-3xl shadow-2xl border transition-colors duration-500 ${
+        <div className={` p-8 sm:p-10 rounded-3xl shadow-2xl border transition-colors duration-500 ${
           isDark ? 'bg-slate-800/80 border-slate-700/50' : 'bg-white/80 border-white/60'
         }`}>
           

@@ -83,7 +83,7 @@ const UserDropdown = memo(({ user }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 py-2 overflow-hidden transform-gpu will-change-transform z-50"
+            className="absolute right-0 mt-3 w-56 bg-white/95 rounded-2xl shadow-xl border border-gray-100 py-2 overflow-hidden transform-gpu will-change-transform z-50"
           >
             <div className="px-4 py-3 border-b border-gray-100 mb-1 bg-gray-50/50">
               <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>

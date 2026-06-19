@@ -145,7 +145,7 @@ const AdminLayout = () => {
       */}
       {mobileDrawerOpen && (
         <div 
-          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-gray-900/40 z-40 lg:hidden transition-opacity duration-300"
           onClick={() => setMobileDrawerOpen(false)}
           aria-hidden="true"
         />
@@ -215,7 +215,7 @@ const AdminLayout = () => {
         
         {/* GLASSMORPHIC HEADER 
         */}
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 z-10 flex-shrink-0 sticky top-0 supports-[backdrop-filter]:bg-white/60">
+        <header className="h-16 bg-white/95 border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 z-10 flex-shrink-0 sticky top-0 supports-[backdrop-filter]:bg-white/95">
           
           <div className="flex items-center gap-4">
             {/* Desktop Collapse Toggle */}
