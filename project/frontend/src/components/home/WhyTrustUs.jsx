@@ -1,6 +1,8 @@
-import { motion } from 'framer-motion';
+import { useScrollAnimation } from '../../hooks/useScrollAnimation';
 
 const WhyTrustUs = () => {
+  const headerRef = useScrollAnimation();
+
   const reasons = [
     {
       title: "100% Verified Hostels",
@@ -97,19 +99,14 @@ const WhyTrustUs = () => {
         
         {/* Minimalist Header */}
         <div className="text-center mb-20 lg:mb-32 max-w-3xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ ease: "easeOut", duration: 0.5 }}
-          >
+          <div ref={headerRef} className="scroll-fade-up">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">
               Why Students <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-600">Trust Us</span>
             </h2>
             <p className="text-lg md:text-xl text-gray-500 leading-relaxed px-4 font-medium">
               We are committed to revolutionizing your hostel search. Making it safer, completely transparent, and absolutely hassle-free.
             </p>
-          </motion.div>
+          </div>
         </div>
 
         {/* Alternating Layout */}
@@ -118,111 +115,110 @@ const WhyTrustUs = () => {
             const isEven = index % 2 === 0;
 
             return (
-              <div 
-                key={index} 
-                className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12 lg:gap-24`}
-              >
-                
-                {/* Visual "Pro" Object Side (No Images, Pure Interactive UI Art) */}
-                <motion.div 
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                  className="w-full lg:w-1/2"
-                >
-                  <div className="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-square bg-[#FAFAFA] rounded-[2rem] sm:rounded-[3rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex items-center justify-center group cursor-pointer">
-                    
-                    {/* Minimalist Subtle Dot Grid Background */}
-                    <div 
-                      className="absolute inset-0 opacity-[0.15]" 
-                      style={{ 
-                        backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', 
-                        backgroundSize: '24px 24px' 
-                      }}
-                    />
-
-                    {/* Ambient Glow tied to hover */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-64 h-64 bg-yellow-400/5 rounded-full blur-3xl transition-all duration-700 group-hover:scale-125 group-hover:bg-yellow-400/10" />
-                    </div>
-
-                    {/* Inject Custom Abstract Art */}
-                    <div className="relative z-10">
-                      {reason.renderArt()}
-                    </div>
-
-                    {/* Floating UI Pill 1 */}
-                    <div className={`absolute top-[15%] ${isEven ? 'left-[10%]' : 'right-[10%]'} bg-white/90 backdrop-blur-md border border-gray-100 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 shadow-sm flex items-center gap-2.5 z-20 transform transition-transform duration-500 group-hover:-translate-y-2`}>
-                      <div className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
-                      <span className="text-xs sm:text-sm font-bold text-gray-800 tracking-wide">{reason.pill1}</span>
-                    </div>
-
-                    {/* Floating UI Pill 2 */}
-                    <div className={`absolute bottom-[15%] ${isEven ? 'right-[10%]' : 'left-[10%]'} bg-white/90 backdrop-blur-md border border-gray-100 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 shadow-sm flex items-center gap-2.5 z-20 transform transition-transform duration-500 group-hover:translate-y-2`}>
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
-                      <span className="text-xs sm:text-sm font-bold text-gray-600 tracking-wide">{reason.pill2}</span>
-                    </div>
-
-                    {/* Bottom fade out line */}
-                    <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-[#FAFAFA] to-transparent pointer-events-none" />
-                  </div>
-                </motion.div>
-
-                {/* Details/Text Side */}
-                <motion.div 
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                  className="w-full lg:w-1/2 flex flex-col justify-center relative"
-                >
-                  {/* Giant Minimal Watermark Number */}
-                  <div className="absolute -top-16 -left-8 text-[12rem] font-black text-gray-50/80 pointer-events-none select-none z-0 hidden sm:block">
-                    0{index + 1}
-                  </div>
-                  
-                  <div className="relative z-10 space-y-6">
-                    {/* Small Step Indicator for Mobile */}
-                    <span className="sm:hidden text-yellow-500 font-bold tracking-widest text-sm uppercase">
-                      Step 0{index + 1}
-                    </span>
-
-                    <h3 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
-                      {reason.title}
-                    </h3>
-                    <p className="text-lg text-gray-500 leading-relaxed font-medium max-w-lg">
-                      {reason.description}
-                    </p>
-
-                    <ul className="space-y-4 pt-4">
-                      {reason.features.map((feature, fIndex) => (
-                        <motion.li 
-                          key={fIndex}
-                          initial={{ opacity: 0, x: -10 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: 0.4 + (fIndex * 0.1), ease: "easeOut" }}
-                          className="flex items-center space-x-4 group/item cursor-default"
-                        >
-                          {/* Sleek CSS Glowing Dot instead of an icon */}
-                          <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-gray-300 group-hover/item:bg-yellow-500 group-hover/item:ring-4 ring-yellow-500/20 transition-all duration-300" />
-                          <span className="text-gray-700 font-semibold group-hover/item:text-gray-900 transition-colors duration-300">
-                            {feature}
-                          </span>
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </div>
-                </motion.div>
-
-              </div>
+              <ReasonBlock key={index} reason={reason} index={index} isEven={isEven} />
             );
           })}
         </div>
 
       </div>
     </section>
+  );
+};
+
+/* Extracted into a component so each block gets its own scroll observer */
+const ReasonBlock = ({ reason, index, isEven }) => {
+  const artRef = useScrollAnimation();
+  const textRef = useScrollAnimation();
+
+  return (
+    <div 
+      className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12 lg:gap-24`}
+    >
+      
+      {/* Visual "Pro" Object Side */}
+      <div 
+        ref={artRef}
+        className="w-full lg:w-1/2 scroll-fade-up"
+      >
+        <div className="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-square bg-[#FAFAFA] rounded-[2rem] sm:rounded-[3rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex items-center justify-center group cursor-pointer">
+          
+          {/* Minimalist Subtle Dot Grid Background */}
+          <div 
+            className="absolute inset-0 opacity-[0.15]" 
+            style={{ 
+              backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', 
+              backgroundSize: '24px 24px' 
+            }}
+          />
+
+          {/* Ambient Glow tied to hover */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-64 h-64 bg-yellow-400/5 rounded-full blur-3xl transition-all duration-700 group-hover:scale-125 group-hover:bg-yellow-400/10" />
+          </div>
+
+          {/* Inject Custom Abstract Art */}
+          <div className="relative z-10">
+            {reason.renderArt()}
+          </div>
+
+          {/* Floating UI Pill 1 — solid bg instead of backdrop-blur */}
+          <div className={`absolute top-[15%] ${isEven ? 'left-[10%]' : 'right-[10%]'} bg-white border border-gray-100 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 shadow-sm flex items-center gap-2.5 z-20 transform transition-transform duration-500 group-hover:-translate-y-2`}>
+            <div className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
+            <span className="text-xs sm:text-sm font-bold text-gray-800 tracking-wide">{reason.pill1}</span>
+          </div>
+
+          {/* Floating UI Pill 2 — solid bg instead of backdrop-blur */}
+          <div className={`absolute bottom-[15%] ${isEven ? 'right-[10%]' : 'left-[10%]'} bg-white border border-gray-100 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 shadow-sm flex items-center gap-2.5 z-20 transform transition-transform duration-500 group-hover:translate-y-2`}>
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <span className="text-xs sm:text-sm font-bold text-gray-600 tracking-wide">{reason.pill2}</span>
+          </div>
+
+          {/* Bottom fade out line */}
+          <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-[#FAFAFA] to-transparent pointer-events-none" />
+        </div>
+      </div>
+
+      {/* Details/Text Side */}
+      <div 
+        ref={textRef}
+        className="w-full lg:w-1/2 flex flex-col justify-center relative scroll-fade-up stagger-2"
+      >
+        {/* Giant Minimal Watermark Number */}
+        <div className="absolute -top-16 -left-8 text-[12rem] font-black text-gray-50/80 pointer-events-none select-none z-0 hidden sm:block">
+          0{index + 1}
+        </div>
+        
+        <div className="relative z-10 space-y-6">
+          {/* Small Step Indicator for Mobile */}
+          <span className="sm:hidden text-yellow-500 font-bold tracking-widest text-sm uppercase">
+            Step 0{index + 1}
+          </span>
+
+          <h3 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+            {reason.title}
+          </h3>
+          <p className="text-lg text-gray-500 leading-relaxed font-medium max-w-lg">
+            {reason.description}
+          </p>
+
+          <ul className="space-y-4 pt-4">
+            {reason.features.map((feature, fIndex) => (
+              <li 
+                key={fIndex}
+                className="flex items-center space-x-4 group/item cursor-default"
+              >
+                {/* Sleek CSS Glowing Dot instead of an icon */}
+                <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-gray-300 group-hover/item:bg-yellow-500 group-hover/item:ring-4 ring-yellow-500/20 transition-all duration-300" />
+                <span className="text-gray-700 font-semibold group-hover/item:text-gray-900 transition-colors duration-300">
+                  {feature}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+    </div>
   );
 };
 

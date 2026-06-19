@@ -2,10 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useEffect, lazy, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
-import Header from './components/Header'
-import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminLayout from './layouts/AdminLayout'
+import PublicLayout from './layouts/PublicLayout'
 import { AdminProvider } from './contexts/AdminContext'
 import { UserProvider } from './contexts/UserContext'
 import { HostelManagerProvider } from './contexts/HostelManagerContext'
@@ -38,7 +37,6 @@ const AdminBlogEditor = lazy(() => import('./pages/blog/AdminBlogEditor'))
 const AdminFAQ = lazy(() => import('./pages/AdminFAQ'))
 const BlogList = lazy(() => import('./pages/blog/BlogListPage'))
 const BlogPost = lazy(() => import('./pages/blog/BlogPostPage'))
-const Chatbot = lazy(() => import('./components/Chatbot'))
 const HostelManagerAuth = lazy(() => import('./pages/HostelManagerAuth'))
 const HostelManagerProtectedRoute = lazy(() => import('./components/HostelManagerProtectedRoute'))
 const HostelManagerDashboard = lazy(() => import('./pages/HostelManagerDashboard'))
@@ -68,60 +66,24 @@ function App() {
         <HostelManagerProvider>
           <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <div className="App">
+              <ScrollToTop />
               <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
                 <Routes>
-                {/* Public Routes with Header/Footer */}
-                <Route path="/" element={
-                  <>
-                    <Header />
-                    <Home />
-                    <Footer />
-                  </>
-                } />
-                <Route path="/hostels" element={
-                  <>
-                    <Header />
-                    <Hostels />
-                    <Footer />
-                  </>
-                } />
-                <Route path="/hostel/:slug" element={
-                  <>
-                    <Header />
-                    <HostelDetails />
-                    <Footer />
-                  </>
-                } />
-                <Route path="/about" element={
-                  <>
-                    <Header />
-                    <About />
-                    <Footer />
-                  </>
-                } />
-                <Route path="/contact" element={
-                  <>
-                    <Header />
-                    <Contact />
-                    <Footer />
-                  </>
-                } />
-
-                {/* User Auth & Profile Routes */}
-                <Route path="/user/auth" element={
-                  <>
-                    <Header />
-                    <UserAuth />
-                    <Footer />
-                  </>
-                } />
-                <Route path="/user/profile" element={
-                  <>
-                    <Header />
-                    <UserProfile />
-                    <Footer />
-                  </>
-                } />
+                {/* ============================================================ */}
+                {/* PUBLIC ROUTES — Shared layout with Header/Footer/Transitions  */}
+                {/* Header & Footer render ONCE and persist across navigations    */}
+                {/* ============================================================ */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/hostels" element={<Hostels />} />
+                  <Route path="/hostel/:slug" element={<HostelDetails />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/user/auth" element={<UserAuth />} />
+                  <Route path="/user/profile" element={<UserProfile />} />
+                  <Route path="/blog" element={<BlogList />} />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
+                </Route>
 
                 {/* Admin Routes without Header/Footer */}
                 <Route path="/admin" element={<AdminLogin />} />
@@ -154,22 +116,6 @@ function App() {
                   <Route path="faq" element={<AdminFAQ />} />
                 </Route>
 
-                {/* Public Blog Routes */}
-                <Route path="/blog" element={
-                  <>
-                    <Header />
-                    <BlogList />
-                    <Footer />
-                  </>
-                } />
-                <Route path="/blog/:slug" element={
-                  <>
-                    <Header />
-                    <BlogPost />
-                    <Footer />
-                  </>
-                } />
-
                 {/* Hostel Manager Routes */}
                 <Route path="/hostel-manager/auth" element={<HostelManagerAuth />} />
                 <Route path="/hostel-manager/dashboard" element={<HostelManagerProtectedRoute><HostelManagerDashboard /></HostelManagerProtectedRoute>} />
@@ -182,10 +128,6 @@ function App() {
                 <Route path="/hostel-manager/reviews" element={<HostelManagerProtectedRoute><HostelManagerReviews /></HostelManagerProtectedRoute>} />
                 <Route path="/hostel-manager/payments" element={<HostelManagerProtectedRoute><HostelManagerPayments /></HostelManagerProtectedRoute>} />
               </Routes>
-            </Suspense>
-            <ScrollToTop />
-            <Suspense fallback={null}>
-              <Chatbot />
             </Suspense>
           </div>
         </Router>

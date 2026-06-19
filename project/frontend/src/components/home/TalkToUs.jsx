@@ -1,9 +1,13 @@
 import React from 'react';
 import { Phone, Mail, MessageCircle, MapPin, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useScrollAnimation, useScrollAnimationContainer } from '../../hooks/useScrollAnimation';
 
 const TalkToUs = () => {
+  const headerRef = useScrollAnimation();
+  const gridRef = useScrollAnimationContainer('.scroll-fade-up');
+  const bannerRef = useScrollAnimation();
+
   const contactMethods = [
     {
       icon: Phone,
@@ -35,35 +39,13 @@ const TalkToUs = () => {
     }
   ];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { ease: "easeOut", duration: 0.5 }
-    }
-  };
-
   return (
     <section className="py-20 lg:py-28 bg-[#F9FAFB] font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="mb-16 max-w-2xl mx-auto text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ ease: "easeOut", duration: 0.5 }}
-          >
+          <div ref={headerRef} className="scroll-fade-up">
             <span className="inline-block px-4 py-1.5 mb-6 text-sm font-bold text-yellow-700 bg-yellow-100 rounded-full shadow-sm">
               24/7 Support
             </span>
@@ -73,15 +55,12 @@ const TalkToUs = () => {
             <p className="text-gray-500 text-lg leading-relaxed px-4">
               Have questions about your booking, a property, or our partnership program? Reach out to our dedicated support team anytime.
             </p>
-          </motion.div>
+          </div>
         </div>
 
         {/* Contact Cards Grid */}
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
+        <div 
+          ref={gridRef}
           className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
         >
           {contactMethods.map((method, index) => {
@@ -91,10 +70,10 @@ const TalkToUs = () => {
               : { href: method.link, target: method.link.startsWith('http') ? '_blank' : '_self', rel: 'noopener noreferrer' };
 
             return (
-              <motion.div key={index} variants={itemVariants} whileHover={{ y: -8 }} className="h-full">
+              <div key={index} className={`scroll-fade-up stagger-${Math.min(index + 1, 6)} h-full`}>
                 <CardWrapper
                   {...wrapperProps}
-                  className="group flex flex-col items-center text-center h-full p-8 bg-white rounded-3xl shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-gray-100 transition-all duration-300 relative overflow-hidden"
+                  className="group flex flex-col items-center text-center h-full p-8 bg-white rounded-3xl shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-gray-100 transition-all duration-300 relative overflow-hidden hover:-translate-y-2 transform-gpu"
                 >
                   {/* Subtle Background Glow on Hover */}
                   <div className="absolute inset-0 bg-gradient-to-b from-yellow-50/0 to-yellow-50/0 group-hover:to-yellow-50/50 transition-colors duration-300" />
@@ -115,18 +94,15 @@ const TalkToUs = () => {
                     <ArrowRight size={18} className="ml-2 transform group-hover:translate-x-1 transition-transform duration-200" strokeWidth={2.5} />
                   </div>
                 </CardWrapper>
-              </motion.div>
+              </div>
             );
           })}
-        </motion.div>
+        </div>
 
         {/* Premium Banner Bottom */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2, ease: "easeOut", duration: 0.5 }}
-          className="mt-16 lg:mt-24"
+        <div 
+          ref={bannerRef}
+          className="mt-16 lg:mt-24 scroll-fade-up"
         >
           <div className="bg-gray-900 rounded-3xl p-8 sm:p-10 lg:p-12 relative overflow-hidden shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-8 border border-gray-800">
             
@@ -145,13 +121,13 @@ const TalkToUs = () => {
             <div className="relative z-10 w-full sm:w-auto flex-shrink-0">
               <Link
                 to="/contact"
-                className="flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold rounded-xl transition-all duration-300 shadow-[0_4px_14px_0_rgba(250,204,21,0.39)] hover:shadow-[0_6px_20px_rgba(250,204,21,0.6)] hover:bg-yellow-300 hover:scale-[1.02] active:scale-[0.98]"
+                className="flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold rounded-xl transition-all duration-300 shadow-[0_4px_14px_0_rgba(250,204,21,0.39)] hover:shadow-[0_6px_20px_rgba(250,204,21,0.6)] hover:bg-yellow-300 hover:scale-[1.02] active:scale-[0.98] transform-gpu"
               >
                 Open Support Ticket <ArrowRight size={20} className="ml-2" strokeWidth={2.5} />
               </Link>
             </div>
           </div>
-        </motion.div>
+        </div>
         
       </div>
     </section>

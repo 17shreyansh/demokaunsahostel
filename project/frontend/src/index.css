@@ -88,13 +88,6 @@
   overflow: hidden;
 }
 
-/* Smooth transitions */
-* {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
 /* Font family */
 body {
   font-family: 'Inter', sans-serif;
@@ -128,3 +121,84 @@ body {
 .animate-slideUp {
   animation: slideUp 0.3s ease-out;
 }
+
+/* ======================================================================== */
+/* PAGE TRANSITION ANIMATIONS — GPU-Composited Route Change Effects         */
+/* ======================================================================== */
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pageExit {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+.page-transition-enter {
+  animation: pageEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* ======================================================================== */
+/* SCROLL-TRIGGERED ANIMATION UTILITIES — Replaces Framer Motion whileInView*/
+/* ======================================================================== */
+
+@keyframes scrollFadeUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes scrollFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Elements start hidden, animate when .is-visible is added via IntersectionObserver */
+.scroll-fade-up {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+}
+
+.scroll-fade-up.is-visible {
+  animation: scrollFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.scroll-fade-in {
+  opacity: 0;
+}
+
+.scroll-fade-in.is-visible {
+  animation: scrollFadeIn 0.5s ease-out forwards;
+}
+
+/* Stagger children delays */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }

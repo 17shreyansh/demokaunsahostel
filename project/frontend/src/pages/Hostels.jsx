@@ -55,7 +55,7 @@ const Hostels = () => {
   const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [] })
   const [showFilters, setShowFilters] = useState(false)
   const [searchTimeout, setSearchTimeout] = useState(null)
-  
+
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
     location: searchParams.get('location') || '',
@@ -72,16 +72,16 @@ const Hostels = () => {
   // Optimized debounced search
   useEffect(() => {
     if (searchTimeout) clearTimeout(searchTimeout)
-    
+
     const timeout = setTimeout(() => {
       fetchHostels()
     }, 300)
-    
+
     setSearchTimeout(timeout)
-    
+
     return () => clearTimeout(timeout)
   }, [searchParams])
-  
+
   // Fetch filter options only once
   useEffect(() => {
     fetchFilterOptions()
@@ -108,7 +108,7 @@ const Hostels = () => {
       const cleanParams = Object.fromEntries(
         Object.entries(params).filter(([_, value]) => value && value !== '')
       )
-      
+
       const response = await hostelAPI.search(cleanParams)
       setHostels(response.data.hostels || [])
       setPagination(response.data.pagination || { current: 1, pages: 1, total: 0 })
@@ -126,7 +126,7 @@ const Hostels = () => {
     () => debounce((newFilters) => {
       const updatedFilters = { ...filters, ...newFilters }
       setFilters(updatedFilters)
-      
+
       const params = new URLSearchParams()
       Object.entries(updatedFilters).forEach(([key, value]) => {
         if (value && value !== '') params.set(key, value)
@@ -135,7 +135,7 @@ const Hostels = () => {
     }, 300),
     [filters, setSearchParams]
   )
-  
+
   const updateFilters = useCallback((newFilters) => {
     debouncedUpdateFilters(newFilters)
   }, [debouncedUpdateFilters])
@@ -185,7 +185,7 @@ const Hostels = () => {
       </div>
 
       <div className="space-y-5">
-        
+
         {/* Location */}
         <div>
           <label className="block text-sm font-semibold text-gray-800 mb-2">Location</label>
@@ -257,11 +257,10 @@ const Hostels = () => {
                     const newAmenities = isSelected ? selectedAmenities.filter(a => a !== amenity) : [...selectedAmenities, amenity]
                     updateFilters({ amenities: newAmenities.length > 0 ? newAmenities.join(',') : '' })
                   }}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${
-                    isSelected
-                      ? 'bg-yellow-400 text-gray-900 shadow-md transform scale-105'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50'
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${isSelected
+                    ? 'bg-yellow-400 text-gray-900 shadow-md transform scale-105'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50'
+                    }`}
                 >
                   {amenity}
                 </button>
@@ -323,31 +322,31 @@ const Hostels = () => {
   return (
     <div className="min-h-screen bg-[#F9FAFB] pb-24 font-sans">
       <style>{customStyles}</style>
-      
+
       {/* Sleek Hero Header */}
       <div className="bg-white border-b border-gray-100 pt-20 pb-12 mb-8">
         <div className="container mx-auto px-4 lg:px-8 text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }} 
+          <motion.h1
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight"
           >
             Find Your Perfect Stay
           </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
             className="text-gray-500 text-lg"
           >
-            Explore <span className="font-semibold text-gray-800">{pagination.total}</span> premium verified spaces
+            Explore <span className="font-semibold text-gray-800">{pagination.total}</span> verified spaces
           </motion.p>
         </div>
       </div>
 
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          
+
           {/* Desktop Sidebar (Parallax Sticky) */}
           <div className="hidden lg:block w-[340px] flex-shrink-0 sticky top-6 self-start max-h-[calc(100vh-3rem)] overflow-y-auto no-scrollbar pb-6">
             <div className="bg-white p-7 rounded-3xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md">
@@ -361,10 +360,10 @@ const Hostels = () => {
 
           {/* Main Content Area */}
           <div className="flex-1 w-full max-w-full">
-            
+
             {/* Top Control Bar (Search & Sort) */}
             <div className="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 z-10 relative flex flex-col md:flex-row gap-4">
-              
+
               {/* Search Bar & Mobile Filter Row */}
               <div className="flex-1 flex gap-3 items-center">
                 <div className="relative flex-1">
@@ -379,7 +378,7 @@ const Hostels = () => {
                     onChange={(e) => updateFilters({ search: e.target.value })}
                   />
                 </div>
-                
+
                 {/* Mobile Filter Button */}
                 <button
                   onClick={() => setShowFilters(true)}
@@ -428,7 +427,7 @@ const Hostels = () => {
               </div>
             ) : (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-                
+
                 <div className="flex justify-between items-center mb-6 px-2 lg:hidden">
                   <p className="text-gray-500 text-sm font-medium">
                     Found <span className="text-gray-900 font-bold">{hostels.length}</span> results
@@ -437,13 +436,13 @@ const Hostels = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {hostels.map((hostel) => (
-                    <MemoizedHostelCard 
-                      key={hostel._id} 
+                    <MemoizedHostelCard
+                      key={hostel._id}
                       hostel={{
                         ...hostel,
                         image: hostel.images?.[0] ? `${import.meta.env.VITE_UPLOADS_BASE_URL}/${hostel.images[0]}` : null
-                      }} 
-                      variant="compact" 
+                      }}
+                      variant="compact"
                     />
                   ))}
                 </div>
@@ -461,7 +460,7 @@ const Hostels = () => {
                     </button>
                   </div>
                 )}
-                
+
                 {/* Pagination */}
                 {pagination.pages > 1 && (
                   <div className="flex justify-center mt-12 mb-8">
@@ -473,11 +472,10 @@ const Hostels = () => {
                             fetchHostels(i + 1);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                           }}
-                          className={`w-11 h-11 rounded-xl flex items-center justify-center text-sm transition-all ${
-                            pagination.current === i + 1
-                              ? 'bg-gray-900 text-white font-bold shadow-md'
-                              : 'bg-transparent text-gray-600 hover:bg-gray-100 font-semibold'
-                          }`}
+                          className={`w-11 h-11 rounded-xl flex items-center justify-center text-sm transition-all ${pagination.current === i + 1
+                            ? 'bg-gray-900 text-white font-bold shadow-md'
+                            : 'bg-transparent text-gray-600 hover:bg-gray-100 font-semibold'
+                            }`}
                         >
                           {i + 1}
                         </button>
@@ -503,7 +501,7 @@ const Hostels = () => {
               onClick={() => setShowFilters(false)}
               className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] lg:hidden"
             />
-            
+
             {/* Draggable Bottom Sheet */}
             <motion.div
               initial={{ y: "100%" }}
@@ -524,7 +522,7 @@ const Hostels = () => {
               <div className="w-full flex justify-center pt-4 pb-2 cursor-grab active:cursor-grabbing shrink-0">
                 <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
               </div>
-              
+
               {/* Scrollable Filter Area */}
               <div className="px-6 pb-6 overflow-y-auto overscroll-contain flex-1 relative">
                 <FilterContentBlocks />

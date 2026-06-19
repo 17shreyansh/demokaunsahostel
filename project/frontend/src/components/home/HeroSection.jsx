@@ -122,7 +122,7 @@ const SearchWidget = memo(({ content }) => {
       transition={{ duration: 0.8, delay: 0.2 }}
       ref={searchContainerRef}
     >
-      <div className="search-container bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 p-3 sm:p-2 hover:shadow-3xl transition-all duration-500 group relative">
+      <div className="search-container bg-white rounded-3xl shadow-2xl border border-gray-100 p-3 sm:p-2 hover:shadow-3xl transition-shadow duration-500 group relative">
         <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-orange-400/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         <div className="flex items-center">
           <div className="flex-1 relative">
@@ -163,7 +163,7 @@ const SearchWidget = memo(({ content }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/30 overflow-hidden z-50"
+            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
           >
             {searchLoading ? (
               <div className="px-4 py-3 text-center text-gray-500">
@@ -285,7 +285,7 @@ const HostelSlider = memo(({ hostels, loading }) => {
                     filter: isCenter ? 'blur(0px)' : 'blur(1px)'
                   }}
                 >
-                  <div className={`bg-white/95 backdrop-blur-2xl rounded-xl sm:rounded-2xl shadow-xl border border-white/30 mx-2 sm:mx-4 transition-all duration-300 ease-in-out hover:bg-white/98 group ${
+                  <div className={`bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 mx-2 sm:mx-4 transition-shadow duration-300 ease-in-out group ${
                     isCenter ? 'shadow-2xl border-yellow-200/50 p-4 sm:p-6 shadow-yellow-100/20' : 'p-3 sm:p-4 hover:shadow-lg'
                   }`}>
                     <div className={`absolute inset-0 bg-gradient-to-r from-yellow-400/5 to-orange-400/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
@@ -355,28 +355,19 @@ const HostelSlider = memo(({ hostels, loading }) => {
       </motion.div>
       
       {/* Slider Indicators */}
-      <motion.div 
-        className="flex justify-center mt-4 space-x-2 relative z-20"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-      >
+      <div className="flex justify-center mt-4 space-x-2 relative z-20">
         {displayHostels.map((hostel, index) => (
-          <motion.button
+          <button
             key={`indicator-${hostel._id}-${index}`}
             onClick={() => setCurrentIndex(index)}
-            className={`h-2 rounded-full transition-all duration-500 ${
+            className={`h-2 rounded-full transition-all duration-300 ${
               index === currentIndex 
                 ? 'bg-yellow-400 w-6 shadow-lg shadow-yellow-200' 
                 : 'bg-gray-300 hover:bg-gray-400 w-2'
             }`}
-            whileHover={{ scale: 1.2 }}
-            whileTap={{ scale: 0.9 }}
-            animate={{ backgroundColor: index === currentIndex ? '#F59E0B' : '#D1D5DB' }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
           />
         ))}
-      </motion.div>
+      </div>
     </>
   );
 });
@@ -420,8 +411,8 @@ const HeroSection = memo(({ hostels, loading, content }) => {
 
   return (
     <section className="relative min-h-screen lg:h-screen overflow-hidden flex items-center bg-transparent transform-gpu">
-      {/* Blur Overlay */}
-      <div className="absolute inset-0 backdrop-blur-sm bg-white/10 pointer-events-none" />
+      {/* Light Overlay (no backdrop-blur — too expensive for full viewport) */}
+      <div className="absolute inset-0 bg-white/5 pointer-events-none" />
 
       <div className="relative container mx-auto px-4 sm:px-6 w-full py-8 lg:py-0">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:h-full">
@@ -493,7 +484,7 @@ const HeroSection = memo(({ hostels, loading, content }) => {
               transition={{ delay: 0.8 }}
             >
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Link to="/hostels" className="block bg-gradient-to-r from-yellow-400/20 to-orange-400/20 backdrop-blur-2xl rounded-2xl border border-yellow-300/30 p-4 text-center hover:from-yellow-400/30 hover:to-orange-400/30 transition-all duration-500 group hover:shadow-xl hover:border-yellow-300/50">
+                <Link to="/hostels" className="block bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-2xl border border-yellow-300/30 p-4 text-center hover:from-yellow-400/30 hover:to-orange-400/30 transition-colors duration-500 group hover:shadow-xl hover:border-yellow-300/50">
                   <div className="text-yellow-600 font-semibold text-sm group-hover:scale-105 transition-transform inline-block">
                     View All {hostels.length}+ Hostels &rarr;
                   </div>

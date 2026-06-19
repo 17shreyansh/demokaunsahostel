@@ -147,7 +147,7 @@ const Header = memo(() => {
   }, [location.pathname]);
 
   return (
-    <header id="home" className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50 transform-gpu">
+    <header id="home" className="bg-white shadow-lg border-b border-gray-100 sticky top-0 z-50 transform-gpu">
       <nav className="container mx-auto px-3 sm:px-4 md:px-6 flex justify-between items-center">
 
         <img 
