@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// framer-motion removed for 120 FPS optimization
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { hostelAPI } from '../../services/api';
 import PriceDisplay from '../common/PriceDisplay';
 import './HeroSection.css';
@@ -116,7 +117,7 @@ const SearchWidget = memo(({ content }) => {
 
   return (
     <div 
-      className="mb-6 sm:mb-8 relative z-30 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 fill-mode-both"
+      className="mb-6 sm:mb-8 relative z-30 search-widget-container opacity-0"
       ref={searchContainerRef}
     >
       <div className="search-container bg-white rounded-3xl shadow-2xl border border-gray-100 p-3 sm:p-2 hover:shadow-3xl transition-shadow duration-500 group relative">
@@ -233,7 +234,7 @@ const HostelSlider = memo(({ hostels, loading }) => {
 
   return (
     <>
-      <div className="relative h-96 sm:h-[28rem] overflow-visible px-2 sm:px-4 animate-in fade-in zoom-in-90 duration-700 delay-300 fill-mode-both">
+      <div className="relative h-96 sm:h-[28rem] overflow-visible px-2 sm:px-4 slider-container opacity-0">
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
@@ -250,17 +251,16 @@ const HostelSlider = memo(({ hostels, loading }) => {
               return (
                 <div 
                   key={hostel._id}
-                  className="transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform"
+                  className="hostel-card-transition will-change-transform"
                   style={{
-                    transform: `scale(${isCenter ? 1.1 : 0.85}) translateY(${isCenter ? 0 : offset === -1 ? -10 : 10}px)`,
+                    transform: `translate3d(0, ${isCenter ? 0 : offset === -1 ? -10 : 10}px, 0) scale(${isCenter ? 1.1 : 0.85})`,
                     opacity: isCenter ? 1 : 0.4,
-                    zIndex: isCenter ? 20 : 0,
-                    filter: isCenter ? 'blur(0px)' : 'blur(1px)'
+                    zIndex: isCenter ? 20 : 0
                   }}
                 >
                   <div className={`w-full h-full transition-transform duration-300 ${isCenter ? 'hover:scale-[1.02]' : ''}`}>
-                    <div className={`bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 mx-2 sm:mx-4 transition-shadow duration-300 ease-in-out group ${
-                      isCenter ? 'shadow-2xl border-yellow-200/50 p-4 sm:p-6 shadow-yellow-100/20' : 'p-3 sm:p-4 hover:shadow-lg'
+                    <div className={`bg-white rounded-xl sm:rounded-2xl border border-gray-100 mx-2 sm:mx-4 transition-shadow duration-300 ease-in-out group p-4 sm:p-5 ${
+                      isCenter ? 'shadow-2xl border-yellow-200/50 shadow-yellow-100/20' : 'shadow-lg hover:shadow-xl'
                     }`}>
                     <div className={`absolute inset-0 bg-gradient-to-r from-yellow-400/5 to-orange-400/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
                       isCenter ? 'opacity-30' : ''
@@ -268,10 +268,8 @@ const HostelSlider = memo(({ hostels, loading }) => {
                     <div className="flex items-center justify-between relative z-10">
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className={`font-bold text-gray-900 leading-tight transition-all duration-300 ${
-                            isCenter ? 'text-lg sm:text-xl' : 'text-base sm:text-lg'
-                          }`}>{hostel.name}</h3>
-                          <div className={`px-2 py-1 rounded-full text-xs font-semibold transition-colors duration-300 ${
+                          <h3 className="font-bold text-gray-900 leading-tight text-base sm:text-lg">{hostel.name}</h3>
+                          <div className={`px-2 py-1 rounded-full text-xs font-semibold ${
                             hostel.availability === 'Available' ? 'bg-green-100 text-green-700' :
                             hostel.availability === 'Limited' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                           }`}>
@@ -290,7 +288,7 @@ const HostelSlider = memo(({ hostels, loading }) => {
                             price={hostel.price}
                             priceType={hostel.priceType || 'month'}
                             sessionPrice={hostel.sessionPrice}
-                            size={isCenter ? 'default' : 'small'}
+                            size="default"
                           />
                           <div className="flex items-center">
                             <div className="flex text-yellow-400 mr-2">
@@ -304,15 +302,13 @@ const HostelSlider = memo(({ hostels, loading }) => {
                           </div>
                         </div>
                         
-                        {isCenter && (
-                          <div className="mt-3 pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-bottom-2 duration-300 delay-100 fill-mode-both">
-                            <div className="inline-block hover:scale-105 active:scale-95 transition-transform">
-                              <Link to={`/hostel/${hostel.slug || hostel._id}`} className="relative z-50 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold px-4 py-2 rounded-xl transition-all duration-300 text-sm inline-block shadow-lg hover:shadow-xl">
-                                View Details &rarr;
-                              </Link>
-                            </div>
+                        <div className={`mt-3 pt-3 border-t border-gray-100 transition-opacity duration-300 ${isCenter ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                          <div className="inline-block hover:scale-105 active:scale-95 transition-transform">
+                            <Link to={`/hostel/${hostel.slug || hostel._id}`} className="relative z-50 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold px-4 py-2 rounded-xl transition-all duration-300 text-sm inline-block shadow-lg hover:shadow-xl">
+                              View Details &rarr;
+                            </Link>
                           </div>
-                        )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -347,6 +343,8 @@ const HostelSlider = memo(({ hostels, loading }) => {
 /* -------------------------------------------------------------------------- */
 
 const HeroSection = memo(({ hostels, loading, content }) => {
+  const container = useRef(null);
+
   const typewriterTexts = useMemo(() => content?.typewriterTexts || [
     'Premium Hostels',
     'Safe Accommodations', 
@@ -355,17 +353,57 @@ const HeroSection = memo(({ hostels, loading, content }) => {
     'Verified Properties'
   ], [content?.typewriterTexts]);
 
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
+    // Main entrance animations sequence
+    // Use fromTo since elements have opacity-0 in CSS to prevent flash
+    tl.fromTo('.hero-text-content > *', 
+      { y: 40, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1, stagger: 0.15 }
+    )
+    .fromTo('.search-widget-container', 
+      { y: 40, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8 }, "-=0.6"
+    )
+    .fromTo('.slider-container', 
+      { scale: 0.9, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 1, ease: 'back.out(1.2)' }, "-=0.6"
+    )
+    .fromTo('.view-all-link', 
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.6 }, "-=0.4"
+    );
+
+    // Continuous floating background animations
+    gsap.to('.shape-1', {
+      rotation: 360,
+      scale: 1.1,
+      duration: 15,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to('.shape-2', {
+      y: -40,
+      rotation: -20,
+      duration: 8,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+  }, { scope: container });
 
   return (
-    <section className="relative min-h-screen lg:h-screen overflow-hidden flex items-center bg-transparent transform-gpu">
+    <section ref={container} className="relative min-h-screen lg:h-screen overflow-hidden flex items-center bg-transparent transform-gpu">
       {/* Light Overlay (no  — too expensive for full viewport) */}
       <div className="absolute inset-0 bg-white/5 pointer-events-none" />
 
       <div className="relative container mx-auto px-4 sm:px-6 w-full py-8 lg:py-0">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:h-full">
           {/* Left Content */}
-          <div className="text-center lg:text-left order-1 relative z-10">
+          <div className="text-center lg:text-left order-1 relative z-10 hero-text-content">
             <div className="inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium mb-6">
               <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -409,15 +447,15 @@ const HeroSection = memo(({ hostels, loading, content }) => {
           <div className="relative order-2 z-20">
             {/* Floating background elements */}
             <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-yellow-300/30 to-orange-300/30 rounded-full will-change-transform animate-spin-slow-custom" />
-              <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-blue-300/25 to-purple-300/25 rounded-2xl will-change-transform animate-float-custom" />
+              <div className="shape-1 absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-yellow-300/30 to-orange-300/30 rounded-full will-change-transform" />
+              <div className="shape-2 absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-blue-300/25 to-purple-300/25 rounded-2xl will-change-transform" />
             </div>
 
             <SearchWidget content={content} />
             <HostelSlider hostels={hostels} loading={loading} />
             
             {/* View All Link */}
-            <div className="mt-6 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-700 fill-mode-both">
+            <div className="mt-6 relative z-10 view-all-link opacity-0 transform translate-y-4">
               <div className="hover:scale-[1.02] active:scale-[0.98] transition-transform">
                 <Link to="/hostels" className="block bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-2xl border border-yellow-300/30 p-4 text-center hover:from-yellow-400/30 hover:to-orange-400/30 transition-colors duration-500 group hover:shadow-xl hover:border-yellow-300/50">
                   <div className="text-yellow-600 font-semibold text-sm group-hover:scale-105 transition-transform inline-block">

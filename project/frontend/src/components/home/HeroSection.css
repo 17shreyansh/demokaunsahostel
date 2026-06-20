@@ -1,6 +1,6 @@
 /* Smooth transitions for hostel cards */
 .transition-all {
-  transition-property: all;
+  transition-property: transform, opacity, background-color, border-color, color, fill, stroke, box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -12,7 +12,7 @@
 
 /* Performance optimizations */
 .will-change-transform {
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
 .transform-gpu {
@@ -22,9 +22,8 @@
 
 /* Smooth card transitions */
 .hostel-card-transition {
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.3s ease;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes spin-slow-custom {

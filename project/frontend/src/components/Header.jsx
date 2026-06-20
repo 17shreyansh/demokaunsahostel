@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { pageAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import logo from '../assets/logo.png';
@@ -116,6 +118,20 @@ const Header = memo(() => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user } = useUser();
+  const headerRef = useRef(null);
+
+  useGSAP(() => {
+    const tl = gsap.timeline();
+    tl.fromTo(headerRef.current, 
+      { y: -20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }
+    )
+    .fromTo('.gsap-stagger-item', 
+      { y: -10, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out', clearProps: 'all' }, 
+      "-=0.3"
+    );
+  }, { scope: headerRef });
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -147,40 +163,43 @@ const Header = memo(() => {
   }, [location.pathname]);
 
   return (
-    <header id="home" className="bg-white shadow-lg border-b border-gray-100 sticky top-0 z-50 transform-gpu">
+    <header id="home" ref={headerRef} className="bg-white shadow-lg border-b border-gray-100 sticky top-0 z-50 transform-gpu opacity-100">
       <nav className="container mx-auto px-3 sm:px-4 md:px-6 flex justify-between items-center">
 
-        <img 
-          src={logo} 
-          alt="KaunsaHostel Logo" 
-          fetchPriority="high"
-          decoding="async"
-          width="120"
-          height="40"
-          className="h-16 sm:h-181 md:h-20 w-auto object-contain block cursor-pointer transition-transform duration-300 transform-gpu hover:scale-105 will-change-transform" 
-          onClick={() => window.location.href = '/'}
-        />
+        <div className="gsap-stagger-item flex-shrink-0">
+          <img 
+            src={logo} 
+            alt="KaunsaHostel Logo" 
+            fetchPriority="high"
+            decoding="async"
+            width="120"
+            height="40"
+            className="h-16 sm:h-181 md:h-20 w-auto object-contain block cursor-pointer transition-transform duration-300 transform-gpu hover:scale-105 will-change-transform" 
+            onClick={() => window.location.href = '/'}
+          />
+        </div>
         
         <div className="hidden md:flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2 flex-1 justify-center">
           {NAV_LINKS.map(({ path, label, exact }) => {
             const isActive = checkIsActive(path, exact);
             return (
-              <Link 
-                key={`desktop-${path}`}
-                to={path} 
-                className={`nav-link font-semibold px-2 lg:px-3 xl:px-4 py-2 rounded-xl transition-all duration-300 text-sm lg:text-base whitespace-nowrap ${
-                  isActive 
-                    ? 'text-gray-900 bg-yellow-50 border border-yellow-200/50 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                {label}
-              </Link>
+              <div key={`desktop-${path}`} className="gsap-stagger-item">
+                <Link 
+                  to={path} 
+                  className={`nav-link font-semibold px-2 lg:px-3 xl:px-4 py-2 rounded-xl transition-all duration-300 text-sm lg:text-base whitespace-nowrap block ${
+                    isActive 
+                      ? 'text-gray-900 bg-yellow-50 border border-yellow-200/50 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  {label}
+                </Link>
+              </div>
             )
           })}
         </div>
         
-        <div className="hidden md:flex items-center gap-2 lg:gap-3 xl:gap-4 flex-shrink-0">
+        <div className="hidden md:flex items-center gap-2 lg:gap-3 xl:gap-4 flex-shrink-0 gsap-stagger-item">
           {user ? (
             <UserDropdown user={user} />
           ) : (
@@ -190,7 +209,7 @@ const Header = memo(() => {
           )}
         </div>
 
-        <div className="md:hidden flex-shrink-0">
+        <div className="md:hidden flex-shrink-0 gsap-stagger-item">
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-expanded={mobileMenuOpen}
