@@ -12,8 +12,15 @@ const Footer = memo(() => {
 
   const fetchContactInfo = async () => {
     try {
+      const cached = localStorage.getItem('kaunsa_contact_info')
+      if (cached) {
+        setContactInfo(JSON.parse(cached))
+      }
+      
       const response = await pageAPI.getPageContent('contact')
-      setContactInfo(response.data.content?.contact?.contactInfo || {})
+      const info = response.data.content?.contact?.contactInfo || {}
+      setContactInfo(info)
+      localStorage.setItem('kaunsa_contact_info', JSON.stringify(info))
     } catch (error) {
       console.error('Error fetching contact info:', error)
     }
@@ -31,7 +38,7 @@ const Footer = memo(() => {
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center mb-6 group">
-              <img src={logo} alt="Kaunsa Hostel Logo" className="h-32 w-auto group-hover:scale-105 transition-transform" />
+              <img src={logo} alt="Kaunsa Hostel Logo" loading="lazy" decoding="async" width="128" height="128" className="h-32 w-auto group-hover:scale-105 transition-transform" />
             </Link>
             <p className="text-gray-200 leading-relaxed mb-6">
               Your trusted partner in finding premium hostels in Greater Noida. We create comfortable, safe, and vibrant communities for students and professionals.

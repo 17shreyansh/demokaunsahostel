@@ -3,9 +3,10 @@ import { cacheManager } from '../utils/cacheManager'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
-// Cache for API responses
+// Cache for API responses (Simple LRU with Max Size)
 const cache = new Map()
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const MAX_CACHE_SIZE = 50 // Prevent memory leaks
 
 // Register cache with cache manager
 cacheManager.register('api', cache)
@@ -18,24 +19,31 @@ const api = axios.create({
 
 // Request interceptor for caching (only cache GET requests)
 api.interceptors.request.use((config) => {
-  // Only cache GET requests
   if (config.method === 'get') {
     const cacheKey = `${config.method}:${config.url}:${JSON.stringify(config.params)}`
     const cached = cache.get(cacheKey)
     
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      // LRU logic: move to newest
+      cache.delete(cacheKey)
+      cache.set(cacheKey, cached)
       config.adapter = () => Promise.resolve(cached.response)
     }
   }
-  
   return config
 })
 
 // Response interceptor for caching (only cache GET responses)
 api.interceptors.response.use((response) => {
-  // Only cache GET responses
   if (response.config.method === 'get') {
     const cacheKey = `${response.config.method}:${response.config.url}:${JSON.stringify(response.config.params)}`
+    
+    // LRU eviction
+    if (cache.size >= MAX_CACHE_SIZE && !cache.has(cacheKey)) {
+      const oldestKey = cache.keys().next().value
+      cache.delete(oldestKey)
+    }
+    
     cache.set(cacheKey, {
       response,
       timestamp: Date.now()
@@ -71,9 +79,7 @@ const clearCache = () => {
 
 export const hostelAPI = {
   getAll: async (params = {}) => {
-    // Add timestamp to bypass cache
-    const allParams = { ...params, _t: Date.now() }
-    const queryString = new URLSearchParams(allParams).toString()
+    const queryString = new URLSearchParams(params).toString()
     return await api.get(`/hostels${queryString ? `?${queryString}` : ''}`)
   },
   search: async (params) => {
@@ -87,8 +93,7 @@ export const hostelAPI = {
     return await api.get('/hostels/filters/options')
   },
   getById: async (id) => {
-    // Add timestamp to bypass cache
-    return await api.get(`/hostels/${id}?_t=${Date.now()}`)
+    return await api.get(`/hostels/${id}`)
   },
   getBySlug: async (slug) => {
     return await api.get(`/hostels/slug/${slug}`)

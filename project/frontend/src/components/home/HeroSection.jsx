@@ -115,11 +115,8 @@ const SearchWidget = memo(({ content }) => {
   }, [navigate]);
 
   return (
-    <motion.div 
-      className="mb-6 sm:mb-8 relative z-30"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: 0.2 }}
+    <div 
+      className="mb-6 sm:mb-8 relative z-30 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 fill-mode-both"
       ref={searchContainerRef}
     >
       <div className="search-container bg-white rounded-3xl shadow-2xl border border-gray-100 p-3 sm:p-2 hover:shadow-3xl transition-shadow duration-500 group relative">
@@ -144,14 +141,14 @@ const SearchWidget = memo(({ content }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
               </svg>
             </button>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <div className="hover:scale-105 active:scale-95 transition-transform">
               <button 
                 onClick={handleSearch}
                 className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-semibold px-6 py-3 rounded-2xl hover:shadow-xl hover:shadow-yellow-200 transition-all duration-300"
               >
                 Search
               </button>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
@@ -221,7 +218,7 @@ const SearchWidget = memo(({ content }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 });
 
@@ -477,20 +474,15 @@ const HeroSection = memo(({ hostels, loading, content }) => {
             <HostelSlider hostels={hostels} loading={loading} />
             
             {/* View All Link */}
-            <motion.div 
-              className="mt-6 relative z-10"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <div className="mt-6 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-700 fill-mode-both">
+              <div className="hover:scale-[1.02] active:scale-[0.98] transition-transform">
                 <Link to="/hostels" className="block bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-2xl border border-yellow-300/30 p-4 text-center hover:from-yellow-400/30 hover:to-orange-400/30 transition-colors duration-500 group hover:shadow-xl hover:border-yellow-300/50">
                   <div className="text-yellow-600 font-semibold text-sm group-hover:scale-105 transition-transform inline-block">
                     View All {hostels.length}+ Hostels &rarr;
                   </div>
                 </Link>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

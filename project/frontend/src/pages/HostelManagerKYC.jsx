@@ -5,9 +5,9 @@ import {
   Result, Steps, message, Row, Col, Alert, Spin 
 } from 'antd';
 import { 
-  InboxOutlined, CheckCircleFilled, ClockCircleFilled, 
-  CloseCircleFilled, BankOutlined, IdcardOutlined, ShopOutlined
-} from '@ant-design/icons';
+  Inbox, CheckCircle, Clock, 
+  XCircle, Landmark, CreditCard, Store
+} from 'lucide-react';
 import { useHostelManager } from '../contexts/HostelManagerContext';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
 
@@ -22,7 +22,7 @@ const VerifiedState = ({ verifiedAt, onDashboard }) => (
   <div className="max-w-2xl mx-auto py-12">
     <Card className="shadow-sm border-emerald-100 rounded-2xl" bodyStyle={{ padding: '48px 24px' }}>
       <Result
-        icon={<CheckCircleFilled className="text-emerald-500" />}
+        icon={<CheckCircle className="w-16 h-16 text-emerald-500 mx-auto" />}
         title={<span className="text-2xl font-extrabold text-slate-900">Compliance Verified</span>}
         subTitle={
           <div className="mt-2 text-slate-500">
@@ -45,7 +45,7 @@ const UnderReviewState = ({ submittedAt, bankDetails, paymentDetails }) => (
   <div className="max-w-3xl mx-auto py-8">
     <Card className="shadow-sm border-blue-100 rounded-2xl mb-6">
       <Result
-        icon={<ClockCircleFilled className="text-blue-500" />}
+        icon={<Clock className="w-16 h-16 text-blue-500 mx-auto" />}
         title={<span className="text-2xl font-extrabold text-slate-900">Verification Under Review</span>}
         subTitle={
           <span className="text-slate-500">
@@ -184,7 +184,7 @@ const HostelManagerKYC = () => {
             }
             type="error"
             showIcon
-            icon={<CloseCircleFilled />}
+            icon={<XCircle className="w-4 h-4" />}
             className="mb-8 rounded-xl border-red-200"
           />
         )}
@@ -196,8 +196,8 @@ const HostelManagerKYC = () => {
             <Steps
               current={status === 'rejected' ? 0 : 0}
               items={[
-                { title: 'Bank Account', icon: <BankOutlined /> },
-                { title: 'Payment Details', icon: <IdcardOutlined /> }
+                { title: 'Bank Account', icon: <Landmark className="w-4 h-4" /> },
+                { title: 'Payment Details', icon: <CreditCard className="w-4 h-4" /> }
               ]}
               className="max-w-2xl mx-auto"
             />
@@ -276,7 +276,9 @@ const HostelManagerKYC = () => {
                       onChange={({ fileList }) => setQrFile(fileList)}
                       className="bg-slate-50 hover:bg-slate-100 transition-colors"
                     >
-                      <p className="ant-upload-drag-icon text-blue-500"><InboxOutlined /></p>
+                      <p className="ant-upload-drag-icon text-center mt-2">
+                        <Inbox className="w-12 h-12 text-blue-500 mx-auto" />
+                      </p>
                       <p className="ant-upload-text font-medium text-slate-700">Click or drag QR code to upload</p>
                       <p className="ant-upload-hint text-xs text-slate-500">Supports JPG, PNG (Max 5MB)</p>
                     </Dragger>

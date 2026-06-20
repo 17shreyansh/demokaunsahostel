@@ -153,6 +153,10 @@ const Header = memo(() => {
         <img 
           src={logo} 
           alt="KaunsaHostel Logo" 
+          fetchPriority="high"
+          decoding="async"
+          width="120"
+          height="40"
           className="h-16 sm:h-181 md:h-20 w-auto object-contain block cursor-pointer transition-transform duration-300 transform-gpu hover:scale-105 will-change-transform" 
           onClick={() => window.location.href = '/'}
         />

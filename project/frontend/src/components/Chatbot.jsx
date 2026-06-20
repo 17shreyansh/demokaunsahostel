@@ -269,17 +269,15 @@ const Chatbot = () => {
         <FiPhone size={22} />
       </div>
 
-      <motion.div 
-        className={`chat-icon ${isOpen ? 'open' : ''}`}
+      <div 
+        className={`chat-icon ${isOpen ? 'open' : ''} hover:scale-105 active:scale-95 transition-transform duration-200`}
         onClick={toggleChat}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
         style={{ willChange: 'transform, background-color' }}
         title={isOpen ? 'Close Chat' : 'Chat with Us'}
       >
         {isOpen ? <FiX size={24} /> : <FiMessageCircle size={24} />}
         {!isOpen && <div className="notification-dot"></div>}
-      </motion.div>
+      </div>
 
       <AnimatePresence>
         {isOpen && (

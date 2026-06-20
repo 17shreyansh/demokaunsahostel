@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { Select, List, Typography, Tag, message, Spin, Collapse, Button, Space, Alert, Tooltip } from 'antd';
-import { DeleteOutlined, ReloadOutlined, EnvironmentOutlined, PlusOutlined, ClearOutlined } from '@ant-design/icons';
+import { Trash2, RefreshCw, MapPin, Plus, XCircle } from 'lucide-react';
 import { FaGraduationCap, FaBuilding, FaBus, FaShoppingCart, FaHospital, FaFilm, FaUtensils, FaUniversity } from 'react-icons/fa';
 
 const { Title, Text } = Typography;
@@ -53,9 +53,7 @@ const CategoryPanel = memo(({ category, info, selectedPlaces, availableForSelect
                   <Button
                     key="delete"
                     type="text"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => onRemovePlace(category, place._id)}
+                    icon={<Trash2 size={16} />}
                     size="small"
                   />
                 </Tooltip>
@@ -71,7 +69,7 @@ const CategoryPanel = memo(({ category, info, selectedPlaces, availableForSelect
                 description={
                   <div className="mt-1">
                     {place.distance ? (
-                      <Tag className="bg-blue-50 text-blue-600 border-blue-100" icon={<EnvironmentOutlined />}>
+                      <Tag className="bg-blue-50 text-blue-600 border-blue-100" icon={<MapPin size={12} className="mr-1 inline" />}>
                         {place.distance}
                       </Tag>
                     ) : (
@@ -333,11 +331,11 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
             <span className="text-slate-500 mr-3">Active Registry: {getTotalSelectedCount()}</span>
             {coordinates?.lat && coordinates?.lng ? (
               <span className="text-emerald-600 flex items-center">
-                <EnvironmentOutlined className="mr-1" /> Linked to GPS: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}
+                <MapPin size={14} className="mr-1" /> Linked to GPS: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}
               </span>
             ) : (
               <span className="text-amber-600 flex items-center">
-                <EnvironmentOutlined className="mr-1" /> GPS Unlinked
+                <MapPin size={14} className="mr-1" /> GPS Unlinked
               </span>
             )}
           </div>
@@ -345,14 +343,14 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
 
         <Space wrap>
           <Button 
-            icon={<ReloadOutlined />} 
+            icon={<RefreshCw size={14} />} 
             onClick={() => window.location.reload()} // Simplified refresh for demonstration, ideally call fetchAvailablePlaces
             disabled={loading}
           >
             Sync DB
           </Button>
           <Button 
-            icon={<EnvironmentOutlined />} 
+            icon={<MapPin size={14} />} 
             onClick={recalculateDistances}
             loading={distanceLoading}
             disabled={!coordinates?.lat || !hasSelectedPlaces()}
@@ -360,7 +358,7 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
             Calc Distances
           </Button>
           <Button 
-            icon={<ClearOutlined />} 
+            icon={<XCircle size={14} />} 
             onClick={clearAllPlaces}
             disabled={!hasSelectedPlaces()}
             danger
@@ -368,7 +366,7 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
             Clear
           </Button>
           <Button 
-            icon={<PlusOutlined />} 
+            icon={<Plus size={14} />} 
             onClick={fetchAllNearbyPlaces}
             loading={loading || distanceLoading}
             disabled={!coordinates?.lat}

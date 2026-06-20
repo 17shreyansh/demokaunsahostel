@@ -1,8 +1,20 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Form, Input, Select, Switch, message } from 'antd';
 import { Save, Eye, Send, Plus, Sparkles, X } from 'lucide-react';
-import TiptapEditor from '../../components/editor/TiptapEditor';
+
+const debounce = (func, wait) => {
+  let timeout;
+  const debounced = function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+  debounced.cancel = () => clearTimeout(timeout);
+  return debounced;
+};
+
+// Lazy load the rich text editor to reduce initial bundle size
+const TiptapEditor = React.lazy(() => import('../../components/editor/TiptapEditor'));
 import ImageUpload from '../../components/ImageUpload';
 import blogAPI, { categoryService, tagService } from '../../services/blogAPI';
 
@@ -33,13 +45,31 @@ export default function BlogEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Debounced auto-save function
+  const debouncedAutoSave = useCallback(
+    debounce(async (blogId, titleValue, contentValue) => {
+      if (!blogId || !contentValue) return;
+      try {
+        setAutoSaving(true);
+        await blogAPI.patch(`/admin/${blogId}/autosave`, {
+          title: titleValue,
+          content: contentValue
+        });
+      } catch (error) {
+        console.error('Auto-save failed');
+      } finally {
+        setAutoSaving(false);
+      }
+    }, 2000),
+    []
+  );
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      if (id && content) autoSave();
-    }, 30000);
-    return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, content]);
+    if (id && content) {
+      debouncedAutoSave(id, form.getFieldValue('title'), content);
+    }
+    return () => debouncedAutoSave.cancel();
+  }, [id, content, form, debouncedAutoSave]);
 
   const loadData = async () => {
     try {
@@ -84,16 +114,9 @@ export default function BlogEditor() {
   };
 
   const autoSave = async () => {
-    try {
-      setAutoSaving(true);
-      await blogAPI.patch(`/admin/${id}/autosave`, {
-        title: form.getFieldValue('title'),
-        content
-      });
-    } catch (error) {
-      console.error('Auto-save failed');
-    } finally {
-      setAutoSaving(false);
+    // Manual save fallback if needed
+    if (id && content) {
+      debouncedAutoSave(id, form.getFieldValue('title'), content);
     }
   };
 
@@ -264,8 +287,10 @@ export default function BlogEditor() {
               </Form.Item>
 
               <Form.Item label="Article Content" className="mb-0">
-                <div className="border border-gray-300 bg-white">
-                  <TiptapEditor content={content} onChange={setContent} />
+                <div className="border border-gray-300 bg-white min-h-[400px]">
+                  <Suspense fallback={<div className="p-8 text-center text-gray-500 animate-pulse">Loading Editor...</div>}>
+                    <TiptapEditor content={content} onChange={setContent} />
+                  </Suspense>
                 </div>
               </Form.Item>
 

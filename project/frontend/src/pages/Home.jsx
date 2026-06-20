@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect } from 'react';
 import { hostelAPI, pageAPI } from '../services/api';
 import { stateManager } from '../utils/stateManager';
 import HeroSection from '../components/home/HeroSection';
@@ -11,27 +11,6 @@ import WhyTrustUs from '../components/home/WhyTrustUs';
 import BlogsSection from '../components/home/BlogsSection';
 import FAQSection from '../components/home/FAQSection';
 import TalkToUs from '../components/home/TalkToUs';
-
-// Memoized components
-const MemoizedHeroSection = memo(HeroSection);
-const MemoizedHowItWorks = memo(HowItWorks);
-const MemoizedFeaturedHostels = memo(FeaturedHostels);
-const MemoizedServicesSection = memo(ServicesSection);
-const MemoizedTestimonialsSection = memo(TestimonialsSection);
-const MemoizedOurPartners = memo(OurPartners);
-const MemoizedWhyTrustUs = memo(WhyTrustUs);
-const MemoizedBlogsSection = memo(BlogsSection);
-const MemoizedFAQSection = memo(FAQSection);
-const MemoizedTalkToUs = memo(TalkToUs);
-
-// Simplified Background Styles to resolve severe mobile lag
-// Replaces expensive continuous blur and scale animations with static gradients
-const backgroundStyles = `
-  .gpu-layer {
-    will-change: transform, opacity;
-    backface-visibility: hidden;
-  }
-`;
 
 const Home = () => {
   const [hostels, setHostels] = useState([]);
@@ -86,8 +65,6 @@ const Home = () => {
 
   return (
     <main className="relative">
-      <style>{backgroundStyles}</style>
-
       {/* Fixed Static Background - GPU Optimized */}
       <div className="fixed top-0 left-0 w-full h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
         <div 
@@ -117,15 +94,15 @@ const Home = () => {
         ))}
       </div>
       
-      <MemoizedHeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
-      <MemoizedHowItWorks content={pageContent.howItWorks} />
-      <MemoizedOurPartners />
-      <MemoizedFeaturedHostels hostels={hostels} loading={loading} />
-      <MemoizedWhyTrustUs />
-      <MemoizedTestimonialsSection content={pageContent.testimonials} />
-      <MemoizedBlogsSection />
-      <MemoizedFAQSection />
-      <MemoizedTalkToUs />
+      <HeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
+      <HowItWorks content={pageContent.howItWorks} />
+      <OurPartners />
+      <FeaturedHostels hostels={hostels} loading={loading} />
+      <WhyTrustUs />
+      <TestimonialsSection content={pageContent.testimonials} />
+      <BlogsSection />
+      <FAQSection />
+      <TalkToUs />
     </main>
   );
 };

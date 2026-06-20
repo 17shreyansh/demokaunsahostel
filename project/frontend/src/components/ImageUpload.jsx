@@ -39,36 +39,71 @@ export default function ImageUpload({
 
     // Create preview
     const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result);
-    reader.readAsDataURL(file);
-
-    // Upload
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
+    reader.onload = async () => {
+      setPreview(reader.result);
       
-      const response = await fetch(`${API_BASE_URL}/blog/admin/image/upload`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
+      // Upload process
+      setUploading(true);
+      try {
+        // Compress Image using Canvas
+        const img = new Image();
+        img.src = reader.result;
+        await new Promise(resolve => { img.onload = resolve; });
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Max width/height
+        const MAX_DIM = 1920;
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height && width > MAX_DIM) {
+          height *= MAX_DIM / width;
+          width = MAX_DIM;
+        } else if (height > MAX_DIM) {
+          width *= MAX_DIM / height;
+          height = MAX_DIM;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to blob (webp for better compression)
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.8));
+        
+        const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+          type: 'image/webp',
+          lastModified: Date.now(),
+        });
 
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.message);
+        const formData = new FormData();
+        formData.append('image', compressedFile);
+        
+        const response = await fetch(`${API_BASE_URL}/blog/admin/image/upload`, {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.message);
+        }
+
+        message.success('Image uploaded successfully');
+        onChange?.(data.data);
+      } catch (error) {
+        console.error('Upload error:', error);
+        message.error(error.message || 'Failed to upload image');
+        setPreview(null);
+      } finally {
+        setUploading(false);
       }
-
-      message.success('Image uploaded successfully');
-      onChange?.(data.data);
-    } catch (error) {
-      console.error('Upload error:', error);
-      message.error(error.message || 'Failed to upload image');
-      setPreview(null);
-    } finally {
-      setUploading(false);
-    }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRemove = () => {

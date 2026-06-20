@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, Button, Input, message, Space, Typography } from 'antd'
-import { EnvironmentOutlined, SearchOutlined } from '@ant-design/icons'
+import { MapPin, Search } from 'lucide-react'
 
 const { Text } = Typography
 

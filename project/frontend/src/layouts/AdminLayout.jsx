@@ -96,6 +96,9 @@ const AdminLayout = () => {
 
   // Strictly handle responsive states without layout thrashing
   useEffect(() => {
+    // Dynamically load antd reset only for admin routes
+    import('antd/dist/reset.css');
+
     let timeoutId;
     const handleResize = () => {
       clearTimeout(timeoutId);

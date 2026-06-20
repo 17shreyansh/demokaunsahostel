@@ -1,5 +1,5 @@
 import { Card, Typography, Button } from 'antd'
-import { EnvironmentOutlined, ExportOutlined } from '@ant-design/icons'
+import { MapPin, ExternalLink } from 'lucide-react'
 
 const { Title, Text } = Typography
 
@@ -25,6 +25,7 @@ const HostelMap = ({ coordinates, hostelName, address }) => {
       
       
       <div className="mb-4">
+        <MapPin size={24} className="text-blue-600 mb-2" />
         <iframe
           width="100%"
           height="300"
@@ -33,6 +34,7 @@ const HostelMap = ({ coordinates, hostelName, address }) => {
           src={`https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=15&output=embed`}
           allowFullScreen
         />
+        <Button icon={<ExternalLink size={16} className="mr-2" />} onClick={openInGoogleMaps}>View on Google Maps</Button>
       </div>
 
      

@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { memo } from 'react'
 import PriceDisplay from './PriceDisplay'
 import { optimizeImageUrl } from '../../utils/imageOptimization'
@@ -9,10 +8,8 @@ const HostelCard = memo(({ hostel, variant = 'default' }) => {
   const isCompact = variant === 'compact'
   
   return (
-    <motion.div
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className={`bg-white rounded-2xl shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden group flex flex-col ${
+    <div
+      className={`bg-white rounded-2xl shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden group flex flex-col transition-all duration-300 ease-out hover:-translate-y-1 ${
         isCompact ? 'h-auto' : 'h-full'
       }`}
     >
@@ -119,7 +116,7 @@ const HostelCard = memo(({ hostel, variant = 'default' }) => {
           </div>
           
           {/* Premium Glowing Button */}
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-shrink-0">
+          <div className="flex-shrink-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]">
             <Link 
               to={`/hostel/${hostel.slug || hostel._id}`}
               className={`block bg-yellow-400 text-gray-900 font-bold rounded-xl text-center transition-all duration-300 shadow-[0_4px_14px_0_rgba(250,204,21,0.39)] hover:shadow-[0_6px_20px_rgba(250,204,21,0.6)] hover:bg-yellow-300 border border-yellow-300/50 ${
@@ -128,10 +125,10 @@ const HostelCard = memo(({ hostel, variant = 'default' }) => {
             >
               View Details
             </Link>
-          </motion.div>
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 })
 

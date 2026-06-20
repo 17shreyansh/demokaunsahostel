@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom'
 import { useEffect, lazy, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
@@ -66,8 +66,7 @@ function App() {
   return (
     <HelmetProvider>
       <UserProvider>
-        <HostelManagerProvider>
-          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <div className="App">
               <ScrollToTop />
               <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
@@ -121,23 +120,24 @@ function App() {
                 </Route>
 
                 {/* Hostel Manager Routes */}
-                <Route path="/hostel-manager/auth" element={<HostelManagerAuth />} />
-                <Route path="/hostel-manager/dashboard" element={<HostelManagerProtectedRoute><HostelManagerDashboard /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/profile" element={<HostelManagerProtectedRoute><HostelManagerProfile /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/settings" element={<HostelManagerProtectedRoute><HostelManagerSettings /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/kyc" element={<HostelManagerProtectedRoute><HostelManagerKYC /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/hostels" element={<HostelManagerProtectedRoute><HostelManagerHostels /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/hostels/add" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/hostels/edit/:id" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/reviews" element={<HostelManagerProtectedRoute><HostelManagerReviews /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/payments" element={<HostelManagerProtectedRoute><HostelManagerPayments /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/students" element={<HostelManagerProtectedRoute><HostelManagerStudents /></HostelManagerProtectedRoute>} />
-                <Route path="/hostel-manager/change-requests" element={<HostelManagerProtectedRoute><HostelManagerChangeRequests /></HostelManagerProtectedRoute>} />
+                <Route path="/hostel-manager" element={<HostelManagerProvider><Outlet /></HostelManagerProvider>}>
+                  <Route path="auth" element={<HostelManagerAuth />} />
+                  <Route path="dashboard" element={<HostelManagerProtectedRoute><HostelManagerDashboard /></HostelManagerProtectedRoute>} />
+                  <Route path="profile" element={<HostelManagerProtectedRoute><HostelManagerProfile /></HostelManagerProtectedRoute>} />
+                  <Route path="settings" element={<HostelManagerProtectedRoute><HostelManagerSettings /></HostelManagerProtectedRoute>} />
+                  <Route path="kyc" element={<HostelManagerProtectedRoute><HostelManagerKYC /></HostelManagerProtectedRoute>} />
+                  <Route path="hostels" element={<HostelManagerProtectedRoute><HostelManagerHostels /></HostelManagerProtectedRoute>} />
+                  <Route path="hostels/add" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />
+                  <Route path="hostels/edit/:id" element={<HostelManagerProtectedRoute><HostelManagerHostelForm /></HostelManagerProtectedRoute>} />
+                  <Route path="reviews" element={<HostelManagerProtectedRoute><HostelManagerReviews /></HostelManagerProtectedRoute>} />
+                  <Route path="payments" element={<HostelManagerProtectedRoute><HostelManagerPayments /></HostelManagerProtectedRoute>} />
+                  <Route path="students" element={<HostelManagerProtectedRoute><HostelManagerStudents /></HostelManagerProtectedRoute>} />
+                  <Route path="change-requests" element={<HostelManagerProtectedRoute><HostelManagerChangeRequests /></HostelManagerProtectedRoute>} />
+                </Route>
               </Routes>
             </Suspense>
           </div>
         </Router>
-        </HostelManagerProvider>
       </UserProvider>
     </HelmetProvider>
   )

@@ -16,6 +16,12 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Skip API call if no auth cookie exists (anonymous visitors)
+    const hasCookie = document.cookie.split(';').some(c => c.trim().startsWith('token=') || c.trim().startsWith('jwt=') || c.trim().startsWith('connect.sid='))
+    if (!hasCookie) {
+      setLoading(false)
+      return
+    }
     checkAuth()
   }, [])
 

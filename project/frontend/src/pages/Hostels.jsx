@@ -10,41 +10,177 @@ import { motion, AnimatePresence } from 'framer-motion'
 const MemoizedHostelCard = memo(HostelCard)
 const MemoizedSelect = memo(Select)
 
-// Custom styles for slider and sleek scrollbars
-const customStyles = `
-  .slider::-webkit-slider-thumb {
-    appearance: none;
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #F59E0B;
-    cursor: pointer;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: transform 0.1s ease;
-  }
-  .slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-  }
-  .slider::-moz-range-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #F59E0B;
-    cursor: pointer;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  }
-  
-  /* Hide scrollbar for premium sticky sidebar look */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-`
+// Common styles for Select components
+const getSelectStyles = () => ({
+  control: (base, state) => ({
+    ...base,
+    borderRadius: '12px',
+    border: '2px solid #e5e7eb',
+    boxShadow: state.isFocused ? '0 0 0 3px rgba(245, 158, 11, 0.1)' : 'none',
+    borderColor: state.isFocused ? '#f59e0b' : '#e5e7eb',
+    padding: '4px',
+    background: '#ffffff',
+    '&:hover': { borderColor: '#fbbf24' },
+    transition: 'all 0.2s ease'
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isSelected ? '#f59e0b' : state.isFocused ? '#fef3c7' : '#ffffff',
+    color: state.isSelected ? '#1f2937' : '#374151',
+    fontWeight: state.isSelected ? '600' : '500',
+    padding: '12px 16px',
+    cursor: 'pointer',
+    transition: 'background-color 0.15s ease'
+  }),
+  menu: (base) => ({ ...base, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', zIndex: 9999 }),
+  menuPortal: (base) => ({ ...base, zIndex: 99999 })
+})
+
+// Reusable Filter Content
+const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clearFilters, setShowFilters }) => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center pb-4 border-b border-gray-100 lg:hidden">
+      <h3 className="text-xl font-bold text-gray-900">Refine Search</h3>
+      <button onClick={() => setShowFilters(false)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <div className="space-y-5">
+
+      {/* Location */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Location</label>
+        <MemoizedSelect
+          value={filters.location ? { value: filters.location, label: filters.location } : null}
+          onChange={(opt) => updateFilters({ location: opt?.value || '' })}
+          options={[{ value: '', label: 'All Locations' }, ...filterOptions.locations.map(loc => ({ value: loc, label: loc }))]}
+          placeholder="All Locations"
+          isClearable
+          menuPortalTarget={document.body}
+          styles={getSelectStyles()}
+        />
+      </div>
+
+      {/* Gender */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Gender</label>
+        <MemoizedSelect
+          value={filters.gender ? { value: filters.gender, label: filters.gender === 'Boys' ? 'Boys Only' : filters.gender === 'Girls' ? 'Girls Only' : 'Co-ed' } : null}
+          onChange={(opt) => updateFilters({ gender: opt?.value || '' })}
+          options={[{ value: '', label: 'All Genders' }, { value: 'Boys', label: 'Boys Only' }, { value: 'Girls', label: 'Girls Only' }, { value: 'Co-ed', label: 'Co-ed' }]}
+          placeholder="All Genders"
+          isClearable
+          menuPortalTarget={document.body}
+          styles={getSelectStyles()}
+        />
+      </div>
+
+      {/* Type */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Hostel Type</label>
+        <MemoizedSelect
+          value={filters.type ? { value: filters.type, label: filters.type } : null}
+          onChange={(opt) => updateFilters({ type: opt?.value || '' })}
+          options={[{ value: '', label: 'All Types' }, { value: 'PG', label: 'PG' }, { value: 'Hostel', label: 'Hostel' }, { value: 'Apartment', label: 'Apartment' }]}
+          placeholder="All Types"
+          isClearable
+          menuPortalTarget={document.body}
+          styles={getSelectStyles()}
+        />
+      </div>
+
+      {/* Nearby Place */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Near To</label>
+        <MemoizedSelect
+          value={filters.nearbyPlace ? { value: filters.nearbyPlace, label: filters.nearbyPlace } : null}
+          onChange={(opt) => updateFilters({ nearbyPlace: opt?.value || '' })}
+          options={[{ value: '', label: 'All Places' }, ...filterOptions.nearbyPlaces.map(place => ({ value: place, label: place }))]}
+          placeholder="Select Place"
+          isClearable
+          isSearchable
+          menuPortalTarget={document.body}
+          styles={getSelectStyles()}
+        />
+      </div>
+
+      {/* Amenities Multi-Select */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-3">Amenities</label>
+        <div className="flex flex-wrap gap-2 p-4 border-2 border-gray-100 rounded-xl bg-gray-50 shadow-inner">
+          {filterOptions.amenities.map(amenity => {
+            const selectedAmenities = filters.amenities ? filters.amenities.split(',') : []
+            const isSelected = selectedAmenities.includes(amenity)
+            return (
+              <button
+                key={amenity}
+                onClick={() => {
+                  const newAmenities = isSelected ? selectedAmenities.filter(a => a !== amenity) : [...selectedAmenities, amenity]
+                  updateFilters({ amenities: newAmenities.length > 0 ? newAmenities.join(',') : '' })
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${isSelected
+                  ? 'bg-yellow-400 text-gray-900 shadow-md transform scale-105'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50'
+                  }`}
+              >
+                {amenity}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Price Range */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range <span className="text-gray-400 font-normal text-xs">(per month)</span></label>
+        <div className="bg-gray-50 p-5 border border-gray-100 rounded-xl">
+          <div className="space-y-5">
+            <div>
+              <label className="flex justify-between text-xs font-medium text-gray-500 mb-2">
+                <span>Minimum</span>
+                <span className="font-bold text-gray-900">
+                  ₹{parseInt(filters.minPrice || 0).toLocaleString('en-IN')}
+                </span>
+              </label>
+              <input
+                type="range" min="0" max="300000" step="1000"
+                value={filters.minPrice || 0}
+                onChange={(e) => updateFilters({ minPrice: e.target.value })}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+            </div>
+            <div>
+              <label className="flex justify-between text-xs font-medium text-gray-500 mb-2">
+                <span>Maximum</span>
+                <span className="font-bold text-gray-900">
+                  ₹{parseInt(filters.maxPrice || 300000).toLocaleString('en-IN')}
+                </span>
+              </label>
+              <input
+                type="range" min="0" max="300000" step="1000"
+                value={filters.maxPrice || 300000}
+                onChange={(e) => updateFilters({ maxPrice: e.target.value })}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="pt-6 mt-6 border-t border-gray-100 flex justify-between items-center sticky bottom-0 bg-white pb-2 lg:static lg:bg-transparent lg:pb-0 z-10">
+        <span className="text-sm text-gray-500 font-medium">
+          <span className="text-gray-900 font-bold">{Object.values(filters).filter(v => v && v !== 'newest').length}</span> filters active
+        </span>
+        <button onClick={clearFilters} className="text-sm text-red-500 hover:text-red-700 font-bold tracking-wide transition-colors">
+          Reset All
+        </button>
+      </div>
+    </div>
+  </div>
+))
+
 
 const Hostels = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -54,7 +190,7 @@ const Hostels = () => {
   const [pagination, setPagination] = useState({ current: 1, pages: 1, total: 0 })
   const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [] })
   const [showFilters, setShowFilters] = useState(false)
-  const [searchTimeout, setSearchTimeout] = useState(null)
+  const searchTimeout = import('react').then(React => React.useRef(null)).catch(() => ({current: null})); // Just use standard import
 
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
@@ -71,15 +207,13 @@ const Hostels = () => {
 
   // Optimized debounced search
   useEffect(() => {
-    if (searchTimeout) clearTimeout(searchTimeout)
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
 
-    const timeout = setTimeout(() => {
+    searchTimeout.current = setTimeout(() => {
       fetchHostels()
     }, 300)
 
-    setSearchTimeout(timeout)
-
-    return () => clearTimeout(timeout)
+    return () => clearTimeout(searchTimeout.current)
   }, [searchParams])
 
   // Fetch filter options only once
@@ -148,199 +282,18 @@ const Hostels = () => {
     setSearchParams({})
   }
 
-  // Common styles for Select components
-  const getSelectStyles = () => ({
-    control: (base, state) => ({
-      ...base,
-      borderRadius: '12px',
-      border: '2px solid #e5e7eb',
-      boxShadow: state.isFocused ? '0 0 0 3px rgba(245, 158, 11, 0.1)' : 'none',
-      borderColor: state.isFocused ? '#f59e0b' : '#e5e7eb',
-      padding: '4px',
-      background: '#ffffff',
-      '&:hover': { borderColor: '#fbbf24' },
-      transition: 'all 0.2s ease'
-    }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isSelected ? '#f59e0b' : state.isFocused ? '#fef3c7' : '#ffffff',
-      color: state.isSelected ? '#1f2937' : '#374151',
-      fontWeight: state.isSelected ? '600' : '500',
-      padding: '12px 16px',
-      cursor: 'pointer',
-      transition: 'background-color 0.15s ease'
-    }),
-    menu: (base) => ({ ...base, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', zIndex: 9999 }),
-    menuPortal: (base) => ({ ...base, zIndex: 99999 })
-  })
-
-  // Reusable Filter Content (Search removed from here)
-  const FilterContentBlocks = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center pb-4 border-b border-gray-100 lg:hidden">
-        <h3 className="text-xl font-bold text-gray-900">Refine Search</h3>
-        <button onClick={() => setShowFilters(false)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
-      </div>
-
-      <div className="space-y-5">
-
-        {/* Location */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-2">Location</label>
-          <MemoizedSelect
-            value={filters.location ? { value: filters.location, label: filters.location } : null}
-            onChange={(opt) => updateFilters({ location: opt?.value || '' })}
-            options={[{ value: '', label: 'All Locations' }, ...filterOptions.locations.map(loc => ({ value: loc, label: loc }))]}
-            placeholder="All Locations"
-            isClearable
-            menuPortalTarget={document.body}
-            styles={getSelectStyles()}
-          />
-        </div>
-
-        {/* Gender */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-2">Gender</label>
-          <MemoizedSelect
-            value={filters.gender ? { value: filters.gender, label: filters.gender === 'Boys' ? 'Boys Only' : filters.gender === 'Girls' ? 'Girls Only' : 'Co-ed' } : null}
-            onChange={(opt) => updateFilters({ gender: opt?.value || '' })}
-            options={[{ value: '', label: 'All Genders' }, { value: 'Boys', label: 'Boys Only' }, { value: 'Girls', label: 'Girls Only' }, { value: 'Co-ed', label: 'Co-ed' }]}
-            placeholder="All Genders"
-            isClearable
-            menuPortalTarget={document.body}
-            styles={getSelectStyles()}
-          />
-        </div>
-
-        {/* Type */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-2">Hostel Type</label>
-          <MemoizedSelect
-            value={filters.type ? { value: filters.type, label: filters.type } : null}
-            onChange={(opt) => updateFilters({ type: opt?.value || '' })}
-            options={[{ value: '', label: 'All Types' }, { value: 'PG', label: 'PG' }, { value: 'Hostel', label: 'Hostel' }, { value: 'Apartment', label: 'Apartment' }]}
-            placeholder="All Types"
-            isClearable
-            menuPortalTarget={document.body}
-            styles={getSelectStyles()}
-          />
-        </div>
-
-        {/* Nearby Place */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-2">Near To</label>
-          <MemoizedSelect
-            value={filters.nearbyPlace ? { value: filters.nearbyPlace, label: filters.nearbyPlace } : null}
-            onChange={(opt) => updateFilters({ nearbyPlace: opt?.value || '' })}
-            options={[{ value: '', label: 'All Places' }, ...filterOptions.nearbyPlaces.map(place => ({ value: place, label: place }))]}
-            placeholder="Select Place"
-            isClearable
-            isSearchable
-            menuPortalTarget={document.body}
-            styles={getSelectStyles()}
-          />
-        </div>
-
-        {/* Amenities Multi-Select */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-3">Amenities</label>
-          <div className="flex flex-wrap gap-2 p-4 border-2 border-gray-100 rounded-xl bg-gray-50 shadow-inner">
-            {filterOptions.amenities.map(amenity => {
-              const selectedAmenities = filters.amenities ? filters.amenities.split(',') : []
-              const isSelected = selectedAmenities.includes(amenity)
-              return (
-                <button
-                  key={amenity}
-                  onClick={() => {
-                    const newAmenities = isSelected ? selectedAmenities.filter(a => a !== amenity) : [...selectedAmenities, amenity]
-                    updateFilters({ amenities: newAmenities.length > 0 ? newAmenities.join(',') : '' })
-                  }}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${isSelected
-                    ? 'bg-yellow-400 text-gray-900 shadow-md transform scale-105'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50'
-                    }`}
-                >
-                  {amenity}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Price Range */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range <span className="text-gray-400 font-normal text-xs">(per month)</span></label>
-          <div className="bg-gray-50 p-5 border border-gray-100 rounded-xl">
-            <div className="space-y-5">
-              <div>
-                <label className="flex justify-between text-xs font-medium text-gray-500 mb-2">
-                  <span>Minimum</span>
-                  <span className="font-bold text-gray-900">
-                    ₹{parseInt(filters.minPrice || 0).toLocaleString('en-IN')}
-                  </span>
-                </label>
-                <input
-                  type="range" min="0" max="300000" step="1000"
-                  value={filters.minPrice || 0}
-                  onChange={(e) => updateFilters({ minPrice: e.target.value })}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-              </div>
-              <div>
-                <label className="flex justify-between text-xs font-medium text-gray-500 mb-2">
-                  <span>Maximum</span>
-                  <span className="font-bold text-gray-900">
-                    ₹{parseInt(filters.maxPrice || 300000).toLocaleString('en-IN')}
-                  </span>
-                </label>
-                <input
-                  type="range" min="0" max="300000" step="1000"
-                  value={filters.maxPrice || 300000}
-                  onChange={(e) => updateFilters({ maxPrice: e.target.value })}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="pt-6 mt-6 border-t border-gray-100 flex justify-between items-center sticky bottom-0 bg-white pb-2 lg:static lg:bg-transparent lg:pb-0 z-10">
-          <span className="text-sm text-gray-500 font-medium">
-            <span className="text-gray-900 font-bold">{Object.values(filters).filter(v => v && v !== 'newest').length}</span> filters active
-          </span>
-          <button onClick={clearFilters} className="text-sm text-red-500 hover:text-red-700 font-bold tracking-wide transition-colors">
-            Reset All
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pb-24 font-sans">
-      <style>{customStyles}</style>
+    <div className="min-h-screen bg-[#F9FAFB] pb-24 font-sans animate-in fade-in duration-500">
 
       {/* Sleek Hero Header */}
       <div className="bg-white border-b border-gray-100 pt-20 pb-12 mb-8">
         <div className="container mx-auto px-4 lg:px-8 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight"
-          >
+          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight animate-in slide-in-from-top-4 fade-in duration-700">
             Find Your Perfect Stay
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-500 text-lg"
-          >
+          </h1>
+          <p className="text-gray-500 text-lg animate-in fade-in duration-1000 delay-150 fill-mode-both">
             Explore <span className="font-semibold text-gray-800">{pagination.total}</span> verified spaces
-          </motion.p>
+          </p>
         </div>
       </div>
 
@@ -354,7 +307,13 @@ const Hostels = () => {
                 <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" /></svg>
                 Refine Search
               </h2>
-              <FilterContentBlocks />
+              <FilterContentBlocks 
+                filters={filters} 
+                updateFilters={updateFilters} 
+                filterOptions={filterOptions} 
+                clearFilters={clearFilters} 
+                setShowFilters={setShowFilters} 
+              />
             </div>
           </div>
 
@@ -426,7 +385,7 @@ const Hostels = () => {
                 </button>
               </div>
             ) : (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
 
                 <div className="flex justify-between items-center mb-6 px-2 lg:hidden">
                   <p className="text-gray-500 text-sm font-medium">
@@ -483,7 +442,7 @@ const Hostels = () => {
                     </div>
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
           </div>
         </div>
@@ -511,9 +470,14 @@ const Hostels = () => {
               className="fixed inset-x-0 bottom-0 z-[110] bg-white rounded-t-[32px] shadow-2xl lg:hidden flex flex-col h-[85vh] will-change-transform"
             >
 
-              {/* Scrollable Filter Area */}
               <div className="p-6 overflow-y-auto overscroll-contain flex-1 relative">
-                <FilterContentBlocks />
+                <FilterContentBlocks 
+                  filters={filters} 
+                  updateFilters={updateFilters} 
+                  filterOptions={filterOptions} 
+                  clearFilters={clearFilters} 
+                  setShowFilters={setShowFilters} 
+                />
               </div>
             </motion.div>
           </>
