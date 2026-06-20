@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion removed for 120 FPS optimization
 import { hostelAPI } from '../../services/api';
 import PriceDisplay from '../common/PriceDisplay';
 import './HeroSection.css';
@@ -153,15 +153,8 @@ const SearchWidget = memo(({ content }) => {
         </div>
       </div>
       
-      <AnimatePresence>
-        {(showResults || searchLoading) && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
-          >
+      {(showResults || searchLoading) && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
             {searchLoading ? (
               <div className="px-4 py-3 text-center text-gray-500">
                 <div className="animate-spin w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full mx-auto"></div>
@@ -215,9 +208,8 @@ const SearchWidget = memo(({ content }) => {
                 No results found
               </div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 });
@@ -241,12 +233,7 @@ const HostelSlider = memo(({ hostels, loading }) => {
 
   return (
     <>
-      <motion.div 
-        className="relative h-96 sm:h-[28rem] overflow-visible px-2 sm:px-4"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.4 }}
-      >
+      <div className="relative h-96 sm:h-[28rem] overflow-visible px-2 sm:px-4 animate-in fade-in zoom-in-90 duration-700 delay-300 fill-mode-both">
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
@@ -261,30 +248,20 @@ const HostelSlider = memo(({ hostels, loading }) => {
               if (!hostel) return null;
               
               return (
-                <motion.div 
+                <div 
                   key={hostel._id}
-                  // Removed 'layout' to prevent expensive main-thread DOM measurements
-                  initial={false}
-                  animate={{
-                    scale: isCenter ? 1.1 : 0.85,
-                    opacity: isCenter ? 1 : 0.4,
-                    y: isCenter ? 0 : offset === -1 ? -10 : 10,
-                    zIndex: isCenter ? 20 : 0,
-                  }}
-                  transition={{ 
-                    duration: 0.6,
-                    ease: [0.16, 1, 0.3, 1]
-                  }}
-                  whileHover={isCenter ? { scale: 1.12, transition: { duration: 0.2 } } : {}}
+                  className="transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform"
                   style={{
-                    willChange: 'transform, opacity',
-                    // Static filter prevents Framer from tweening the blur value frame-by-frame
+                    transform: `scale(${isCenter ? 1.1 : 0.85}) translateY(${isCenter ? 0 : offset === -1 ? -10 : 10}px)`,
+                    opacity: isCenter ? 1 : 0.4,
+                    zIndex: isCenter ? 20 : 0,
                     filter: isCenter ? 'blur(0px)' : 'blur(1px)'
                   }}
                 >
-                  <div className={`bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 mx-2 sm:mx-4 transition-shadow duration-300 ease-in-out group ${
-                    isCenter ? 'shadow-2xl border-yellow-200/50 p-4 sm:p-6 shadow-yellow-100/20' : 'p-3 sm:p-4 hover:shadow-lg'
-                  }`}>
+                  <div className={`w-full h-full transition-transform duration-300 ${isCenter ? 'hover:scale-[1.02]' : ''}`}>
+                    <div className={`bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 mx-2 sm:mx-4 transition-shadow duration-300 ease-in-out group ${
+                      isCenter ? 'shadow-2xl border-yellow-200/50 p-4 sm:p-6 shadow-yellow-100/20' : 'p-3 sm:p-4 hover:shadow-lg'
+                    }`}>
                     <div className={`absolute inset-0 bg-gradient-to-r from-yellow-400/5 to-orange-400/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
                       isCenter ? 'opacity-30' : ''
                     }`} />
@@ -328,28 +305,24 @@ const HostelSlider = memo(({ hostels, loading }) => {
                         </div>
                         
                         {isCenter && (
-                          <motion.div 
-                            className="mt-3 pt-3 border-t border-gray-100"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                          >
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
+                          <div className="mt-3 pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-bottom-2 duration-300 delay-100 fill-mode-both">
+                            <div className="inline-block hover:scale-105 active:scale-95 transition-transform">
                               <Link to={`/hostel/${hostel.slug || hostel._id}`} className="relative z-50 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold px-4 py-2 rounded-xl transition-all duration-300 text-sm inline-block shadow-lg hover:shadow-xl">
                                 View Details &rarr;
                               </Link>
-                            </motion.div>
-                          </motion.div>
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                  </div>
+                </div>
               );
             })}
           </div>
         ) : null}
-      </motion.div>
+      </div>
       
       {/* Slider Indicators */}
       <div className="flex justify-center mt-4 space-x-2 relative z-20">
@@ -382,29 +355,7 @@ const HeroSection = memo(({ hostels, loading, content }) => {
     'Verified Properties'
   ], [content?.typewriterTexts]);
 
-  // Memoizing background continuous animations prevents object regeneration 
-  const bgAnimationOpts = useMemo(() => ({
-    scale: [1, 1.3, 1],
-    rotate: [0, 180, 360]
-  }), []);
-  
-  const bgTransitionOpts = useMemo(() => ({
-    duration: 12,
-    repeat: Infinity,
-    ease: "linear" // Changed to linear for smoother infinite compositor rotation
-  }), []);
 
-  const bgFloatOpts = useMemo(() => ({
-    y: [0, -30, 0],
-    rotate: [0, -90, 0]
-  }), []);
-
-  const bgFloatTransitionOpts = useMemo(() => ({
-    duration: 8,
-    repeat: Infinity,
-    ease: "easeInOut",
-    delay: 1
-  }), []);
 
   return (
     <section className="relative min-h-screen lg:h-screen overflow-hidden flex items-center bg-transparent transform-gpu">
@@ -458,16 +409,8 @@ const HeroSection = memo(({ hostels, loading, content }) => {
           <div className="relative order-2 z-20">
             {/* Floating background elements */}
             <div className="absolute inset-0 pointer-events-none">
-              <motion.div 
-                className="absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-yellow-300/30 to-orange-300/30 rounded-full will-change-transform"
-                animate={bgAnimationOpts}
-                transition={bgTransitionOpts}
-              />
-              <motion.div 
-                className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-blue-300/25 to-purple-300/25 rounded-2xl will-change-transform"
-                animate={bgFloatOpts}
-                transition={bgFloatTransitionOpts}
-              />
+              <div className="absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-yellow-300/30 to-orange-300/30 rounded-full will-change-transform animate-spin-slow-custom" />
+              <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-blue-300/25 to-purple-300/25 rounded-2xl will-change-transform animate-float-custom" />
             </div>
 
             <SearchWidget content={content} />
