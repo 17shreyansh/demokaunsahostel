@@ -1,24 +1,35 @@
 import { useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 /**
- * PageTransition — CSS-only route transition component.
- * 
- * Uses a key change on `location.pathname` to trigger a CSS animation
- * via the `page-transition-enter` class. All animation runs on the GPU
- * compositor thread via `translate3d` — zero JS animation overhead.
- * 
- * This replaces the need for Framer Motion's AnimatePresence at the route level.
+ * PageTransition — Hardware-accelerated Framer Motion route transition component.
+ * Provides a buttery-smooth, optimistic page load effect using spring physics.
  */
 const PageTransition = ({ children }) => {
   const location = useLocation();
 
   return (
-    <div
+    <motion.div
       key={location.pathname}
-      className="page-transition-enter"
+      initial={{ opacity: 0, y: 15, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ 
+        type: 'spring', 
+        stiffness: 300, 
+        damping: 30, 
+        mass: 0.8 
+      }}
+      className="will-change-transform w-full"
+      style={{ 
+        transformOrigin: 'top center',
+        transform: 'translateZ(0)', 
+        backfaceVisibility: 'hidden', 
+        WebkitBackfaceVisibility: 'hidden',
+        perspective: 1000 
+      }}
     >
       {children}
-    </div>
+    </motion.div>
   );
 };
 

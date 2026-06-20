@@ -211,21 +211,25 @@ const Header = memo(() => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.2, ease: 'linear' }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/50 z-40 md:hidden touch-none"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
+              className="fixed inset-0 bg-black/50 z-40 md:hidden touch-none will-change-[opacity]"
+              style={{ WebkitTapHighlightColor: 'transparent', transform: 'translateZ(0)' }}
             />
             
             <motion.div
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 40, mass: 0.8 }}
               className="fixed left-0 top-0 h-[100dvh] w-[280px] sm:w-80 max-w-[85vw] bg-white shadow-2xl z-50 md:hidden flex flex-col overscroll-contain will-change-transform"
               style={{ 
                 WebkitOverflowScrolling: 'touch',
-                WebkitTapHighlightColor: 'transparent'
+                WebkitTapHighlightColor: 'transparent',
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transform: 'translateZ(0)',
+                perspective: 1000
               }}
             >
               <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-white flex-shrink-0">
