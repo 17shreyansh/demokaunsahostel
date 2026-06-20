@@ -1,26 +1,28 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useOutlet } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 
 /**
- * PageTransition — Hardware-accelerated CSS transition component.
- * Provides a buttery-smooth page load effect without JS overhead.
+ * PageTransition — Framer Motion transition component.
+ * Uses `useOutlet()` to freeze the exiting route's state during the exit animation,
+ * ensuring smooth cross-fades without layout thrashing.
  */
-const PageTransition = ({ children }) => {
+const PageTransition = () => {
   const location = useLocation();
+  const outlet = useOutlet();
 
   return (
-    <div
-      key={location.pathname}
-      className="animate-in fade-in slide-in-from-bottom-4 zoom-in-[0.98] duration-500 ease-out will-change-transform w-full"
-      style={{ 
-        transformOrigin: 'top center',
-        transform: 'translateZ(0)', 
-        backfaceVisibility: 'hidden', 
-        WebkitBackfaceVisibility: 'hidden',
-        perspective: 1000 
-      }}
-    >
-      {children}
-    </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="w-full will-change-transform transform-gpu"
+      >
+        {outlet}
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

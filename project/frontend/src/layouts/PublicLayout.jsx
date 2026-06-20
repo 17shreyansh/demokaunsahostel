@@ -21,11 +21,9 @@ const PublicLayout = () => {
   return (
     <>
       <Header />
-      <PageTransition>
-        <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
-          <Outlet />
-        </Suspense>
-      </PageTransition>
+      <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
+        <PageTransition />
+      </Suspense>
       <Footer />
       <Suspense fallback={null}>
         <Chatbot />
