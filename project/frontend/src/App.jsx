@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom'
-import { useEffect, lazy, Suspense } from 'react'
+import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -11,46 +11,46 @@ import { HostelManagerProvider } from './contexts/HostelManagerContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import LoadingSpinner from './components/common/LoadingSpinner'
 
-// Lazy load pages
-const Home = lazy(() => import('./pages/Home'))
-const Hostels = lazy(() => import('./pages/Hostels'))
-const HostelDetails = lazy(() => import('./pages/HostelDetails'))
-const About = lazy(() => import('./pages/About'))
-const Contact = lazy(() => import('./pages/Contact'))
-const UserAuth = lazy(() => import('./pages/UserAuth'))
-const UserProfile = lazy(() => import('./pages/UserProfile'))
-const AdminLogin = lazy(() => import('./pages/AdminLogin'))
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
-const AdminHostels = lazy(() => import('./pages/AdminHostels'))
-const AdminHostelEdit = lazy(() => import('./pages/AdminHostelEdit'))
-const AdminNearbyPlaces = lazy(() => import('./pages/AdminNearbyPlaces'))
-const AdminLeads = lazy(() => import('./pages/AdminLeads'))
-const AdminSettings = lazy(() => import('./pages/AdminSettings'))
-const AdminPageContent = lazy(() => import('./pages/AdminPageContent'))
-const AdminUsers = lazy(() => import('./pages/AdminUsers'))
-const AdminReviews = lazy(() => import('./pages/AdminReviews'))
-const AdminVisitBookings = lazy(() => import('./pages/AdminVisitBookings'))
-const AdminAssignments = lazy(() => import('./pages/AdminAssignments'))
-const AdminPayments = lazy(() => import('./pages/AdminPayments'))
-const AdminBlogList = lazy(() => import('./pages/blog/AdminBlogList'))
-const AdminBlogEditor = lazy(() => import('./pages/blog/AdminBlogEditor'))
-const AdminFAQ = lazy(() => import('./pages/AdminFAQ'))
-const BlogList = lazy(() => import('./pages/blog/BlogListPage'))
-const BlogPost = lazy(() => import('./pages/blog/BlogPostPage'))
-const HostelManagerAuth = lazy(() => import('./pages/HostelManagerAuth'))
-const HostelManagerProtectedRoute = lazy(() => import('./components/HostelManagerProtectedRoute'))
-const HostelManagerDashboard = lazy(() => import('./pages/HostelManagerDashboard'))
-const HostelManagerKYC = lazy(() => import('./pages/HostelManagerKYC'))
-const HostelManagerHostels = lazy(() => import('./pages/HostelManagerHostels'))
-const HostelManagerHostelForm = lazy(() => import('./pages/HostelManagerHostelForm'))
-const HostelManagerReviews = lazy(() => import('./pages/HostelManagerReviews'))
-const HostelManagerPayments = lazy(() => import('./pages/HostelManagerPayments'))
-const HostelManagerStudents = lazy(() => import('./pages/HostelManagerStudents'))
-const AdminChangeRequests = lazy(() => import('./pages/AdminChangeRequests'))
-const AdminHostelManagers = lazy(() => import('./pages/AdminHostelManagers'))
-const HostelManagerProfile = lazy(() => import('./pages/HostelManagerProfile'))
-const HostelManagerSettings = lazy(() => import('./pages/HostelManagerSettings'))
-const HostelManagerChangeRequests = lazy(() => import('./pages/HostelManagerChangeRequests'))
+// Pages
+import Home from './pages/Home'
+import Hostels from './pages/Hostels'
+import HostelDetails from './pages/HostelDetails'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import UserAuth from './pages/UserAuth'
+import UserProfile from './pages/UserProfile'
+import AdminLogin from './pages/AdminLogin'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminHostels from './pages/AdminHostels'
+import AdminHostelEdit from './pages/AdminHostelEdit'
+import AdminNearbyPlaces from './pages/AdminNearbyPlaces'
+import AdminLeads from './pages/AdminLeads'
+import AdminSettings from './pages/AdminSettings'
+import AdminPageContent from './pages/AdminPageContent'
+import AdminUsers from './pages/AdminUsers'
+import AdminReviews from './pages/AdminReviews'
+import AdminVisitBookings from './pages/AdminVisitBookings'
+import AdminAssignments from './pages/AdminAssignments'
+import AdminPayments from './pages/AdminPayments'
+import AdminBlogList from './pages/blog/AdminBlogList'
+import AdminBlogEditor from './pages/blog/AdminBlogEditor'
+import AdminFAQ from './pages/AdminFAQ'
+import BlogList from './pages/blog/BlogListPage'
+import BlogPost from './pages/blog/BlogPostPage'
+import HostelManagerAuth from './pages/HostelManagerAuth'
+import HostelManagerProtectedRoute from './components/HostelManagerProtectedRoute'
+import HostelManagerDashboard from './pages/HostelManagerDashboard'
+import HostelManagerKYC from './pages/HostelManagerKYC'
+import HostelManagerHostels from './pages/HostelManagerHostels'
+import HostelManagerHostelForm from './pages/HostelManagerHostelForm'
+import HostelManagerReviews from './pages/HostelManagerReviews'
+import HostelManagerPayments from './pages/HostelManagerPayments'
+import HostelManagerStudents from './pages/HostelManagerStudents'
+import AdminChangeRequests from './pages/AdminChangeRequests'
+import AdminHostelManagers from './pages/AdminHostelManagers'
+import HostelManagerProfile from './pages/HostelManagerProfile'
+import HostelManagerSettings from './pages/HostelManagerSettings'
+import HostelManagerChangeRequests from './pages/HostelManagerChangeRequests'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -69,8 +69,7 @@ function App() {
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <div className="App">
               <ScrollToTop />
-              <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
-                <Routes>
+              <Routes>
                 {/* ============================================================ */}
                 {/* PUBLIC ROUTES — Shared layout with Header/Footer/Transitions  */}
                 {/* Header & Footer render ONCE and persist across navigations    */}
@@ -135,7 +134,6 @@ function App() {
                   <Route path="change-requests" element={<HostelManagerProtectedRoute><HostelManagerChangeRequests /></HostelManagerProtectedRoute>} />
                 </Route>
               </Routes>
-            </Suspense>
           </div>
         </Router>
       </UserProvider>
