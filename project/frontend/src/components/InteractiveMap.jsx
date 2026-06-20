@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, Button, Input, message, Space, Typography } from 'antd'
 import { MapPin, Search } from 'lucide-react'
-
+import { SearchOutlined, EnvironmentOutlined } from '@ant-design/icons'
 const { Text } = Typography
 
 const InteractiveMap = ({ coordinates, onCoordinatesChange, address }) => {
