@@ -1,25 +1,16 @@
 import { useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 
 /**
- * PageTransition — Hardware-accelerated Framer Motion route transition component.
- * Provides a buttery-smooth, optimistic page load effect using spring physics.
+ * PageTransition — Hardware-accelerated CSS transition component.
+ * Provides a buttery-smooth page load effect without JS overhead.
  */
 const PageTransition = ({ children }) => {
   const location = useLocation();
 
   return (
-    <motion.div
+    <div
       key={location.pathname}
-      initial={{ opacity: 0, y: 15, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ 
-        type: 'spring', 
-        stiffness: 300, 
-        damping: 30, 
-        mass: 0.8 
-      }}
-      className="will-change-transform w-full"
+      className="animate-in fade-in slide-in-from-bottom-4 zoom-in-[0.98] duration-500 ease-out will-change-transform w-full"
       style={{ 
         transformOrigin: 'top center',
         transform: 'translateZ(0)', 
@@ -29,7 +20,7 @@ const PageTransition = ({ children }) => {
       }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 };
 

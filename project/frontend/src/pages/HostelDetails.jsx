@@ -6,7 +6,7 @@ import HostelMap from '../components/HostelMap'
 import NearbyPlacesDisplay from '../components/NearbyPlacesDisplay'
 import BookingComponent from '../components/BookingComponent'
 import ReviewSection from '../components/ReviewSection'
-import { motion, AnimatePresence } from 'framer-motion'
+// framer-motion removed for 120 FPS optimization
 import blueTick from '../assets/blue.svg'
 
 const MemoizedEnquiryForm = memo(EnquiryForm)
@@ -261,12 +261,7 @@ const HostelDetails = () => {
   )
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 15 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="min-h-screen bg-gray-50 pb-12"
-    >
+    <div className="min-h-screen bg-gray-50 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
       
       {/* 1. Big Preview Image Section (Now Padded & Rounded) */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pt-4 sm:pt-6">
@@ -278,22 +273,16 @@ const HostelDetails = () => {
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              <AnimatePresence initial={false}>
-                <motion.img
-                  key={currentImageIndex}
-                  initial={{ opacity: 0, scale: 1.02 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                  src={`${UPLOADS_BASE_URL}/${hostel.images[currentImageIndex]}`}
-                  alt={`${hostel.name} Preview`}
-                  className="absolute inset-0 w-full h-full object-cover cursor-pointer will-change-transform"
-                  onClick={() => openFullscreen(currentImageIndex)}
-                  fetchpriority="high"
-                  loading="eager"
-                  decoding="async"
-                />
-              </AnimatePresence>
+              <img
+                key={currentImageIndex}
+                src={`${UPLOADS_BASE_URL}/${hostel.images[currentImageIndex]}`}
+                alt={`${hostel.name} Preview`}
+                className="absolute inset-0 w-full h-full object-cover cursor-pointer will-change-transform animate-in fade-in zoom-in-[1.02] duration-500 ease-in-out"
+                onClick={() => openFullscreen(currentImageIndex)}
+                fetchpriority="high"
+                loading="eager"
+                decoding="async"
+              />
               
               {hostel.images.length > 1 && (
                 <>
@@ -605,7 +594,7 @@ const HostelDetails = () => {
                     </svg>
                     <span className="hidden sm:inline tracking-wide">{tab.label}</span>
                     {activeTab === tab.id && (
-                      <motion.div layoutId="activeTabIndicator" className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-custom rounded-t-full"></motion.div>
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-custom rounded-t-full animate-in fade-in duration-300"></div>
                     )}
                   </button>
                 ))}
@@ -834,16 +823,9 @@ const HostelDetails = () => {
         </div>
       </div>
 
-      {/* Fullscreen Modal with Smooth Animation */}
-      <AnimatePresence>
-        {isFullscreen && hostel.images && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
-          >
+      {/* Fullscreen Modal with Hardware Accelerated CSS */}
+      {isFullscreen && hostel.images && (
+        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center animate-in fade-in duration-300">
             <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-12">
               <button
                 onClick={() => setIsFullscreen(false)}
@@ -855,20 +837,14 @@ const HostelDetails = () => {
                 </svg>
               </button>
               
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={currentImageIndex}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                  src={`${UPLOADS_BASE_URL}/${hostel.images[currentImageIndex]}`}
-                  alt={`${hostel.name} ${currentImageIndex + 1}`}
-                  className="max-w-full max-h-full object-contain drop-shadow-2xl"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </AnimatePresence>
+              <img
+                key={currentImageIndex}
+                src={`${UPLOADS_BASE_URL}/${hostel.images[currentImageIndex]}`}
+                alt={`${hostel.name} ${currentImageIndex + 1}`}
+                className="max-w-full max-h-full object-contain drop-shadow-2xl animate-in fade-in zoom-in-95 duration-300"
+                loading="lazy"
+                decoding="async"
+              />
               
               {hostel.images.length > 1 && (
                 <>
@@ -899,10 +875,9 @@ const HostelDetails = () => {
                 </span>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+        </div>
+      )}
+    </div>
   )
 }
 

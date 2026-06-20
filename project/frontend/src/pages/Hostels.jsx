@@ -4,7 +4,7 @@ import { hostelAPI } from '../services/api'
 import HostelCard from '../components/common/HostelCard'
 import Select from 'react-select'
 import { debounce } from '../utils/performance'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion' // Removed for performance
 
 // Memoized components
 const MemoizedHostelCard = memo(HostelCard)
@@ -448,41 +448,31 @@ const Hostels = () => {
         </div>
       </div>
 
-      {/* Mobile Bottom Sheet (Framer Motion) */}
-      <AnimatePresence>
-        {showFilters && (
-          <>
-            {/* Backdrop Blur */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowFilters(false)}
-              className="fixed inset-0 bg-gray-900/50 z-[100] lg:hidden"
-            />
+      {/* Mobile Bottom Sheet (Hardware Accelerated CSS) */}
+      {showFilters && (
+        <>
+          {/* Backdrop Blur */}
+          <div
+            onClick={() => setShowFilters(false)}
+            className="fixed inset-0 bg-gray-900/50 z-[100] lg:hidden animate-in fade-in duration-300"
+          />
 
-            {/* Bottom Sheet */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 26, stiffness: 220 }}
-              className="fixed inset-x-0 bottom-0 z-[110] bg-white rounded-t-[32px] shadow-2xl lg:hidden flex flex-col h-[85vh] will-change-transform"
-            >
-
-              <div className="p-6 overflow-y-auto overscroll-contain flex-1 relative">
-                <FilterContentBlocks 
-                  filters={filters} 
-                  updateFilters={updateFilters} 
-                  filterOptions={filterOptions} 
-                  clearFilters={clearFilters} 
-                  setShowFilters={setShowFilters} 
-                />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+          {/* Bottom Sheet */}
+          <div
+            className="fixed inset-x-0 bottom-0 z-[110] bg-white rounded-t-[32px] shadow-2xl lg:hidden flex flex-col h-[85vh] will-change-transform animate-in slide-in-from-bottom-full duration-300 ease-out"
+          >
+            <div className="p-6 overflow-y-auto overscroll-contain flex-1 relative">
+              <FilterContentBlocks 
+                filters={filters} 
+                updateFilters={updateFilters} 
+                filterOptions={filterOptions} 
+                clearFilters={clearFilters} 
+                setShowFilters={setShowFilters} 
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
