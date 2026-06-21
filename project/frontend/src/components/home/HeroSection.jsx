@@ -76,7 +76,7 @@ const SearchWidget = memo(({ content }) => {
   }, [searchQuery, navigate]);
 
   return (
-    <div className="relative z-30 mb-8 w-full max-w-xl mx-auto lg:mx-0 search-widget opacity-0">
+    <div className="relative z-30 mb-8 w-full max-w-xl mx-auto search-widget opacity-0">
       <div className="flex items-center rounded-2xl bg-white p-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-200/80 transition-shadow hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
         <div className="pl-4 pr-2">
           <svg className="h-5 w-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -305,10 +305,10 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
       <div className="ambient-glow absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[30rem] bg-yellow-100/50 rounded-full blur-[120px] pointer-events-none z-0 will-change-transform" />
 
       <div className="container relative z-10 mx-auto px-6 lg:px-8">
-        <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-12">
+        <div className="flex flex-col items-center justify-center">
 
           {/* Left Content */}
-          <div className="flex w-full flex-col items-center text-center lg:items-start lg:text-left z-20">
+          <div className="flex w-full flex-col items-center text-center z-20 max-w-4xl mx-auto">
             <div className="hero-badge inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 shadow-sm mb-6">
               <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
               <span className="text-xs font-semibold text-zinc-600">Rated #1 Hostel Network</span>
@@ -319,13 +319,13 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
               <AnimatedTitle texts={content?.animatedText || DEFAULT_TEXTS} />
             </h1>
 
-            <p className="hero-desc mb-10 text-lg leading-relaxed text-zinc-500 max-w-lg mx-auto lg:mx-0">
+            <p className="hero-desc mb-10 text-lg leading-relaxed text-zinc-500 max-w-lg mx-auto">
               {content?.subtitle || 'Premium hostels with modern amenities, 24/7 security, high-speed WiFi, and a vibrant student community.'}
             </p>
 
             <SearchWidget content={content} />
 
-            <div className="hero-buttons flex flex-col items-center gap-4 sm:flex-row lg:justify-start">
+            <div className="hero-buttons flex flex-col items-center gap-4 sm:flex-row justify-center">
               <Link to="/hostels" className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-zinc-900 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]">
                 {content?.primaryButton?.text || 'Explore Hostels'}
               </Link>
@@ -333,11 +333,6 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
                 {content?.secondaryButton?.text || 'Contact Us'}
               </Link>
             </div>
-          </div>
-
-          {/* Right Slider */}
-          <div className="relative z-10 flex w-full items-center justify-center lg:justify-end mt-10 lg:mt-0">
-            <HostelSlider hostels={hostels} loading={loading} />
           </div>
 
         </div>
