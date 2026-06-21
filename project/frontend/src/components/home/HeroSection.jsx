@@ -196,8 +196,16 @@ const HostelSlider = memo(({ hostels, loading }) => {
             if (optimized.startsWith('http')) {
               imageUrl = optimized;
             } else {
-              const baseUrl = import.meta.env.VITE_UPLOADS_BASE_URL || 'http://localhost:5000/uploads';
-              imageUrl = `${baseUrl.replace(/\/$/, '')}/${optimized.replace(/^\//, '')}`;
+              // Dynamically resolve base URL from API URL so it works seamlessly in Dev & Prod
+              const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+              const baseUrl = import.meta.env.VITE_UPLOADS_BASE_URL || apiUrl.replace('/api', '/uploads');
+              
+              const cleanBase = baseUrl.replace(/\/$/, '');
+              const cleanPath = optimized.replace(/^\//, '');
+              // Prevent double /uploads/ if the path already contains it
+              imageUrl = cleanPath.startsWith('uploads/') 
+                ? `${cleanBase.replace(/\/uploads$/, '')}/${cleanPath}`
+                : `${cleanBase}/${cleanPath}`;
             }
           }
           
@@ -281,13 +289,10 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
       ease: 'sine.inOut'
     });
 
-    // 2. Main Entrance Sequence (overrides Tailwind opacity-0 classes securely)
+    // 2. Main Entrance Sequence (Buttons & Search only to preserve LCP on text)
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-    tl.fromTo('.hero-badge', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 })
-      .fromTo('.hero-title', { y: 25, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, "-=0.6")
-      .fromTo('.hero-desc', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, "-=0.6")
-      .fromTo('.search-widget', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, "-=0.6")
+    tl.fromTo('.search-widget', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, "+=0.2")
       .fromTo('.hero-buttons > *', { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1 }, "-=0.6");
   }, { scope: container });
 
@@ -302,27 +307,26 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
       <div className="container relative z-10 mx-auto px-6 lg:px-8">
         <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-12">
 
-          {/* Left Text Content */}
-          <div className="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left mt-8 lg:mt-0 w-full">
-
-            <div className="hero-badge inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600 ring-1 ring-zinc-200 shadow-sm mb-8 opacity-0">
-              <span className="flex h-2 w-2 rounded-full bg-yellow-500"></span>
-              {content?.trustBadge || 'Trusted by 1200+ Students'}
+          {/* Left Content */}
+          <div className="flex w-full flex-col items-center text-center lg:items-start lg:text-left z-20">
+            <div className="hero-badge inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 shadow-sm mb-6">
+              <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-xs font-semibold text-zinc-600">Rated #1 Hostel Network</span>
             </div>
 
-            <h1 className="hero-title mb-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.1] opacity-0 flex flex-col sm:block">
-              <span className="block sm:inline">{content?.mainTitle || 'Find Your Perfect '}</span>
-              <AnimatedTitle texts={content?.typewriterTexts} />
+            <h1 className="hero-title mb-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.1] flex flex-col sm:block">
+              <span className="block sm:inline">Find Your Perfect </span>
+              <AnimatedTitle texts={content?.animatedText || DEFAULT_TEXTS} />
             </h1>
 
-            <p className="hero-desc mb-10 text-lg leading-relaxed text-zinc-500 max-w-lg mx-auto lg:mx-0 opacity-0">
-              {content?.description || 'Curated premium spaces featuring modern amenities and vibrant communities. Experience world-class living without the hassle.'}
+            <p className="hero-desc mb-10 text-lg leading-relaxed text-zinc-500 max-w-lg mx-auto lg:mx-0">
+              {content?.subtitle || 'Premium hostels with modern amenities, 24/7 security, high-speed WiFi, and a vibrant student community.'}
             </p>
 
             <SearchWidget content={content} />
 
             <div className="hero-buttons flex flex-col items-center gap-4 sm:flex-row lg:justify-start">
-              <Link to="/hostels" className="opacity-0 w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-zinc-900 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]">
+              <Link to="/hostels" className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-zinc-900 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]">
                 {content?.primaryButton?.text || 'Explore Hostels'}
               </Link>
               <Link to="/contact" className="opacity-0 w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-zinc-900 ring-1 ring-inset ring-zinc-200 transition-colors hover:bg-zinc-50 hover:ring-zinc-300">
