@@ -43,23 +43,16 @@ const StaticStyles = () => (
 const DEFAULT_TEXTS = ['Premium Hostels', 'Safe Accommodations', 'Modern PGs'];
 const DEFAULT_HOSTELS = [];
 
-// 1. Ultra-Lightweight Text Rotator
+// 1. Premium Conveyor-Belt Text Rotator
 const AnimatedTitle = memo(({ texts = DEFAULT_TEXTS }) => {
   const [index, setIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     if (!texts || texts.length <= 1) return;
 
     const interval = setInterval(() => {
-      setIsAnimating(true);
-
-      setTimeout(() => {
-        setIndex((prev) => (prev + 1) % texts.length);
-        setIsAnimating(false);
-      }, 500);
-
-    }, 3500);
+      setIndex((prev) => (prev + 1) % texts.length);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [texts]);
@@ -68,14 +61,30 @@ const AnimatedTitle = memo(({ texts = DEFAULT_TEXTS }) => {
 
   return (
     <span className="relative inline-block w-full sm:w-auto sm:min-w-[420px] align-bottom overflow-hidden h-[1.2em] sm:h-[1.2em]">
-      <span
-        className={`absolute left-0 top-0 w-full text-gradient font-black pb-2 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] text-center sm:text-left ${isAnimating
-          ? 'opacity-0 -translate-y-full blur-sm'
-          : 'opacity-100 translate-y-0 blur-none'
-          }`}
-      >
-        {texts[index]}
-      </span>
+      {texts.map((text, i) => {
+        const isCurrent = i === index;
+        const isPrev = i === (index - 1 + texts.length) % texts.length;
+        
+        // Incoming from Left, Outgoing to Right
+        let positionClass = 'opacity-0 -translate-x-16 scale-95 blur-md'; // Waiting (left)
+        if (isCurrent) {
+          positionClass = 'opacity-100 translate-x-0 scale-100 blur-none'; // Active (center)
+        } else if (isPrev) {
+          positionClass = 'opacity-0 translate-x-16 scale-105 blur-md'; // Leaving (right)
+        }
+
+        return (
+          <span
+            key={i}
+            className={`absolute left-0 top-0 w-full text-gradient font-black pb-2 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] text-center sm:text-left ${positionClass}`}
+            style={{ 
+               pointerEvents: isCurrent ? 'auto' : 'none'
+            }}
+          >
+            {text}
+          </span>
+        );
+      })}
     </span>
   );
 });
