@@ -5,6 +5,7 @@ import { useGSAP } from '@gsap/react';
 // Make sure this path matches your actual API service file
 import { hostelAPI } from '../../services/api';
 import PriceDisplay from '../common/PriceDisplay';
+import { optimizeImageUrl } from '../../utils/imageOptimization';
 
 /* -------------------------------------------------------------------------- */
 /* STATIC STYLES (No Animations Here)                                         */
@@ -25,53 +26,42 @@ const StaticStyles = () => (
 const DEFAULT_TEXTS = ['Premium Hostels', 'Safe Accommodations', 'Modern PGs'];
 const DEFAULT_HOSTELS = [];
 
-// 1. 100% GSAP Text Rotator (Absolute Stack, Bug-Free)
+// 1. Ultra-Lightweight Text Rotator (Replaces Heavy GSAP Layers)
 const AnimatedTitle = memo(({ texts = DEFAULT_TEXTS }) => {
-  const containerRef = useRef(null);
+  const [index, setIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Added `texts` to dependencies. If your texts load from an API later, 
-  // GSAP will automatically recalculate without breaking.
-  useGSAP(() => {
-    const words = gsap.utils.toArray('.animated-word');
-    if (!words.length) return;
+  useEffect(() => {
+    if (!texts || texts.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      // 1. Trigger slide up and fade out
+      setIsAnimating(true);
+      
+      // 2. Wait for exit animation, swap text, trigger slide in from bottom
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % texts.length);
+        setIsAnimating(false);
+      }, 500); // 500ms matches duration of CSS transition
+      
+    }, 3500); // Rotate every 3.5s
 
-    // Reset setup: Put all words below and hidden, except the first one
-    gsap.set(words, { y: 40, opacity: 0 });
-    gsap.set(words[0], { y: 0, opacity: 1 });
+    return () => clearInterval(interval);
+  }, [texts]);
 
-    const tl = gsap.timeline({ repeat: -1 });
-
-    words.forEach((word, i) => {
-      const nextWord = words[(i + 1) % words.length];
-
-      // Slide current word up and fade out
-      tl.to(word, {
-        y: -40,
-        opacity: 0,
-        duration: 0.6,
-        ease: 'power3.inOut',
-        delay: 2.5
-      })
-        // Simultaneously slide the next word in from the bottom
-        .to(nextWord, {
-          y: 0,
-          opacity: 1,
-          duration: 0.6,
-          ease: 'power3.inOut'
-        }, "<"); // The "<" symbol tells GSAP to run this at the exact same time
-    });
-  }, { scope: containerRef, dependencies: [texts] });
+  if (!texts || !texts.length) return null;
 
   return (
-    <span ref={containerRef} className="relative block h-[1.2em] w-full overflow-hidden sm:inline-block sm:w-auto sm:min-w-[400px] align-bottom">
-      {texts.map((text, i) => (
-        <span
-          key={i}
-          className="animated-word absolute left-0 top-0 w-full text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 will-change-transform pb-2"
-        >
-          {text}
-        </span>
-      ))}
+    <span className="relative inline-block w-full sm:w-auto sm:min-w-[400px] align-bottom overflow-hidden h-[1.2em]">
+      <span
+        className={`absolute left-0 top-0 w-full text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 pb-2 transition-all duration-500 ease-in-out ${
+          isAnimating 
+            ? 'opacity-0 -translate-y-full' // Exiting up
+            : 'opacity-100 translate-y-0'   // Resting position
+        }`}
+      >
+        {texts[index]}
+      </span>
     </span>
   );
 });
@@ -134,22 +124,60 @@ const HostelSlider = memo(({ hostels, loading }) => {
 
     displayHostels.forEach((_, i) => {
       const relIndex = (i - activeIndex + len) % len;
-      const isExiting = relIndex === len - 1;
+      
+      // Target stack positions: Fanning to the LEFT to avoid right-side screen clipping
+      const targetX = -relIndex * 35; 
+      const targetY = -relIndex * 15;
+      const targetScale = 1 - (relIndex * 0.05);
+      const targetRotate = -relIndex * 3;
+      const targetOpacity = relIndex < 3 ? 1 - (relIndex * 0.2) : 0;
+      const targetZIndex = 20 - relIndex;
 
-      const yOffset = isExiting ? -60 : relIndex * 24;
-      const scale = isExiting ? 1.05 : 1 - (relIndex * 0.06);
-      const opacity = isExiting ? 0 : relIndex < 3 ? 1 - (relIndex * 0.15) : 0;
-      const zIndex = 20 - relIndex;
-
-      gsap.to(`.card-${i}`, {
-        y: yOffset,
-        scale: scale,
-        opacity: opacity,
-        zIndex: zIndex,
-        duration: 0.85,
-        ease: 'power3.out',
-        overwrite: 'auto'
-      });
+      // If it's the exiting card (was front, now wrapped to back)
+      if (relIndex === len - 1 && len > 1) {
+        gsap.to(`.card-${i}`, {
+          x: 150, // Fly off to the right
+          y: 20,
+          scale: 1.05,
+          rotation: 12,
+          opacity: 0,
+          zIndex: 25, // Keep it on top while it flies away
+          duration: 0.5,
+          ease: 'power3.in',
+          overwrite: 'auto',
+          onComplete: () => {
+            // Instantly snap it to the back of the stack once invisible
+            gsap.set(`.card-${i}`, {
+              x: targetX,
+              y: targetY,
+              scale: targetScale,
+              rotation: targetRotate,
+              zIndex: targetZIndex
+            });
+            // Softly fade it back in so the stack doesn't look empty
+            gsap.to(`.card-${i}`, {
+              opacity: targetOpacity,
+              duration: 0.4,
+              ease: 'power2.out',
+              overwrite: 'auto'
+            });
+          }
+        });
+      } else {
+        // Normal shift forward in the stack
+        gsap.to(`.card-${i}`, {
+          x: targetX,
+          y: targetY,
+          scale: targetScale,
+          rotation: targetRotate,
+          opacity: targetOpacity,
+          zIndex: targetZIndex,
+          duration: 0.85,
+          ease: 'back.out(1.1)', // Smooth settle
+          transformOrigin: 'center center',
+          overwrite: 'auto'
+        });
+      }
     });
   }, { scope: containerRef, dependencies: [activeIndex, displayHostels] });
 
@@ -157,52 +185,69 @@ const HostelSlider = memo(({ hostels, loading }) => {
   if (!displayHostels.length) return null;
 
   return (
-    <div ref={containerRef} className="slider-container relative h-[24rem] sm:h-[28rem] w-full max-w-sm sm:max-w-md mx-auto opacity-0 pt-8 perspective-1000">
+    <div ref={containerRef} className="slider-container relative h-[24rem] sm:h-[28rem] w-full max-w-sm sm:max-w-md mx-auto pt-8 perspective-1000 pl-4 sm:pl-0">
       <div className="relative h-full w-full transform-gpu">
         {displayHostels.map((hostel, i) => {
-          const hasImage = hostel.images && hostel.images.length > 0;
+          const rawImage = hostel.image || (hostel.images && hostel.images.length > 0 ? hostel.images[0] : null);
+          const optimized = rawImage ? optimizeImageUrl(rawImage, 800, 600) : null;
+          
+          let imageUrl = null;
+          if (optimized) {
+            if (optimized.startsWith('http')) {
+              imageUrl = optimized;
+            } else {
+              const baseUrl = import.meta.env.VITE_UPLOADS_BASE_URL || 'http://localhost:5000/uploads';
+              imageUrl = `${baseUrl.replace(/\/$/, '')}/${optimized.replace(/^\//, '')}`;
+            }
+          }
+          
+          const hasImage = !!imageUrl;
+          
           return (
             <div
               key={hostel._id}
-              className={`card-${i} absolute top-0 left-0 w-full h-full will-change-transform`}
+              className={`card-${i} absolute top-0 left-0 w-full h-full will-change-transform opacity-0`}
               style={{
-                opacity: i === 0 ? 1 : 0,
                 pointerEvents: i === activeIndex ? 'auto' : 'none'
               }}
             >
-              <div className="w-full h-full overflow-hidden rounded-[2rem] bg-zinc-900 shadow-2xl relative group ring-1 ring-white/10">
-                {hasImage ? (
-                  <img src={hostel.images[0]} alt={hostel.name} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-700 ease-out" />
-                ) : (
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 opacity-90" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+              <div className="w-full h-full flex flex-col overflow-hidden rounded-[2rem] bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] ring-1 ring-zinc-900/5 relative group">
+                {/* Top Half: Image Container */}
+                <div className="relative h-[45%] w-full overflow-hidden bg-zinc-100 shrink-0 transform-gpu">
+                  {hasImage ? (
+                    <img src={imageUrl} alt={hostel.name} className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" loading="lazy" decoding="async" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-yellow-100 to-orange-50" />
+                  )}
+                  {/* Availability Badge */}
+                  <div className="absolute top-4 right-4 z-10 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold tracking-wide text-emerald-700 shadow-sm ring-1 ring-emerald-600/10">
+                    {hostel.availability || 'Available'}
+                  </div>
+                </div>
                 
-                <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end">
-                  <div className="mb-3 flex items-start justify-between gap-4">
-                    <h3 className="text-2xl font-extrabold tracking-tight text-white leading-tight line-clamp-2 drop-shadow-md">
+                {/* Bottom Half: Content */}
+                <div className="flex-1 p-6 flex flex-col justify-between bg-white relative z-10">
+                  <div>
+                    <h3 className="text-xl font-extrabold tracking-tight text-zinc-900 leading-tight line-clamp-2 mb-2">
                       {hostel.name}
                     </h3>
-                    <span className="shrink-0 rounded-full bg-emerald-500/20 backdrop-blur-md px-2.5 py-1 text-xs font-bold tracking-wide text-emerald-400 ring-1 ring-emerald-400/30">
-                      {hostel.availability || 'Available'}
-                    </span>
+                    <p className="flex items-center text-sm font-medium text-zinc-500 line-clamp-1">
+                      <svg className="w-4 h-4 mr-1.5 text-zinc-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {hostel.location}
+                    </p>
                   </div>
-                  <p className="flex items-center text-sm font-medium text-zinc-300 mb-5 line-clamp-1">
-                    <svg className="w-4 h-4 mr-1.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {hostel.location}
-                  </p>
   
-                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                    <div className="text-white drop-shadow-sm">
+                  <div className="flex items-center justify-between pt-4 mt-2 border-t border-zinc-100">
+                    <div className="text-zinc-900">
                       <PriceDisplay price={hostel.price} />
                     </div>
   
                     <Link
                       to={`/hostel/${hostel.slug || hostel._id}`}
-                      className="rounded-xl bg-white/10 backdrop-blur-md px-5 py-2.5 text-sm font-bold text-white ring-1 ring-white/20 transition-all hover:bg-white hover:text-black hover:scale-[1.02] active:scale-[0.98]"
+                      className="rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
                     >
                       View
                     </Link>
@@ -243,8 +288,7 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
       .fromTo('.hero-title', { y: 25, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, "-=0.6")
       .fromTo('.hero-desc', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, "-=0.6")
       .fromTo('.search-widget', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, "-=0.6")
-      .fromTo('.hero-buttons > *', { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1 }, "-=0.6")
-      .fromTo('.slider-container', { y: 40, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 1, ease: 'expo.out' }, "-=0.8");
+      .fromTo('.hero-buttons > *', { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1 }, "-=0.6");
   }, { scope: container });
 
   return (
@@ -288,7 +332,7 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
           </div>
 
           {/* Right Slider */}
-          <div className="relative z-10 flex w-full items-center justify-center lg:justify-end">
+          <div className="relative z-10 flex w-full items-center justify-center lg:justify-end mt-10 lg:mt-0">
             <HostelSlider hostels={hostels} loading={loading} />
           </div>
 
