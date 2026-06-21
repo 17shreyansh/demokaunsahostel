@@ -11,7 +11,7 @@ const CTASection = memo(({ content }) => {
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute top-10 right-20 w-64 h-64 bg-yellow-custom rounded-full blur-3xl"></div>
-        <div className="absolute bottom-10 left-20 w-64 h-64 bg-orange-400 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 left-20 w-64 h-64 bg-yellow-400 rounded-full blur-3xl"></div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
@@ -20,7 +20,7 @@ const CTASection = memo(({ content }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 rounded-3xl sm:rounded-[2.5rem] shadow-2xl overflow-hidden"
+          className="relative bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-500 rounded-3xl sm:rounded-[2.5rem] shadow-2xl overflow-hidden"
         >
           {/* Decorative Elements */}
           <div className="absolute inset-0 opacity-20 pointer-events-none">

@@ -53,7 +53,7 @@ const WhyTrustUs = () => {
       renderArt: () => (
         <div className="relative w-64 h-64 flex items-center justify-center">
           {/* Animated gradient mesh background */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-yellow-200 via-orange-100 to-rose-100 rounded-full blur-3xl opacity-50 animate-pulse" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-yellow-200 via-yellow-100 to-rose-100 rounded-full blur-3xl opacity-50 animate-pulse" />
           
           {/* Network lines - super thin, elegant */}
           <svg className="absolute inset-0 w-full h-full text-gray-400/20" viewBox="0 0 200 200">
@@ -63,7 +63,7 @@ const WhyTrustUs = () => {
 
           {/* Center Glass Node */}
           <div className="absolute z-20 w-24 h-24 bg-white/40 backdrop-blur-xl border border-white/70 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-center justify-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full shadow-inner flex items-center justify-center animate-pulse">
+            <div className="w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full shadow-inner flex items-center justify-center animate-pulse">
               <div className="w-4 h-4 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.9)]" />
             </div>
           </div>

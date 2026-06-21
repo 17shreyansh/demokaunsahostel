@@ -31,7 +31,7 @@ const StaticStyles = () => (
       background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-image: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+      background-image: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
     }
   `}</style>
 );
@@ -91,9 +91,9 @@ const SearchWidget = memo(({ content }) => {
 
   return (
     <div className="relative z-30 mb-8 sm:mb-10 w-full max-w-xl search-widget opacity-0 px-2 sm:px-0">
-      <div className="glass-panel flex flex-col sm:flex-row items-center rounded-2xl sm:rounded-full p-2 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/10 group gap-2 sm:gap-0">
+      <div className="glass-panel flex flex-col sm:flex-row items-center rounded-2xl sm:rounded-full p-2 transition-all duration-300 hover:shadow-xl hover:shadow-yellow-500/10 group gap-2 sm:gap-0">
         <div className="hidden sm:block pl-4 pr-2">
-          <svg className="h-6 w-6 text-orange-400 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-6 w-6 text-yellow-400 group-hover:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
@@ -107,7 +107,7 @@ const SearchWidget = memo(({ content }) => {
         />
         <button
           onClick={handleSearch}
-          className="w-full sm:w-auto rounded-xl sm:rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105 hover:shadow-orange-500/40 active:scale-95"
+          className="w-full sm:w-auto rounded-xl sm:rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-yellow-500/25 transition-all hover:scale-105 hover:shadow-yellow-500/40 active:scale-95"
         >
           Search
         </button>
@@ -125,8 +125,8 @@ const SocialProof = () => (
           <img src={`https://i.pravatar.cc/150?img=${i + 10}`} alt={`Student ${i}`} className="w-full h-full object-cover" />
         </div>
       ))}
-      <div className="w-10 h-10 rounded-full border-2 border-white bg-orange-100 flex items-center justify-center shadow-sm z-0">
-        <span className="text-xs font-bold text-orange-600">+2k</span>
+      <div className="w-10 h-10 rounded-full border-2 border-white bg-yellow-100 flex items-center justify-center shadow-sm z-0">
+        <span className="text-xs font-bold text-yellow-600">+2k</span>
       </div>
     </div>
     <div className="flex flex-col">
@@ -193,7 +193,7 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
       <div className="absolute inset-0 z-0 bg-grid-matrix pointer-events-none" />
 
       {/* Multiple glowing orbs for richer background */}
-      <div className="ambient-glow-1 absolute top-[10%] left-[20%] w-[20rem] lg:w-[30rem] h-[20rem] lg:h-[30rem] bg-orange-300/30 rounded-full blur-[80px] lg:blur-[100px] pointer-events-none z-0 mix-blend-multiply" />
+      <div className="ambient-glow-1 absolute top-[10%] left-[20%] w-[20rem] lg:w-[30rem] h-[20rem] lg:h-[30rem] bg-yellow-300/30 rounded-full blur-[80px] lg:blur-[100px] pointer-events-none z-0 mix-blend-multiply" />
       <div className="ambient-glow-2 absolute top-[30%] right-[20%] w-[30rem] lg:w-[40rem] h-[30rem] lg:h-[40rem] bg-yellow-200/40 rounded-full blur-[100px] lg:blur-[120px] pointer-events-none z-0 mix-blend-multiply" />
       <div className="absolute -bottom-[20%] left-1/2 -translate-x-1/2 w-full max-w-4xl h-[20rem] bg-gradient-to-t from-[#fafafa] via-[#fafafa]/80 to-transparent pointer-events-none z-0" />
 
@@ -203,12 +203,12 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
 
           {/* Left Content (Takes 5 columns to balance content size) */}
           <div className="col-span-1 lg:col-span-5 flex w-full flex-col items-center lg:items-start text-center lg:text-left z-20 relative">
-            <div className="hero-badge opacity-0 inline-flex items-center gap-2.5 rounded-full border border-orange-200 bg-orange-50/80 backdrop-blur-sm px-4 sm:px-5 py-2 sm:py-2.5 shadow-[0_4px_20px_rgb(234,88,12,0.1)] mb-6 lg:mb-8 transition-transform hover:scale-105">
+            <div className="hero-badge opacity-0 inline-flex items-center gap-2.5 rounded-full border border-yellow-200 bg-yellow-50/80 backdrop-blur-sm px-4 sm:px-5 py-2 sm:py-2.5 shadow-[0_4px_20px_rgb(234,179,8,0.1)] mb-6 lg:mb-8 transition-transform hover:scale-105">
               <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
               </span>
-              <span className="text-xs sm:text-sm font-bold text-orange-800 uppercase tracking-wide">Rated #1 Hostel Network</span>
+              <span className="text-xs sm:text-sm font-bold text-yellow-800 uppercase tracking-wide">Rated #1 Hostel Network</span>
             </div>
 
             <h1 className="mb-4 lg:mb-6 text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-[4rem] font-extrabold tracking-tight text-zinc-900 leading-[1.1] flex flex-col sm:block w-full" style={{ perspective: '1000px' }}>

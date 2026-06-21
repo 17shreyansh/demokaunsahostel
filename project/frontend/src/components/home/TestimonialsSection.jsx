@@ -115,7 +115,7 @@ const TestimonialCard = memo(({ testimonial }) => {
               className="w-14 h-14 rounded-full object-cover shadow-sm group-hover:shadow-md transition-shadow duration-300" 
             />
           ) : (
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 flex items-center justify-center shadow-sm">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-100 to-yellow-100 flex items-center justify-center shadow-sm">
               <span className="text-yellow-600 text-xl font-bold select-none">
                 {testimonial.name ? testimonial.name.charAt(0).toUpperCase() : '?'}
               </span>
@@ -154,7 +154,7 @@ const TestimonialsSection = memo(({ content }) => {
       {/* Soft Background Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[10%] left-[-5%] w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-96 h-96 bg-orange-400/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl"></div>
       </div>
       
       <div className="container mx-auto max-w-7xl relative z-10 px-4 sm:px-6 lg:px-8">

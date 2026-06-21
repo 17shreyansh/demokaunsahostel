@@ -51,7 +51,7 @@ const FAQSection = () => {
       {/* Subtle Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-96 h-96 bg-orange-400/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl"></div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 max-w-4xl relative z-10">

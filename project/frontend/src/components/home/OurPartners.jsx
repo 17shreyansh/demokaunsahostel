@@ -31,7 +31,7 @@ const OurPartners = () => {
     <section className="py-12 sm:py-16 lg:py-20 relative overflow-hidden transform-gpu">
       {/* Background with gradient strip matching theme */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-3/4 h-24 bg-gradient-to-r from-yellow-50 via-orange-50 to-transparent rounded-r-full opacity-50 will-change-transform"></div>
+        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-3/4 h-24 bg-gradient-to-r from-yellow-50 via-yellow-50 to-transparent rounded-r-full opacity-50 will-change-transform"></div>
         <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1/2 h-20 bg-gradient-to-l from-yellow-100/30 to-transparent rounded-l-full opacity-40 will-change-transform"></div>
       </div>
 
@@ -69,7 +69,7 @@ const OurPartners = () => {
         </div>
 
         {/* Static decorative elements */}
-        <div className="absolute top-10 left-10 w-4 h-4 bg-gradient-to-br from-yellow-custom to-orange-400 rounded-full opacity-30 pointer-events-none"></div>
+        <div className="absolute top-10 left-10 w-4 h-4 bg-gradient-to-br from-yellow-custom to-yellow-400 rounded-full opacity-30 pointer-events-none"></div>
         <div className="absolute bottom-10 right-10 w-6 h-6 bg-gradient-to-br from-yellow-400 to-yellow-custom rounded-full opacity-20 pointer-events-none"></div>
       </div>
     </section>

@@ -78,7 +78,7 @@ const TalkToUs = () => {
                   {/* Subtle Background Glow on Hover */}
                   <div className="absolute inset-0 bg-gradient-to-b from-yellow-50/0 to-yellow-50/0 group-hover:to-yellow-50/50 transition-colors duration-300" />
                   
-                  <div className="relative w-16 h-16 flex items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-50 to-orange-50 text-yellow-500 mb-6 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-yellow-100/50">
+                  <div className="relative w-16 h-16 flex items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-50 to-yellow-50 text-yellow-500 mb-6 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-yellow-100/50">
                     <method.icon size={28} strokeWidth={2} />
                   </div>
                   

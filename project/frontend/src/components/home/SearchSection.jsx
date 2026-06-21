@@ -294,7 +294,7 @@ const HowItWorks = memo(({ content }) => {
     <section className="py-24 lg:py-32 bg-white relative overflow-hidden font-sans">
       {/* Subtle ambient background */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-yellow-50 to-transparent rounded-full opacity-60 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-orange-50 to-transparent rounded-full opacity-40 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-yellow-50 to-transparent rounded-full opacity-40 blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
 
@@ -305,7 +305,7 @@ const HowItWorks = memo(({ content }) => {
             How It Works
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight leading-[1.1]">
-            From Search to <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500">Move-In</span>, Made Effortless
+            From Search to <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Move-In</span>, Made Effortless
           </h2>
           <p className="text-lg md:text-xl text-gray-500 leading-relaxed font-medium px-4">
             A simple four-step process designed to eliminate every friction point in your hostel search.
