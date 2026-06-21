@@ -96,7 +96,7 @@ const Home = () => {
 
       <HeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
       {/* <HowItWorks content={pageContent.howItWorks} /> */}
-      <OurPartners />
+      {/* <OurPartners /> */}
       <FeaturedHostels hostels={hostels} loading={loading} />
       <WhyTrustUs />
       <TestimonialsSection content={pageContent.testimonials} />

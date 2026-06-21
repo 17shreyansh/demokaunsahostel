@@ -20,6 +20,7 @@ const getSelectStyles = () => ({
     borderColor: state.isFocused ? '#f59e0b' : '#e5e7eb',
     padding: '4px',
     background: '#ffffff',
+    fontSize: '16px',
     '&:hover': { borderColor: '#fbbf24' },
     transition: 'all 0.2s ease'
   }),
@@ -29,6 +30,7 @@ const getSelectStyles = () => ({
     color: state.isSelected ? '#1f2937' : '#374151',
     fontWeight: state.isSelected ? '600' : '500',
     padding: '12px 16px',
+    fontSize: '16px',
     cursor: 'pointer',
     transition: 'background-color 0.15s ease'
   }),
@@ -37,15 +39,8 @@ const getSelectStyles = () => ({
 })
 
 // Reusable Filter Content
-const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clearFilters, setShowFilters }) => (
+const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clearFilters, setShowFilters, isDesktop }) => (
   <div className="space-y-6">
-    <div className="flex justify-between items-center pb-4 border-b border-gray-100 lg:hidden">
-      <h3 className="text-xl font-bold text-gray-900">Refine Search</h3>
-      <button onClick={() => setShowFilters(false)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors">
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-      </button>
-    </div>
-
     <div className="space-y-5">
 
       {/* Verified Property */}
@@ -206,14 +201,16 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
       </div>
 
       {/* Actions */}
-      <div className="pt-6 mt-6 border-t border-gray-100 flex justify-between items-center sticky bottom-0 bg-white pb-2 lg:static lg:bg-transparent lg:pb-0 z-10">
-        <span className="text-sm text-gray-500 font-medium">
-          <span className="text-gray-900 font-bold">{Object.values(filters).filter(v => v && v !== 'newest').length}</span> filters active
-        </span>
-        <button onClick={clearFilters} className="text-sm text-red-500 hover:text-red-700 font-bold tracking-wide transition-colors">
-          Reset All
-        </button>
-      </div>
+      {isDesktop && (
+        <div className="pt-6 mt-6 border-t border-gray-100 flex justify-between items-center z-10">
+          <span className="text-sm text-gray-500 font-medium">
+            <span className="text-gray-900 font-bold">{Object.values(filters).filter(v => v && typeof v === 'string' && v !== 'newest').length}</span> filters active
+          </span>
+          <button onClick={clearFilters} className="text-sm text-red-500 hover:text-red-700 font-bold tracking-wide transition-colors">
+            Reset All
+          </button>
+        </div>
+      )}
     </div>
   </div>
 ))
@@ -345,6 +342,7 @@ const Hostels = () => {
                 filterOptions={filterOptions} 
                 clearFilters={clearFilters} 
                 setShowFilters={setShowFilters} 
+                isDesktop={true}
               />
             </div>
           </div>
@@ -491,16 +489,44 @@ const Hostels = () => {
 
           {/* Bottom Sheet */}
           <div
-            className="fixed inset-x-0 bottom-0 z-[110] bg-white rounded-t-[32px] shadow-2xl lg:hidden flex flex-col h-[85vh] will-change-transform animate-in slide-in-from-bottom-full duration-300 ease-out"
+            className="fixed inset-x-0 bottom-0 z-[110] bg-white rounded-t-[32px] shadow-2xl lg:hidden flex flex-col h-[85dvh] will-change-transform animate-in slide-in-from-bottom-full duration-300 ease-out"
           >
-            <div className="p-6 overflow-y-auto overscroll-contain flex-1 relative">
+            {/* Header (sticky top) */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
+              <h3 className="text-xl font-bold text-gray-900">Refine Search</h3>
+              <button onClick={() => setShowFilters(false)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="p-6 pb-24 overflow-y-auto overscroll-contain flex-1 relative custom-scrollbar">
               <FilterContentBlocks 
                 filters={filters} 
                 updateFilters={updateFilters} 
                 filterOptions={filterOptions} 
                 clearFilters={clearFilters} 
                 setShowFilters={setShowFilters} 
+                isDesktop={false}
               />
+            </div>
+
+            {/* Footer Actions (sticky bottom) */}
+            <div className="p-5 border-t border-gray-100 shrink-0 bg-white w-full absolute bottom-0 z-20">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={clearFilters} 
+                  className="px-4 py-3.5 text-sm text-gray-700 font-bold bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors w-1/3 text-center"
+                >
+                  Clear All
+                </button>
+                <button 
+                  onClick={() => setShowFilters(false)} 
+                  className="flex-1 bg-yellow-400 text-gray-900 font-bold py-3.5 rounded-xl hover:bg-yellow-500 transition-colors shadow-sm active:scale-95"
+                >
+                  Show Results
+                </button>
+              </div>
             </div>
           </div>
         </>
