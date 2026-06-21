@@ -10,36 +10,41 @@ const WhyTrustUs = () => {
       features: ["Physical background checks", "Safety protocol audits", "Verified owner identities"],
       pill1: "Bank-Grade Secure",
       pill2: "Verified Partners",
-      // Abstract Art: The "Verification Core"
+      // Abstract Art: The "Verification Shield"
       renderArt: () => (
         <div className="relative w-64 h-64 flex items-center justify-center">
           {/* Rotating glowing orb in background */}
-          <div className="absolute w-40 h-40 bg-gradient-to-r from-yellow-300 to-yellow-500 rounded-full blur-2xl animate-[spin_8s_linear_infinite] opacity-60" style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }} />
+          <div className="absolute w-40 h-40 bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-500 rounded-full blur-[40px] animate-pulse opacity-70" />
           
-          {/* Frosted Glass Overlay */}
-          <div className="relative z-10 w-48 h-56 bg-white/30 backdrop-blur-2xl border border-white/60 rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col items-center justify-center overflow-hidden">
-            {/* Inner subtle noise */}
-            <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
-            
-            {/* High-end biometric/scan lines */}
-            <div className="w-24 h-24 relative flex items-center justify-center">
-              <svg className="w-12 h-12 text-gray-800/70 drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
-                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
-              </svg>
-              <div className="absolute top-0 w-full h-0.5 bg-gradient-to-r from-transparent via-yellow-500 to-transparent animate-wtu-scan" />
-            </div>
+          {/* Outer tech rings */}
+          <div className="absolute inset-2 border-[1.5px] border-yellow-500/30 rounded-full animate-[spin_20s_linear_infinite]" style={{ borderTopColor: 'transparent', borderLeftColor: 'transparent' }} />
+          <div className="absolute inset-6 border-[1.5px] border-yellow-400/40 rounded-full animate-[spin_15s_linear_infinite_reverse]" style={{ borderBottomColor: 'transparent', borderRightColor: 'transparent' }} />
 
-            {/* Verification Text block UI */}
-            <div className="mt-6 flex flex-col items-center space-y-2 z-10">
-              <div className="w-16 h-1.5 rounded-full bg-gray-300/50 overflow-hidden relative">
-                <div className="absolute top-0 left-0 h-full w-full bg-yellow-400 animate-[wtu-scan-line_2s_ease-in-out_infinite]" />
-              </div>
-              <div className="w-10 h-1.5 rounded-full bg-gray-300/50" />
+          {/* The main Badge (Glass Shield) */}
+          <div className="relative z-10 w-36 h-40 bg-white/40 backdrop-blur-2xl border border-white/80 shadow-[0_8px_32px_rgba(250,204,21,0.25)] flex flex-col items-center justify-center overflow-hidden animate-wtu-float-slow" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}>
+            
+            {/* Inner subtle noise */}
+            <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
+            
+            {/* The Checkmark Coin */}
+            <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center shadow-xl mb-2 mt-1">
+              {/* Pulsing ring behind check */}
+              <div className="absolute inset-0 rounded-full bg-yellow-400 animate-ping opacity-40" />
+              <svg className="w-8 h-8 text-white drop-shadow-md z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            
+            {/* Verification lines */}
+            <div className="flex flex-col items-center space-y-1.5 mt-3 z-10">
+              <div className="w-12 h-1.5 rounded-full bg-yellow-600/30" />
+              <div className="w-8 h-1.5 rounded-full bg-yellow-600/20" />
             </div>
           </div>
 
-          {/* Accent floating rings */}
-          <div className="absolute -top-4 -right-4 w-20 h-20 border-2 border-yellow-400/40 rounded-full animate-ping z-0" style={{ animationDuration: '3s' }} />
+          {/* Accent floating sparks */}
+          <div className="absolute top-8 right-8 w-3 h-3 bg-yellow-400 rounded-full shadow-[0_0_12px_rgba(250,204,21,1)] animate-ping" style={{ animationDuration: '2.5s' }} />
+          <div className="absolute bottom-8 left-8 w-2 h-2 bg-yellow-300 rounded-full shadow-[0_0_12px_rgba(250,204,21,1)] animate-ping" style={{ animationDuration: '3.5s', animationDelay: '1s' }} />
         </div>
       )
     },
