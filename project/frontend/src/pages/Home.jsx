@@ -94,7 +94,7 @@ const Home = () => {
         ))}
       </div>
 
-      {/* <HeroSection hostels={hostels} loading={loading} content={pageContent.hero} /> */}
+      <HeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
       {/* <HowItWorks content={pageContent.howItWorks} /> */}
       <OurPartners />
       <FeaturedHostels hostels={hostels} loading={loading} />
