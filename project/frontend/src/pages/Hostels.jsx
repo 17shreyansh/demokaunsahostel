@@ -295,23 +295,16 @@ const Hostels = () => {
     }
   }, [searchParams])
 
-  const debouncedUpdateFilters = useMemo(
-    () => debounce((newFilters) => {
-      const updatedFilters = { ...filters, ...newFilters }
-      setFilters(updatedFilters)
-
-      const params = new URLSearchParams()
-      Object.entries(updatedFilters).forEach(([key, value]) => {
-        if (value && value !== '') params.set(key, value)
-      })
-      setSearchParams(params)
-    }, 300),
-    [filters, setSearchParams]
-  )
-
   const updateFilters = useCallback((newFilters) => {
-    debouncedUpdateFilters(newFilters)
-  }, [debouncedUpdateFilters])
+    const updatedFilters = { ...filters, ...newFilters }
+    setFilters(updatedFilters)
+
+    const params = new URLSearchParams()
+    Object.entries(updatedFilters).forEach(([key, value]) => {
+      if (value && value !== '') params.set(key, value)
+    })
+    setSearchParams(params, { replace: true })
+  }, [filters, setSearchParams])
 
   const clearFilters = () => {
     setFilters({

@@ -6,6 +6,8 @@ import { useGSAP } from '@gsap/react';
 import { hostelAPI } from '../../services/api';
 import PriceDisplay from '../common/PriceDisplay';
 import { optimizeImageUrl } from '../../utils/imageOptimization';
+import DiscoveryEngine from './DiscoveryEngine/DiscoveryEngine';
+import './HeroSection.css';
 
 /* -------------------------------------------------------------------------- */
 /* STATIC STYLES (No Animations Here)                                         */
@@ -13,8 +15,23 @@ import { optimizeImageUrl } from '../../utils/imageOptimization';
 const StaticStyles = () => (
   <style>{`
     .bg-grid-matrix {
-      background-image: radial-gradient(circle, #e4e4e7 1px, transparent 1px);
-      background-size: 24px 24px;
+      background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(circle at center, black, transparent 80%);
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+    .text-gradient {
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-image: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
     }
   `}</style>
 );
@@ -26,25 +43,23 @@ const StaticStyles = () => (
 const DEFAULT_TEXTS = ['Premium Hostels', 'Safe Accommodations', 'Modern PGs'];
 const DEFAULT_HOSTELS = [];
 
-// 1. Ultra-Lightweight Text Rotator (Replaces Heavy GSAP Layers)
+// 1. Ultra-Lightweight Text Rotator
 const AnimatedTitle = memo(({ texts = DEFAULT_TEXTS }) => {
   const [index, setIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     if (!texts || texts.length <= 1) return;
-    
+
     const interval = setInterval(() => {
-      // 1. Trigger slide up and fade out
       setIsAnimating(true);
-      
-      // 2. Wait for exit animation, swap text, trigger slide in from bottom
+
       setTimeout(() => {
         setIndex((prev) => (prev + 1) % texts.length);
         setIsAnimating(false);
-      }, 500); // 500ms matches duration of CSS transition
-      
-    }, 3500); // Rotate every 3.5s
+      }, 500);
+
+    }, 3500);
 
     return () => clearInterval(interval);
   }, [texts]);
@@ -52,13 +67,12 @@ const AnimatedTitle = memo(({ texts = DEFAULT_TEXTS }) => {
   if (!texts || !texts.length) return null;
 
   return (
-    <span className="relative inline-block w-full sm:w-auto sm:min-w-[400px] align-bottom overflow-hidden h-[1.2em]">
+    <span className="relative inline-block w-full sm:w-auto sm:min-w-[420px] align-bottom overflow-hidden h-[1.2em] sm:h-[1.2em]">
       <span
-        className={`absolute left-0 top-0 w-full text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 pb-2 transition-all duration-500 ease-in-out ${
-          isAnimating 
-            ? 'opacity-0 -translate-y-full' // Exiting up
-            : 'opacity-100 translate-y-0'   // Resting position
-        }`}
+        className={`absolute left-0 top-0 w-full text-gradient font-black pb-2 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] text-center sm:text-left ${isAnimating
+          ? 'opacity-0 -translate-y-full blur-sm'
+          : 'opacity-100 translate-y-0 blur-none'
+          }`}
       >
         {texts[index]}
       </span>
@@ -76,24 +90,24 @@ const SearchWidget = memo(({ content }) => {
   }, [searchQuery, navigate]);
 
   return (
-    <div className="relative z-30 mb-8 w-full max-w-xl mx-auto search-widget opacity-0">
-      <div className="flex items-center rounded-2xl bg-white p-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-200/80 transition-shadow hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
-        <div className="pl-4 pr-2">
-          <svg className="h-5 w-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <div className="relative z-30 mb-8 sm:mb-10 w-full max-w-xl search-widget opacity-0 px-2 sm:px-0">
+      <div className="glass-panel flex flex-col sm:flex-row items-center rounded-2xl sm:rounded-full p-2 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/10 group gap-2 sm:gap-0">
+        <div className="hidden sm:block pl-4 pr-2">
+          <svg className="h-6 w-6 text-orange-400 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
         <input
           type="text"
-          placeholder="Search colleges, areas..."
+          placeholder="Search colleges, areas, or cities..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          className="w-full border-none bg-transparent py-3 text-base text-zinc-900 outline-none placeholder:text-zinc-400"
+          className="w-full border-none bg-transparent py-3 sm:py-3.5 px-4 sm:px-0 text-base sm:text-lg font-medium text-zinc-900 outline-none placeholder:text-zinc-400 placeholder:font-normal text-center sm:text-left"
         />
         <button
           onClick={handleSearch}
-          className="rounded-xl bg-gradient-to-b from-yellow-400 to-yellow-500 px-6 py-2.5 text-sm font-bold text-zinc-900 shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          className="w-full sm:w-auto rounded-xl sm:rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105 hover:shadow-orange-500/40 active:scale-95"
         >
           Search
         </button>
@@ -102,173 +116,31 @@ const SearchWidget = memo(({ content }) => {
   );
 });
 
-const HostelSlider = memo(({ hostels, loading }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const containerRef = useRef(null);
-  const displayHostels = useMemo(() => hostels?.slice(0, 5) || [], [hostels]);
-
-  // Logical interval triggers React state
-  useEffect(() => {
-    if (displayHostels.length > 1) {
-      const interval = setInterval(() => {
-        setActiveIndex((prev) => (prev + 1) % displayHostels.length);
-      }, 4000);
-      return () => clearInterval(interval);
-    }
-  }, [displayHostels.length]);
-
-  // GSAP entirely handles the DOM manipulation when activeIndex changes
-  useGSAP(() => {
-    const len = displayHostels.length;
-    if (!len) return;
-
-    displayHostels.forEach((_, i) => {
-      const relIndex = (i - activeIndex + len) % len;
-      
-      // Target stack positions: Fanning to the LEFT to avoid right-side screen clipping
-      const targetX = -relIndex * 35; 
-      const targetY = -relIndex * 15;
-      const targetScale = 1 - (relIndex * 0.05);
-      const targetRotate = -relIndex * 3;
-      const targetOpacity = relIndex < 3 ? 1 - (relIndex * 0.2) : 0;
-      const targetZIndex = 20 - relIndex;
-
-      // If it's the exiting card (was front, now wrapped to back)
-      if (relIndex === len - 1 && len > 1) {
-        gsap.to(`.card-${i}`, {
-          x: 150, // Fly off to the right
-          y: 20,
-          scale: 1.05,
-          rotation: 12,
-          opacity: 0,
-          zIndex: 25, // Keep it on top while it flies away
-          duration: 0.5,
-          ease: 'power3.in',
-          overwrite: 'auto',
-          onComplete: () => {
-            // Instantly snap it to the back of the stack once invisible
-            gsap.set(`.card-${i}`, {
-              x: targetX,
-              y: targetY,
-              scale: targetScale,
-              rotation: targetRotate,
-              zIndex: targetZIndex
-            });
-            // Softly fade it back in so the stack doesn't look empty
-            gsap.to(`.card-${i}`, {
-              opacity: targetOpacity,
-              duration: 0.4,
-              ease: 'power2.out',
-              overwrite: 'auto'
-            });
-          }
-        });
-      } else {
-        // Normal shift forward in the stack
-        gsap.to(`.card-${i}`, {
-          x: targetX,
-          y: targetY,
-          scale: targetScale,
-          rotation: targetRotate,
-          opacity: targetOpacity,
-          zIndex: targetZIndex,
-          duration: 0.85,
-          ease: 'back.out(1.1)', // Smooth settle
-          transformOrigin: 'center center',
-          overwrite: 'auto'
-        });
-      }
-    });
-  }, { scope: containerRef, dependencies: [activeIndex, displayHostels] });
-
-  if (loading) return <div className="h-[24rem] sm:h-[28rem] w-full max-w-sm sm:max-w-md mx-auto animate-pulse rounded-[2rem] bg-zinc-200 mt-8" />;
-  if (!displayHostels.length) return null;
-
-  return (
-    <div ref={containerRef} className="slider-container relative h-[24rem] sm:h-[28rem] w-full max-w-sm sm:max-w-md mx-auto pt-8 perspective-1000 pl-4 sm:pl-0">
-      <div className="relative h-full w-full transform-gpu">
-        {displayHostels.map((hostel, i) => {
-          const rawImage = hostel.image || (hostel.images && hostel.images.length > 0 ? hostel.images[0] : null);
-          const optimized = rawImage ? optimizeImageUrl(rawImage, 800, 600) : null;
-          
-          let imageUrl = null;
-          if (optimized) {
-            if (optimized.startsWith('http')) {
-              imageUrl = optimized;
-            } else {
-              // Dynamically resolve base URL from API URL so it works seamlessly in Dev & Prod
-              const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-              const baseUrl = import.meta.env.VITE_UPLOADS_BASE_URL || apiUrl.replace('/api', '/uploads');
-              
-              const cleanBase = baseUrl.replace(/\/$/, '');
-              const cleanPath = optimized.replace(/^\//, '');
-              // Prevent double /uploads/ if the path already contains it
-              imageUrl = cleanPath.startsWith('uploads/') 
-                ? `${cleanBase.replace(/\/uploads$/, '')}/${cleanPath}`
-                : `${cleanBase}/${cleanPath}`;
-            }
-          }
-          
-          const hasImage = !!imageUrl;
-          
-          return (
-            <div
-              key={hostel._id}
-              className={`card-${i} absolute top-0 left-0 w-full h-full will-change-transform opacity-0`}
-              style={{
-                pointerEvents: i === activeIndex ? 'auto' : 'none'
-              }}
-            >
-              <div className="w-full h-full flex flex-col overflow-hidden rounded-[2rem] bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] ring-1 ring-zinc-900/5 relative group">
-                {/* Top Half: Image Container */}
-                <div className="relative h-[45%] w-full overflow-hidden bg-zinc-100 shrink-0 transform-gpu">
-                  {hasImage ? (
-                    <img src={imageUrl} alt={hostel.name} className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" loading="lazy" decoding="async" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-yellow-100 to-orange-50" />
-                  )}
-                  {/* Availability Badge */}
-                  <div className="absolute top-4 right-4 z-10 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold tracking-wide text-emerald-700 shadow-sm ring-1 ring-emerald-600/10">
-                    {hostel.availability || 'Available'}
-                  </div>
-                </div>
-                
-                {/* Bottom Half: Content */}
-                <div className="flex-1 p-6 flex flex-col justify-between bg-white relative z-10">
-                  <div>
-                    <h3 className="text-xl font-extrabold tracking-tight text-zinc-900 leading-tight line-clamp-2 mb-2">
-                      {hostel.name}
-                    </h3>
-                    <p className="flex items-center text-sm font-medium text-zinc-500 line-clamp-1">
-                      <svg className="w-4 h-4 mr-1.5 text-zinc-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      {hostel.location}
-                    </p>
-                  </div>
-  
-                  <div className="flex items-center justify-between pt-4 mt-2 border-t border-zinc-100">
-                    <div className="text-zinc-900">
-                      <PriceDisplay price={hostel.price} />
-                    </div>
-  
-                    <Link
-                      to={`/hostel/${hostel.slug || hostel._id}`}
-                      className="rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      View
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+// 3. Social Proof / Avatars
+const SocialProof = () => (
+  <div className="social-proof opacity-0 flex items-center gap-4 mt-8 pt-6 border-t border-zinc-200/50">
+    <div className="flex -space-x-3">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className={`w-10 h-10 rounded-full border-2 border-white bg-zinc-200 shadow-sm overflow-hidden z-[${10 - i}]`}>
+          <img src={`https://i.pravatar.cc/150?img=${i + 10}`} alt={`Student ${i}`} className="w-full h-full object-cover" />
+        </div>
+      ))}
+      <div className="w-10 h-10 rounded-full border-2 border-white bg-orange-100 flex items-center justify-center shadow-sm z-0">
+        <span className="text-xs font-bold text-orange-600">+2k</span>
       </div>
     </div>
-  );
-});
+    <div className="flex flex-col">
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        ))}
+      </div>
+      <span className="text-sm font-medium text-zinc-600">Loved by 2,000+ students</span>
+    </div>
+  </div>
+);
 
 /* -------------------------------------------------------------------------- */
 /* MAIN HERO COMPONENT                                                        */
@@ -278,60 +150,99 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
   const container = useRef(null);
 
   useGSAP(() => {
-    // 1. Continuous Floating Ambient Glow
-    gsap.to('.ambient-glow', {
-      x: 'random(-40, 40)',
-      y: 'random(-20, 20)',
-      scale: 'random(0.95, 1.05)',
-      duration: 6,
+    // 1. Ambient Glows Animation (More organic movement)
+    gsap.to('.ambient-glow-1', {
+      x: 'random(-50, 50)',
+      y: 'random(-30, 30)',
+      rotation: 'random(-15, 15)',
+      scale: 'random(0.8, 1.2)',
+      duration: 8,
       repeat: -1,
       yoyo: true,
       ease: 'sine.inOut'
     });
 
-    // 2. Main Entrance Sequence (Buttons & Search only to preserve LCP on text)
+    gsap.to('.ambient-glow-2', {
+      x: 'random(-60, 60)',
+      y: 'random(-40, 40)',
+      rotation: 'random(-20, 20)',
+      scale: 'random(0.9, 1.3)',
+      duration: 10,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      delay: 1
+    });
+
+    // 2. Entrance Sequence (Staggered fade up)
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-    tl.fromTo('.search-widget', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, "+=0.2")
-      .fromTo('.hero-buttons > *', { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1 }, "-=0.6");
+    tl.fromTo('.hero-badge', { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 })
+      .fromTo('.hero-title-part', { y: 30, opacity: 0, rotationX: -20 }, { y: 0, opacity: 1, rotationX: 0, duration: 0.8, stagger: 0.15 }, "-=0.2")
+      .fromTo('.hero-desc', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, "-=0.4")
+      .fromTo('.search-widget', { y: 20, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.2)' }, "-=0.2")
+      .fromTo('.hero-buttons > *', { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 }, "-=0.4")
+      .fromTo('.social-proof', { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, "-=0.3");
   }, { scope: container });
 
   return (
-    <section ref={container} className="relative min-h-[90vh] flex items-center overflow-hidden bg-white py-20 lg:py-0">
+    <section ref={container} className="relative min-h-[100svh] lg:min-h-[95vh] flex items-center overflow-hidden bg-[#fafafa] py-12 lg:py-0 perspective-1000">
       <StaticStyles />
 
-      {/* Vercel-style dotted grid and Glow */}
-      <div className="absolute inset-0 z-0 bg-grid-matrix opacity-40 pointer-events-none" />
-      <div className="ambient-glow absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[30rem] bg-yellow-100/50 rounded-full blur-[120px] pointer-events-none z-0 will-change-transform" />
+      {/* Grid and Glows */}
+      <div className="absolute inset-0 z-0 bg-grid-matrix pointer-events-none" />
 
-      <div className="container relative z-10 mx-auto px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-center">
+      {/* Multiple glowing orbs for richer background */}
+      <div className="ambient-glow-1 absolute top-[10%] left-[20%] w-[20rem] lg:w-[30rem] h-[20rem] lg:h-[30rem] bg-orange-300/30 rounded-full blur-[80px] lg:blur-[100px] pointer-events-none z-0 mix-blend-multiply" />
+      <div className="ambient-glow-2 absolute top-[30%] right-[20%] w-[30rem] lg:w-[40rem] h-[30rem] lg:h-[40rem] bg-yellow-200/40 rounded-full blur-[100px] lg:blur-[120px] pointer-events-none z-0 mix-blend-multiply" />
+      <div className="absolute -bottom-[20%] left-1/2 -translate-x-1/2 w-full max-w-4xl h-[20rem] bg-gradient-to-t from-[#fafafa] via-[#fafafa]/80 to-transparent pointer-events-none z-0" />
 
-          {/* Left Content */}
-          <div className="flex w-full flex-col items-center text-center z-20 max-w-4xl mx-auto">
-            <div className="hero-badge inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 shadow-sm mb-6">
-              <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="text-xs font-semibold text-zinc-600">Rated #1 Hostel Network</span>
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 max-w-[1600px] flex flex-col justify-center">
+        {/* 12-column grid to let the DiscoveryEngine dominate (4 columns text, 8 columns engine) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center lg:min-h-[85vh]">
+
+          {/* Left Content (Takes 5 columns to balance content size) */}
+          <div className="col-span-1 lg:col-span-5 flex w-full flex-col items-center lg:items-start text-center lg:text-left z-20 relative">
+            <div className="hero-badge opacity-0 inline-flex items-center gap-2.5 rounded-full border border-orange-200 bg-orange-50/80 backdrop-blur-sm px-4 sm:px-5 py-2 sm:py-2.5 shadow-[0_4px_20px_rgb(234,88,12,0.1)] mb-6 lg:mb-8 transition-transform hover:scale-105">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-orange-800 uppercase tracking-wide">Rated #1 Hostel Network</span>
             </div>
 
-            <h1 className="hero-title mb-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.1] flex flex-col sm:block">
-              <span className="block sm:inline">Find Your Perfect </span>
-              <AnimatedTitle texts={content?.animatedText || DEFAULT_TEXTS} />
+            <h1 className="mb-4 lg:mb-6 text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-[4rem] font-extrabold tracking-tight text-zinc-900 leading-[1.1] flex flex-col sm:block w-full" style={{ perspective: '1000px' }}>
+              <span className="hero-title-part block sm:inline opacity-0">Find Your Perfect </span>
+              <span className="hero-title-part block opacity-0 mt-1 sm:mt-0">
+                <AnimatedTitle texts={content?.animatedText || DEFAULT_TEXTS} />
+              </span>
             </h1>
 
-            <p className="hero-desc mb-10 text-lg leading-relaxed text-zinc-500 max-w-lg mx-auto">
-              {content?.subtitle || 'Premium hostels with modern amenities, 24/7 security, high-speed WiFi, and a vibrant student community.'}
+            <p className="hero-desc opacity-0 mb-8 lg:mb-10 text-base sm:text-lg lg:text-xl leading-relaxed text-zinc-600 max-w-lg font-medium px-2 sm:px-0">
+              {content?.subtitle || 'Experience premium living with modern amenities, 24/7 security, high-speed WiFi, and a vibrant community.'}
             </p>
 
             <SearchWidget content={content} />
 
-            <div className="hero-buttons flex flex-col items-center gap-4 sm:flex-row justify-center">
-              <Link to="/hostels" className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-zinc-900 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]">
+            <div className="hero-buttons flex flex-col items-center gap-3 sm:gap-4 sm:flex-row w-full sm:w-auto mt-2 px-2 sm:px-0">
+              <Link to="/hostels" className="opacity-0 w-full sm:w-auto inline-flex items-center justify-center rounded-2xl sm:rounded-full bg-zinc-900 px-6 sm:px-8 py-3.5 sm:py-4 text-base font-bold text-white shadow-xl shadow-zinc-900/20 transition-all hover:scale-105 hover:bg-zinc-800 hover:shadow-zinc-900/30 active:scale-95 group">
                 {content?.primaryButton?.text || 'Explore Hostels'}
+                <svg className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
               </Link>
-              <Link to="/contact" className="opacity-0 w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-zinc-900 ring-1 ring-inset ring-zinc-200 transition-colors hover:bg-zinc-50 hover:ring-zinc-300">
+              <Link to="/contact" className="opacity-0 w-full sm:w-auto inline-flex items-center justify-center rounded-2xl sm:rounded-full bg-white/80 backdrop-blur-md px-6 sm:px-8 py-3.5 sm:py-4 text-base font-bold text-zinc-900 ring-2 ring-inset ring-zinc-200 shadow-sm transition-all hover:bg-white hover:ring-zinc-300 hover:scale-105 active:scale-95">
                 {content?.secondaryButton?.text || 'Contact Us'}
               </Link>
+            </div>
+
+            <SocialProof />
+          </div>
+
+          {/* Right: Living Discovery Engine (Takes 7 columns for dominance) */}
+          <div className="col-span-1 lg:col-span-7 relative w-[calc(100%+2rem)] -mx-4 sm:w-full sm:mx-0 h-[450px] sm:h-[600px] lg:h-[750px] xl:h-[800px] rounded-[2.5rem] overflow-visible transform-gpu transition-transform duration-700 hover:scale-[1.01] xl:translate-x-10 -mt-8 sm:-mt-12 lg:-mt-16 flex items-center justify-center">
+            <div className="w-full h-full pointer-events-auto">
+              <DiscoveryEngine />
             </div>
           </div>
 

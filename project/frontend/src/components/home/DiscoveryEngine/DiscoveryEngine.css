@@ -1,0 +1,141 @@
+/* ============================================================================ */
+/* DISCOVERY ENGINE — Spline 3D Integration                                     */
+/* ============================================================================ */
+
+.discovery-engine-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  /* Adjust based on your hero section size (e.g., 600px, 100vh) */
+  min-height: 500px;
+  /* background-color: #f8f9fa; */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Spline 3D Canvas ─────────────────────────────────────────────────────── */
+.spline-canvas-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  /* Sits at the back */
+  cursor: grab;
+  /* Indicates interactivity */
+}
+
+.spline-canvas-wrapper:active {
+  cursor: grabbing;
+}
+
+/* ─── Loading State ────────────────────────────────────────────────────────── */
+.spline-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6b7280;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Minimal Badge Styling ────────────────────────────────────────────────── */
+.hero-float-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 9999px; /* Pill shape */
+  padding: 0.5rem 1rem;
+
+  color: #4b5563;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  box-shadow: 
+    0 8px 24px -4px rgba(0, 0, 0, 0.04),
+    0 2px 6px -1px rgba(0, 0, 0, 0.03);
+  will-change: transform, opacity;
+}
+
+.hero-float-check {
+  color: #10b981; /* Subtle green check */
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* ─── Responsive Adjustments ───────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .discovery-engine-container {
+    height: 75vh;
+    min-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .discovery-engine-container {
+    height: 65vh;
+    min-height: 450px;
+  }
+
+  /* Move cards closer to center so they don't get cropped on narrow screens */
+  .mobile-card-1 {
+    transform: translate(80px, -40px);
+  }
+
+  .mobile-card-2 {
+    transform: translate(-120px, 40px);
+  }
+
+  .hero-float-card {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    gap: 0.3rem;
+  }
+  
+  .hero-float-check {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .discovery-engine-container {
+    height: 60vh;
+    min-height: 400px;
+  }
+
+  /* Pull them in even more for very narrow phones to stay visible */
+  .mobile-card-1 {
+    transform: translate(120px, -60px);
+  }
+
+  .mobile-card-2 {
+    transform: translate(-180px, 60px);
+  }
+}
