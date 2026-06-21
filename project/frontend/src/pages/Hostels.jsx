@@ -184,49 +184,58 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
         </div>
       </div>
 
+      {/* Payment Period */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Payment Period</label>
+        <MemoizedSelect
+          value={filters.priceType ? { value: filters.priceType, label: filters.priceType === 'month' ? 'Monthly' : 'Per Session' } : null}
+          onChange={(opt) => updateFilters({ priceType: opt?.value || '' })}
+          options={[{ value: '', label: 'Any Period' }, { value: 'month', label: 'Monthly' }, { value: 'session', label: 'Per Session' }]}
+          placeholder="Any Period"
+          isClearable
+          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+          menuPosition="fixed"
+          styles={getSelectStyles()}
+        />
+      </div>
+
       {/* Price Range */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range <span className="text-gray-400 font-normal text-xs">(per month)</span></label>
-        <div className="bg-gray-50 p-5 border border-gray-100 rounded-xl">
-          <div className="space-y-6">
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Minimum</label>
-                <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md text-sm">
-                  ₹{parseInt(filters.minPrice || 0).toLocaleString('en-IN')}
-                </span>
-              </div>
-              <input
-                type="range" min="0" max="100000" step="500"
-                value={filters.minPrice || 0}
-                onChange={(e) => {
-                   const val = parseInt(e.target.value);
-                   const max = parseInt(filters.maxPrice || 100000);
-                   if (val <= max) updateFilters({ minPrice: val });
-                }}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-              />
-            </div>
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Maximum</label>
-                <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md text-sm">
-                  ₹{parseInt(filters.maxPrice || 100000).toLocaleString('en-IN')}
-                </span>
-              </div>
-              <input
-                type="range" min="0" max="100000" step="500"
-                value={filters.maxPrice || 100000}
-                onChange={(e) => {
-                   const val = parseInt(e.target.value);
-                   const min = parseInt(filters.minPrice || 0);
-                   if (val >= min) updateFilters({ maxPrice: val });
-                }}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-              />
-            </div>
-          </div>
-        </div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Price Range</label>
+        <MemoizedSelect
+          value={
+            (!filters.minPrice && !filters.maxPrice) ? { value: '', label: 'Any Price' } :
+            (filters.minPrice === '0' && filters.maxPrice === '10000') ? { value: '0-10000', label: 'Under ₹10,000' } :
+            (filters.minPrice === '10000' && filters.maxPrice === '25000') ? { value: '10000-25000', label: '₹10,000 - ₹25,000' } :
+            (filters.minPrice === '25000' && filters.maxPrice === '50000') ? { value: '25000-50000', label: '₹25,000 - ₹50,000' } :
+            (filters.minPrice === '50000' && filters.maxPrice === '100000') ? { value: '50000-100000', label: '₹50,000 - ₹1,00,000' } :
+            (filters.minPrice === '100000' && filters.maxPrice === '150000') ? { value: '100000-150000', label: '₹1,00,000 - ₹1,50,000' } :
+            (filters.minPrice === '150000' && !filters.maxPrice) ? { value: '150000-', label: 'Above ₹1,50,000' } :
+            { value: 'custom', label: `Custom: ₹${filters.minPrice || 0} - ₹${filters.maxPrice || 'Any'}` }
+          }
+          onChange={(opt) => {
+            if (!opt || !opt.value || opt.value === 'custom') {
+              updateFilters({ minPrice: '', maxPrice: '' });
+            } else {
+              const [min, max] = opt.value.split('-');
+              updateFilters({ minPrice: min, maxPrice: max });
+            }
+          }}
+          options={[
+            { value: '', label: 'Any Price' },
+            { value: '0-10000', label: 'Under ₹10,000' },
+            { value: '10000-25000', label: '₹10,000 - ₹25,000' },
+            { value: '25000-50000', label: '₹25,000 - ₹50,000' },
+            { value: '50000-100000', label: '₹50,000 - ₹1,00,000' },
+            { value: '100000-150000', label: '₹1,00,000 - ₹1,50,000' },
+            { value: '150000-', label: 'Above ₹1,50,000' }
+          ]}
+          placeholder="Any Price"
+          isClearable
+          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+          menuPosition="fixed"
+          styles={getSelectStyles()}
+        />
       </div>
 
       {/* Actions */}
@@ -267,6 +276,7 @@ const Hostels = () => {
     nearbyPlace: searchParams.get('nearbyPlace') || '',
     verified: searchParams.get('verified') || '',
     foodType: searchParams.get('foodType') || '',
+    priceType: searchParams.get('priceType') || '',
     sortBy: searchParams.get('sortBy') || 'newest'
   })
 
@@ -284,6 +294,7 @@ const Hostels = () => {
       nearbyPlace: searchParams.get('nearbyPlace') || '',
       verified: searchParams.get('verified') || '',
       foodType: searchParams.get('foodType') || '',
+      priceType: searchParams.get('priceType') || '',
       sortBy: searchParams.get('sortBy') || 'newest'
     });
   }, [searchParams]);
@@ -372,7 +383,7 @@ const Hostels = () => {
   const clearFilters = () => {
     setFilters({
       search: '', location: '', minPrice: '', maxPrice: '',
-      gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', verified: '', foodType: '', sortBy: 'newest'
+      gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', verified: '', foodType: '', priceType: '', sortBy: 'newest'
     })
     setSearchParams({})
   }

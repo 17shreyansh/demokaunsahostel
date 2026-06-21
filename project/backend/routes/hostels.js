@@ -47,7 +47,7 @@ router.get('/', async (req, res) => {
   try {
     const { 
       search, location, minPrice, maxPrice, gender, type,
-      amenities, availability, sortBy, nearbyPlace, verified, foodType, page = 1, limit = 12 
+      amenities, availability, sortBy, nearbyPlace, verified, foodType, priceType, page = 1, limit = 12 
     } = req.query;
     
     // Check cache first
@@ -157,6 +157,11 @@ router.get('/', async (req, res) => {
     // Food Type filter
     if (foodType && foodType.trim() && foodType !== '') {
       query.foodType = foodType.trim();
+    }
+    
+    // Price Type / Payment Period filter
+    if (priceType && priceType.trim() && priceType !== '') {
+      query.priceType = priceType.trim();
     }
     
     // Amenities
