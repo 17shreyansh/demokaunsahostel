@@ -209,12 +209,10 @@ const hostelSchema = new mongoose.Schema({
   },
   mapCoordinates: {
     lat: {
-      type: Number,
-      default: null
+      type: Number
     },
     lng: {
-      type: Number,
-      default: null
+      type: Number
     }
   },
   views: {
