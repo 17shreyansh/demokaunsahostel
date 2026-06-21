@@ -67,7 +67,7 @@ const Contact = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Call Us</h3>
-              <p className="text-gray-600">{content.contact?.contactInfo?.phone || '+91 98765 43210'}</p>
+              <p className="text-gray-600">{content.contact?.contactInfo?.phone || '+91 73032 69615'}</p>
             </div>
             
             <div className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
@@ -142,7 +142,7 @@ const Contact = () => {
                       id="phone" 
                       name="phone" 
                       required
-                      placeholder="+91 12345 67890" 
+                      placeholder="+91 73032 69615" 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-custom focus:border-transparent transition-all"
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}

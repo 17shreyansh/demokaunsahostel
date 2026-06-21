@@ -251,9 +251,8 @@ export const contentSeed = {
       phone: {
         title: "Call Us",
         details: [
-          "+91 9876543210",
-          "+91 9876543211"
-        ]
+          "+91 7303269615"
+        ],
       },
       email: {
         title: "Email Us", 

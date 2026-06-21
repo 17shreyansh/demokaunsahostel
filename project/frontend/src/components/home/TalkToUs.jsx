@@ -12,15 +12,15 @@ const TalkToUs = () => {
     {
       icon: Phone,
       title: "Call Us",
-      value: "+91 98765 43210",
-      link: "tel:+919876543210",
+      value: "+91 73032 69615",
+      link: "tel:+917303269615",
       isInternal: false,
     },
     {
       icon: MessageCircle,
       title: "WhatsApp",
       value: "Chat with our team",
-      link: "https://wa.me/919876543210",
+      link: "https://wa.me/917303269615",
       isInternal: false,
     },
     {
