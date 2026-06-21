@@ -132,14 +132,8 @@ const seed = async () => {
       }
 
       const info = [];
-      if (acTimings && acTimings.toLowerCase() !== 'no' && acTimings.toLowerCase() !== 'na' && acTimings.toLowerCase() !== 'nil') {
-        info.push({ title: 'AC Timings', value: acTimings });
-      }
       if (transportationExtra && transportationExtra.toLowerCase() !== 'no' && transportationExtra.toLowerCase() !== 'na' && transportationExtra.toLowerCase() !== 'nil' && transportationExtra !== '0') {
         info.push({ title: 'Transportation', value: `Extra Charges: ${transportationExtra}` });
-      }
-      if (oneTimeDiscount && oneTimeDiscount.toLowerCase() !== 'no' && oneTimeDiscount.toLowerCase() !== 'na' && oneTimeDiscount !== '0' && oneTimeDiscount.toLowerCase() !== 'nil') {
-        info.push({ title: 'One Time Payment Discount', value: oneTimeDiscount });
       }
 
       const hostelData = {
