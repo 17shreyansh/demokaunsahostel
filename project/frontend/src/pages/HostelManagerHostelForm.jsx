@@ -3,14 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   Form, Input, Select, Upload, message, 
-  InputNumber, Checkbox 
+  InputNumber, Checkbox, Dropdown 
 } from 'antd';
 import { 
   Save, ArrowLeft, UploadCloud, Plus, 
-  Trash2, MapPin, Info, Layout,
+  Trash2, MapPin, Info, Layout, LayoutTemplate,
   Image as ImageIcon, Star, Loader2, DollarSign, Percent
 } from 'lucide-react';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
+import { installmentTemplateAPI } from '../services/api';
 import NearbyPlacesSelector from '../components/NearbyPlacesSelector.jsx';
 
 const { TextArea } = Input;
@@ -129,8 +130,21 @@ const HostelManagerHostelForm = () => {
   const [fileList, setFileList] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
   const [mapCoordinates, setMapCoordinates] = useState({ lat: 28.6139, lng: 77.2090 });
+  const [templateOptions, setTemplateOptions] = useState([]);
 
   const rawCoordinates = Form.useWatch('coordinates', form);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const res = await installmentTemplateAPI.getAll();
+        setTemplateOptions(res.data);
+      } catch (error) {
+        console.error('Failed to fetch installment templates:', error);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   useEffect(() => {
     const fetchHostel = async () => {
@@ -154,6 +168,7 @@ const HostelManagerHostelForm = () => {
           rating: data.rating || 0,
           type: data.type || 'PG',
           gender: data.gender || 'Co-ed',
+          foodType: data.foodType || 'Both',
           availableBeds: data.availableBeds || data.availableRooms || 0,
           securityDeposit: data.securityDeposit || 0,
           capacity: data.capacity || '',
@@ -458,7 +473,7 @@ const HostelManagerHostelForm = () => {
                   <Select size="large" className="w-full">
                     <Select.Option value="PG">PG</Select.Option>
                     <Select.Option value="Hostel">Hostel</Select.Option>
-                    <Select.Option value="Apartment">Apartment</Select.Option>
+                    <Select.Option value="Co-living">Co-living</Select.Option>
                   </Select>
                 </Form.Item>
                 
@@ -467,6 +482,14 @@ const HostelManagerHostelForm = () => {
                     <Select.Option value="Boys">Boys Only</Select.Option>
                     <Select.Option value="Girls">Girls Only</Select.Option>
                     <Select.Option value="Co-ed">Co-ed</Select.Option>
+                  </Select>
+                </Form.Item>
+
+                <Form.Item name="foodType" label="Food Type">
+                  <Select size="large" className="w-full">
+                    <Select.Option value="Both">Both (Veg & Non-Veg)</Select.Option>
+                    <Select.Option value="Veg Only">Veg Only</Select.Option>
+                    <Select.Option value="Non-Veg">Non-Veg</Select.Option>
                   </Select>
                 </Form.Item>
                 
@@ -785,13 +808,36 @@ const HostelManagerHostelForm = () => {
                         </Form.Item>
                       </div>
                     ))}
-                    <button 
-                      type="button" 
-                      onClick={() => add({ type: 'percentage' })} 
-                      className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
-                    >
-                      <Plus size={18} /> Add New Plan
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <button 
+                        type="button" 
+                        onClick={() => add({ type: 'percentage', installments: [] })} 
+                        className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                      >
+                        <Plus size={18} /> Custom Plan
+                      </button>
+                      <Dropdown menu={{
+                        items: templateOptions.length > 0 ? templateOptions.map(template => ({
+                          key: template._id,
+                          label: template.name,
+                          onClick: () => add({
+                            name: template.name,
+                            type: template.type,
+                            installments: template.installments.map(inst => ({
+                              value: inst.value,
+                              dueDate: inst.dueDate || ''
+                            }))
+                          })
+                        })) : [{ key: 'empty', label: 'No templates found', disabled: true }]
+                      }}>
+                        <button 
+                          type="button" 
+                          className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 border-2 border-dashed border-blue-300 text-blue-600 font-medium rounded-xl hover:border-blue-400 hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
+                        >
+                          <LayoutTemplate size={18} /> Use Template
+                        </button>
+                      </Dropdown>
+                    </div>
                   </div>
                 )}
               </Form.List>

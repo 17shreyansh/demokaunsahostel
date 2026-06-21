@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const { optimizeImage } = require('../utils/imageOptimizer');
 const Hostel = require('../models/Hostel');
 const auth = require('../middleware/auth');
 const router = express.Router();
@@ -46,7 +47,7 @@ router.get('/', async (req, res) => {
   try {
     const { 
       search, location, minPrice, maxPrice, gender, type,
-      amenities, availability, sortBy, nearbyPlace, page = 1, limit = 12 
+      amenities, availability, sortBy, nearbyPlace, verified, foodType, page = 1, limit = 12 
     } = req.query;
     
     // Check cache first
@@ -148,6 +149,16 @@ router.get('/', async (req, res) => {
       query.type = type.trim();
     }
     
+    // Verified filter
+    if (verified && verified === 'true') {
+      query.verified = true;
+    }
+    
+    // Food Type filter
+    if (foodType && foodType.trim() && foodType !== '') {
+      query.foodType = foodType.trim();
+    }
+    
     // Amenities
     if (amenities && amenities.trim() && amenities !== '') {
       const amenityList = amenities.split(',').map(a => a.trim()).filter(a => a);
@@ -201,7 +212,12 @@ router.get('/', async (req, res) => {
                           then: {
                             $toDouble: {
                               $arrayElemAt: [
-                                { $split: ["$$place.distance", " "] },
+                                { 
+                                  $split: [
+                                    { $replaceAll: { input: "$$place.distance", find: "~", replacement: "" } }, 
+                                    " "
+                                  ] 
+                                },
                                 0
                               ]
                             }
@@ -335,6 +351,7 @@ router.get('/filters/options', async (req, res) => {
     const genders = await Hostel.distinct('gender');
     const types = await Hostel.distinct('type');
     const amenities = await Hostel.distinct('amenities');
+    const foodTypes = await Hostel.distinct('foodType');
     
     // Get nearby places from NearbyPlaces collection
     const NearbyPlaces = require('../models/NearbyPlaces');
@@ -345,6 +362,7 @@ router.get('/filters/options', async (req, res) => {
       locations: locations.filter(Boolean).sort(),
       genders: genders.filter(Boolean).sort(),
       types: types.filter(Boolean).sort(),
+      foodTypes: foodTypes.filter(Boolean).sort(),
       amenities: amenities.filter(Boolean).sort(),
       nearbyPlaces
     });
@@ -489,7 +507,7 @@ router.post('/', auth, upload.any(), async (req, res) => {
     // Handle profile image
     const profileImageFile = req.files?.find(file => file.fieldname === 'profileImage');
     if (profileImageFile) {
-      hostelData.contactInfo.profileImage = profileImageFile.filename;
+      hostelData.contactInfo.profileImage = await optimizeImage(profileImageFile, 400);
     }
     
     // Handle nearby places
@@ -523,7 +541,7 @@ router.post('/', auth, upload.any(), async (req, res) => {
     
     if (req.files && req.files.length > 0) {
       const imageFiles = req.files.filter(file => file.fieldname === 'images');
-      hostelData.images = imageFiles.map(file => file.filename);
+      hostelData.images = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
     }
     
     const hostel = new Hostel(hostelData);
@@ -621,7 +639,7 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
     // Handle profile image
     const profileImageFile = req.files?.find(file => file.fieldname === 'profileImage');
     if (profileImageFile) {
-      updateData.contactInfo.profileImage = profileImageFile.filename;
+      updateData.contactInfo.profileImage = await optimizeImage(profileImageFile, 400);
     } else if (updateData.existingProfileImage) {
       updateData.contactInfo.profileImage = updateData.existingProfileImage;
     }
@@ -669,7 +687,7 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
         
         // Add new uploaded images
         const imageFiles = req.files ? req.files.filter(file => file.fieldname === 'images') : [];
-        const newImages = imageFiles.map(file => file.filename);
+        const newImages = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
         
         finalImages = [...keepExisting, ...newImages];
         delete updateData.finalImages;
@@ -686,7 +704,8 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
       finalImages = existingHostel?.images || [];
       if (req.files) {
         const imageFiles = req.files.filter(file => file.fieldname === 'images');
-        finalImages = [...finalImages, ...imageFiles.map(file => file.filename)];
+        const newImages = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
+        finalImages = [...finalImages, ...newImages];
       }
     }
     

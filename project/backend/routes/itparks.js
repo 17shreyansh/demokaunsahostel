@@ -63,8 +63,8 @@ router.get('/distances', async (req, res) => {
 
     // Sort by distance
     parksWithDistances.sort((a, b) => {
-      const aNum = parseFloat(a.distance);
-      const bNum = parseFloat(b.distance);
+      const aNum = parseFloat(String(a.distance).replace(/[^\\d.-]/g, '')) || 999;
+      const bNum = parseFloat(String(b.distance).replace(/[^\\d.-]/g, '')) || 999;
       return aNum - bNum;
     });
 
@@ -77,13 +77,31 @@ router.get('/distances', async (req, res) => {
 // Calculate road distance using OpenRouteService (free API)
 async function calculateRoadDistance(lat1, lng1, lat2, lng2) {
   try {
+    const Settings = require('../models/Settings');
+    const setting = await Settings.findOne({ key: 'openroute_api_key' });
+    const apiKey = setting ? setting.value : null;
+
+    if (!apiKey || apiKey.length < 10) {
+      throw new Error('OpenRoute API key not configured');
+    }
+
     const response = await axios.get(
-      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf6248YOUR_API_KEY&start=${lng1},${lat1}&end=${lng2},${lat2}`
+      'https://api.openrouteservice.org/v2/directions/driving-car',
+      {
+        params: {
+          api_key: apiKey,
+          start: `${lng1},${lat1}`,
+          end: `${lng2},${lat2}`
+        },
+        timeout: 10000
+      }
     );
     
-    const distanceMeters = response.data.features[0].properties.segments[0].distance;
-    const distanceKm = (distanceMeters / 1000).toFixed(1);
-    return `${distanceKm} km`;
+    if (response.data.features && response.data.features[0]) {
+      const distance = response.data.features[0].properties.segments[0].distance / 1000;
+      return `${distance.toFixed(1)} km`;
+    }
+    throw new Error('Invalid response');
   } catch (error) {
     // Fallback to straight-line distance
     return calculateStraightDistance(lat1, lng1, lat2, lng2).toFixed(1) + ' km (approx)';

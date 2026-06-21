@@ -220,4 +220,11 @@ export const visitBookingAPI = {
   getMyBookings: () => api.get('/visit-bookings/my-bookings')
 }
 
+export const installmentTemplateAPI = {
+  getAll: () => api.get('/installment-templates'),
+  create: (data) => api.post('/installment-templates', data),
+  update: (id, data) => api.put(`/installment-templates/${id}`, data),
+  delete: (id) => api.delete(`/installment-templates/${id}`)
+}
+
 export default api

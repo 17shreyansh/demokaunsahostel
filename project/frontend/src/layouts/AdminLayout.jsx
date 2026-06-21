@@ -22,6 +22,7 @@ const MENU_ITEMS = [
   { key: 'nearbyplaces', label: 'Nearby Places', icon: MessageSquare, path: '/admin/nearbyplaces' },
   { key: 'leads', label: 'Bookings', icon: Folder, path: '/admin/leads' },
   { key: 'page-content', label: 'CMS Content', icon: FileText, path: '/admin/page-content' },
+  { key: 'installment-templates', label: 'Installment Templates', icon: FileText, path: '/admin/installment-templates' },
   { key: 'settings', label: 'System Settings', icon: Settings, path: '/admin/settings' },
   { key: 'visits', label: 'Users Visits', icon: Settings, path: '/admin/visit-bookings' },
   { key: 'assignments', label: 'Hostel Assignments', icon: Settings, path: '/admin/assignments' },

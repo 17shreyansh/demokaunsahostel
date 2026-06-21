@@ -6,6 +6,7 @@ const HostelChangeRequest = require('../models/HostelChangeRequest');
 const UserHostelAssignment = require('../models/UserHostelAssignment');
 const auth = require('../middleware/auth');
 const multer = require('multer');
+const { optimizeImage } = require('../utils/imageOptimizer');
 const router = express.Router();
 
 // Configure multer for file uploads
@@ -146,7 +147,7 @@ router.post('/hostels', auth, upload.any(), async (req, res) => {
     // Handle images - store just the filename
     if (req.files && req.files.length > 0) {
       const imageFiles = req.files.filter(file => file.fieldname === 'images');
-      hostelData.images = imageFiles.map(file => file.filename);
+      hostelData.images = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
     }
     
     // Create change request for admin approval
@@ -230,7 +231,7 @@ router.put('/hostels/:id', auth, upload.any(), async (req, res) => {
     let finalImages = existingHostel?.images || [];
     if (req.files && req.files.length > 0) {
       const imageFiles = req.files.filter(file => file.fieldname === 'images');
-      const newImages = imageFiles.map(file => file.filename);
+      const newImages = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
       finalImages = [...finalImages, ...newImages];
     }
     updateData.images = finalImages;

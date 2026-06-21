@@ -156,8 +156,8 @@ const NearbyPlacesDisplay = ({ hostelCoordinates, hostelNearbyPlaces }) => {
         const places = groupedPlaces[category]
         const categoryInfo = getCategoryInfo(category)
         const sortedPlaces = places.sort((a, b) => {
-          const aDistance = parseFloat(a.distance)
-          const bDistance = parseFloat(b.distance)
+          const aDistance = parseFloat(String(a.distance).replace(/[^\\d.-]/g, '')) || 999
+          const bDistance = parseFloat(String(b.distance).replace(/[^\\d.-]/g, '')) || 999
           return aDistance - bDistance
         })
 

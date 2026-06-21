@@ -48,14 +48,31 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
 
     <div className="space-y-5">
 
-      {/* Location */}
+      {/* Verified Property */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Location</label>
+        <label className="flex items-center gap-3 cursor-pointer group bg-gray-50 p-3 rounded-xl border border-gray-100 hover:border-blue-200 transition-all">
+          <div className="relative flex items-center">
+            <input 
+              type="checkbox" 
+              className="sr-only"
+              checked={filters.verified === 'true'}
+              onChange={(e) => updateFilters({ verified: e.target.checked ? 'true' : '' })}
+            />
+            <div className={`w-10 h-6 bg-gray-200 rounded-full transition-colors duration-300 ease-in-out ${filters.verified === 'true' ? 'bg-blue-500' : ''}`}></div>
+            <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${filters.verified === 'true' ? 'transform translate-x-4' : ''}`}></div>
+          </div>
+          <span className="text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">Verified Property Only</span>
+        </label>
+      </div>
+
+      {/* Type */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Property Type</label>
         <MemoizedSelect
-          value={filters.location ? { value: filters.location, label: filters.location } : null}
-          onChange={(opt) => updateFilters({ location: opt?.value || '' })}
-          options={[{ value: '', label: 'All Locations' }, ...filterOptions.locations.map(loc => ({ value: loc, label: loc }))]}
-          placeholder="All Locations"
+          value={filters.type ? { value: filters.type, label: filters.type } : null}
+          onChange={(opt) => updateFilters({ type: opt?.value || '' })}
+          options={[{ value: '', label: 'All Types' }, { value: 'PG', label: 'PG' }, { value: 'Hostel', label: 'Hostel' }, { value: 'Co-living', label: 'Co-living' }]}
+          placeholder="All Types"
           isClearable
           menuPortalTarget={document.body}
           styles={getSelectStyles()}
@@ -76,28 +93,14 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
         />
       </div>
 
-      {/* Type */}
+      {/* Nearby College */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Hostel Type</label>
-        <MemoizedSelect
-          value={filters.type ? { value: filters.type, label: filters.type } : null}
-          onChange={(opt) => updateFilters({ type: opt?.value || '' })}
-          options={[{ value: '', label: 'All Types' }, { value: 'PG', label: 'PG' }, { value: 'Hostel', label: 'Hostel' }, { value: 'Apartment', label: 'Apartment' }]}
-          placeholder="All Types"
-          isClearable
-          menuPortalTarget={document.body}
-          styles={getSelectStyles()}
-        />
-      </div>
-
-      {/* Nearby Place */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Near To</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Nearby College</label>
         <MemoizedSelect
           value={filters.nearbyPlace ? { value: filters.nearbyPlace, label: filters.nearbyPlace } : null}
           onChange={(opt) => updateFilters({ nearbyPlace: opt?.value || '' })}
-          options={[{ value: '', label: 'All Places' }, ...filterOptions.nearbyPlaces.map(place => ({ value: place, label: place }))]}
-          placeholder="Select Place"
+          options={[{ value: '', label: 'All Colleges' }, ...(filterOptions.nearbyPlaces || []).map(place => ({ value: place, label: place }))]}
+          placeholder="Select College"
           isClearable
           isSearchable
           menuPortalTarget={document.body}
@@ -105,29 +108,63 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
         />
       </div>
 
-      {/* Amenities Multi-Select */}
+      {/* City */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">City</label>
+        <MemoizedSelect
+          value={filters.location ? { value: filters.location, label: filters.location } : null}
+          onChange={(opt) => updateFilters({ location: opt?.value || '' })}
+          options={[{ value: '', label: 'All Cities' }, ...(filterOptions.locations || []).map(loc => ({ value: loc, label: loc }))]}
+          placeholder="All Cities"
+          isClearable
+          menuPortalTarget={document.body}
+          styles={getSelectStyles()}
+        />
+      </div>
+
+      {/* Food Type */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Food Type</label>
+        <MemoizedSelect
+          value={filters.foodType ? { value: filters.foodType, label: filters.foodType } : null}
+          onChange={(opt) => updateFilters({ foodType: opt?.value || '' })}
+          options={[{ value: '', label: 'All Food Types' }, ...(filterOptions.foodTypes || []).map(food => ({ value: food, label: food }))]}
+          placeholder="All Food Types"
+          isClearable
+          menuPortalTarget={document.body}
+          styles={getSelectStyles()}
+        />
+      </div>
+
+      {/* Amenities Multi-Select Checklist */}
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-3">Amenities</label>
-        <div className="flex flex-wrap gap-2 p-4 border-2 border-gray-100 rounded-xl bg-gray-50 shadow-inner">
-          {filterOptions.amenities.map(amenity => {
-            const selectedAmenities = filters.amenities ? filters.amenities.split(',') : []
-            const isSelected = selectedAmenities.includes(amenity)
-            return (
-              <button
-                key={amenity}
-                onClick={() => {
-                  const newAmenities = isSelected ? selectedAmenities.filter(a => a !== amenity) : [...selectedAmenities, amenity]
-                  updateFilters({ amenities: newAmenities.length > 0 ? newAmenities.join(',') : '' })
-                }}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${isSelected
-                  ? 'bg-yellow-400 text-gray-900 shadow-md transform scale-105'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50'
-                  }`}
-              >
-                {amenity}
-              </button>
-            )
-          })}
+        <div className="p-4 border-2 border-gray-100 rounded-xl bg-gray-50 shadow-inner max-h-60 overflow-y-auto custom-scrollbar">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {(filterOptions.amenities || []).map(amenity => {
+              const selectedAmenities = filters.amenities ? filters.amenities.split(',') : []
+              const isSelected = selectedAmenities.includes(amenity)
+              return (
+                <label key={amenity} className="flex items-center gap-2 cursor-pointer group">
+                  <div className="relative flex items-center justify-center w-5 h-5">
+                    <input
+                      type="checkbox"
+                      className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:ring-2 focus:ring-yellow-400 checked:bg-yellow-400 checked:border-yellow-400 transition-all cursor-pointer"
+                      checked={isSelected}
+                      onChange={() => {
+                        const newAmenities = isSelected ? selectedAmenities.filter(a => a !== amenity) : [...selectedAmenities, amenity]
+                        updateFilters({ amenities: newAmenities.length > 0 ? newAmenities.join(',') : '' })
+                      }}
+                    />
+                    <svg className="absolute w-3.5 h-3.5 text-gray-900 pointer-events-none opacity-0 peer-checked:opacity-100 transform scale-50 peer-checked:scale-100 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition-colors truncate">{amenity}</span>
+                </label>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -188,7 +225,7 @@ const Hostels = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [pagination, setPagination] = useState({ current: 1, pages: 1, total: 0 })
-  const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [] })
+  const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [] })
   const [showFilters, setShowFilters] = useState(false)
   const searchTimeout = import('react').then(React => React.useRef(null)).catch(() => ({current: null})); // Just use standard import
 
@@ -202,6 +239,8 @@ const Hostels = () => {
     amenities: searchParams.get('amenities') || '',
     availability: searchParams.get('availability') || '',
     nearbyPlace: searchParams.get('nearbyPlace') || '',
+    verified: searchParams.get('verified') || '',
+    foodType: searchParams.get('foodType') || '',
     sortBy: searchParams.get('sortBy') || 'newest'
   })
 
@@ -224,10 +263,10 @@ const Hostels = () => {
   const fetchFilterOptions = useCallback(async () => {
     try {
       const response = await hostelAPI.getFilterOptions()
-      setFilterOptions(response.data || { locations: [], roomTypes: [], amenities: [], nearbyPlaces: [] })
+      setFilterOptions(response.data || { locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [] })
     } catch (error) {
       console.error('Error fetching filter options:', error)
-      setFilterOptions({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [] })
+      setFilterOptions({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [] })
     }
   }, [])
 
@@ -277,7 +316,7 @@ const Hostels = () => {
   const clearFilters = () => {
     setFilters({
       search: '', location: '', minPrice: '', maxPrice: '',
-      gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', sortBy: 'newest'
+      gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', verified: '', foodType: '', sortBy: 'newest'
     })
     setSearchParams({})
   }

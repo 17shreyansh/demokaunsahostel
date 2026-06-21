@@ -46,6 +46,7 @@ app.use('/api/admin/assignments', require('./routes/adminAssignments'));
 app.use('/api/manual-payments', require('./routes/manualPayments'));
 app.use('/api/reservations', require('./routes/reservations'));
 app.use('/api/hostel-manager/payments', require('./routes/hostelManagerPayments'));
+app.use('/api/installment-templates', require('./routes/installmentTemplates'));
 
 // Blog System Routes
 app.use('/api/blog', require('./routes/blog.routes'));

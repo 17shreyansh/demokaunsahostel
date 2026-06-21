@@ -116,12 +116,18 @@ const hostelSchema = new mongoose.Schema({
   }],
   type: {
     type: String,
+    enum: ['Hostel', 'PG', 'Co-living'],
     default: 'PG'
   },
   gender: {
     type: String,
     enum: ['Boys', 'Girls', 'Co-ed'],
     default: 'Co-ed'
+  },
+  foodType: {
+    type: String,
+    enum: ['Veg Only', 'Non-Veg', 'Both'],
+    default: 'Both'
   },
   securityDeposit: {
     type: Number
