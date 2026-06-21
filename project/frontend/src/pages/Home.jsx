@@ -67,35 +67,35 @@ const Home = () => {
     <main className="relative">
       {/* Fixed Static Background - GPU Optimized */}
       <div className="fixed top-0 left-0 w-full h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
-        <div 
+        <div
           className="absolute top-20 -left-20 w-80 h-80 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-full opacity-20 blur-3xl"
         />
-        <div 
+        <div
           className="absolute bottom-20 -right-20 w-96 h-96 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full opacity-20 blur-3xl"
         />
-        <div 
+        <div
           className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full opacity-10 blur-3xl transform -translate-x-1/2 -translate-y-1/2"
         />
-        <div 
+        <div
           className="absolute top-32 left-1/4 w-16 h-16 bg-gradient-to-br from-yellow-300 to-orange-300 rounded-2xl opacity-30 blur-sm"
         />
-        <div 
+        <div
           className="absolute bottom-40 right-1/4 w-12 h-12 bg-gradient-to-br from-blue-300 to-purple-300 rounded-full opacity-40 blur-sm"
         />
         {[...Array(6)].map((_, i) => (
           <div
             key={`floating-dot-${i}`}
             className="absolute w-2 h-2 bg-yellow-400 rounded-full opacity-30"
-            style={{ 
-              left: `${20 + i * 15}%`, 
+            style={{
+              left: `${20 + i * 15}%`,
               top: `${30 + (i % 3) * 20}%`
             }}
           />
         ))}
       </div>
-      
-      <HeroSection hostels={hostels} loading={loading} content={pageContent.hero} />
-      <HowItWorks content={pageContent.howItWorks} />
+
+      {/* <HeroSection hostels={hostels} loading={loading} content={pageContent.hero} /> */}
+      {/* <HowItWorks content={pageContent.howItWorks} /> */}
       <OurPartners />
       <FeaturedHostels hostels={hostels} loading={loading} />
       <WhyTrustUs />
