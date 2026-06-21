@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo, memo } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { hostelAPI } from '../services/api'
 import HostelCard from '../components/common/HostelCard'
@@ -16,18 +17,18 @@ const getSelectStyles = () => ({
     ...base,
     borderRadius: '12px',
     border: '2px solid #e5e7eb',
-    boxShadow: state.isFocused ? '0 0 0 3px rgba(245, 158, 11, 0.1)' : 'none',
-    borderColor: state.isFocused ? '#f59e0b' : '#e5e7eb',
+    boxShadow: state.isFocused ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none',
+    borderColor: state.isFocused ? '#3b82f6' : '#e5e7eb',
     padding: '4px',
     background: '#ffffff',
     fontSize: '16px',
-    '&:hover': { borderColor: '#fbbf24' },
+    '&:hover': { borderColor: '#93c5fd' },
     transition: 'all 0.2s ease'
   }),
   option: (base, state) => ({
     ...base,
-    backgroundColor: state.isSelected ? '#f59e0b' : state.isFocused ? '#fef3c7' : '#ffffff',
-    color: state.isSelected ? '#1f2937' : '#374151',
+    backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : '#ffffff',
+    color: state.isSelected ? '#ffffff' : '#374151',
     fontWeight: state.isSelected ? '600' : '500',
     padding: '12px 16px',
     fontSize: '16px',
@@ -69,7 +70,8 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
           options={[{ value: '', label: 'All Types' }, { value: 'PG', label: 'PG' }, { value: 'Hostel', label: 'Hostel' }, { value: 'Co-living', label: 'Co-living' }]}
           placeholder="All Types"
           isClearable
-          menuPortalTarget={document.body}
+          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+          menuPosition="fixed"
           styles={getSelectStyles()}
         />
       </div>
@@ -83,7 +85,8 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
           options={[{ value: '', label: 'All Genders' }, { value: 'Boys', label: 'Boys Only' }, { value: 'Girls', label: 'Girls Only' }, { value: 'Co-ed', label: 'Co-ed' }]}
           placeholder="All Genders"
           isClearable
-          menuPortalTarget={document.body}
+          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+          menuPosition="fixed"
           styles={getSelectStyles()}
         />
       </div>
@@ -98,7 +101,8 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
           placeholder="Select College"
           isClearable
           isSearchable
-          menuPortalTarget={document.body}
+          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+          menuPosition="fixed"
           styles={getSelectStyles()}
         />
       </div>
@@ -112,7 +116,8 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
           options={[{ value: '', label: 'All Cities' }, ...(filterOptions.locations || []).map(loc => ({ value: loc, label: loc }))]}
           placeholder="All Cities"
           isClearable
-          menuPortalTarget={document.body}
+          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+          menuPosition="fixed"
           styles={getSelectStyles()}
         />
       </div>
@@ -126,7 +131,23 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
           options={[{ value: '', label: 'All Food Types' }, ...(filterOptions.foodTypes || []).map(food => ({ value: food, label: food }))]}
           placeholder="All Food Types"
           isClearable
-          menuPortalTarget={document.body}
+          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+          menuPosition="fixed"
+          styles={getSelectStyles()}
+        />
+      </div>
+
+      {/* Availability */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Availability</label>
+        <MemoizedSelect
+          value={filters.availability ? { value: filters.availability, label: filters.availability } : null}
+          onChange={(opt) => updateFilters({ availability: opt?.value || '' })}
+          options={[{ value: '', label: 'Any Availability' }, { value: 'Available', label: 'Available' }, { value: 'Limited', label: 'Limited' }, { value: 'Full', label: 'Full' }]}
+          placeholder="Any Availability"
+          isClearable
+          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+          menuPosition="fixed"
           styles={getSelectStyles()}
         />
       </div>
@@ -144,7 +165,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
                   <div className="relative flex items-center justify-center w-5 h-5">
                     <input
                       type="checkbox"
-                      className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:ring-2 focus:ring-yellow-400 checked:bg-yellow-400 checked:border-yellow-400 transition-all cursor-pointer"
+                      className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer"
                       checked={isSelected}
                       onChange={() => {
                         const newAmenities = isSelected ? selectedAmenities.filter(a => a !== amenity) : [...selectedAmenities, amenity]
@@ -167,33 +188,41 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-4">Price Range <span className="text-gray-400 font-normal text-xs">(per month)</span></label>
         <div className="bg-gray-50 p-5 border border-gray-100 rounded-xl">
-          <div className="space-y-5">
+          <div className="space-y-6">
             <div>
-              <label className="flex justify-between text-xs font-medium text-gray-500 mb-2">
-                <span>Minimum</span>
-                <span className="font-bold text-gray-900">
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Minimum</label>
+                <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md text-sm">
                   ₹{parseInt(filters.minPrice || 0).toLocaleString('en-IN')}
                 </span>
-              </label>
+              </div>
               <input
-                type="range" min="0" max="300000" step="1000"
+                type="range" min="0" max="100000" step="500"
                 value={filters.minPrice || 0}
-                onChange={(e) => updateFilters({ minPrice: e.target.value })}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                onChange={(e) => {
+                   const val = parseInt(e.target.value);
+                   const max = parseInt(filters.maxPrice || 100000);
+                   if (val <= max) updateFilters({ minPrice: val });
+                }}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
             <div>
-              <label className="flex justify-between text-xs font-medium text-gray-500 mb-2">
-                <span>Maximum</span>
-                <span className="font-bold text-gray-900">
-                  ₹{parseInt(filters.maxPrice || 300000).toLocaleString('en-IN')}
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Maximum</label>
+                <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md text-sm">
+                  ₹{parseInt(filters.maxPrice || 100000).toLocaleString('en-IN')}
                 </span>
-              </label>
+              </div>
               <input
-                type="range" min="0" max="300000" step="1000"
-                value={filters.maxPrice || 300000}
-                onChange={(e) => updateFilters({ maxPrice: e.target.value })}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                type="range" min="0" max="100000" step="500"
+                value={filters.maxPrice || 100000}
+                onChange={(e) => {
+                   const val = parseInt(e.target.value);
+                   const min = parseInt(filters.minPrice || 0);
+                   if (val >= min) updateFilters({ maxPrice: val });
+                }}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
           </div>
@@ -224,7 +253,7 @@ const Hostels = () => {
   const [pagination, setPagination] = useState({ current: 1, pages: 1, total: 0 })
   const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [] })
   const [showFilters, setShowFilters] = useState(false)
-  const searchTimeout = import('react').then(React => React.useRef(null)).catch(() => ({current: null})); // Just use standard import
+  const searchTimeout = useRef(null)
 
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
@@ -240,6 +269,40 @@ const Hostels = () => {
     foodType: searchParams.get('foodType') || '',
     sortBy: searchParams.get('sortBy') || 'newest'
   })
+
+  // Sync state if URL changes externally (e.g. back button)
+  useEffect(() => {
+    setFilters({
+      search: searchParams.get('search') || '',
+      location: searchParams.get('location') || '',
+      minPrice: searchParams.get('minPrice') || '',
+      maxPrice: searchParams.get('maxPrice') || '',
+      gender: searchParams.get('gender') || '',
+      type: searchParams.get('type') || '',
+      amenities: searchParams.get('amenities') || '',
+      availability: searchParams.get('availability') || '',
+      nearbyPlace: searchParams.get('nearbyPlace') || '',
+      verified: searchParams.get('verified') || '',
+      foodType: searchParams.get('foodType') || '',
+      sortBy: searchParams.get('sortBy') || 'newest'
+    });
+  }, [searchParams]);
+
+  // Lock body scroll when mobile filter is open
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (showFilters) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+      }
+    }
+  }, [showFilters]);
 
   // Optimized debounced search
   useEffect(() => {
@@ -293,15 +356,18 @@ const Hostels = () => {
   }, [searchParams])
 
   const updateFilters = useCallback((newFilters) => {
-    const updatedFilters = { ...filters, ...newFilters }
-    setFilters(updatedFilters)
+    setFilters(prev => {
+      const updatedFilters = { ...prev, ...newFilters }
 
-    const params = new URLSearchParams()
-    Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value && value !== '') params.set(key, value)
+      const params = new URLSearchParams()
+      Object.entries(updatedFilters).forEach(([key, value]) => {
+        if (value && value !== '') params.set(key, value)
+      })
+      setSearchParams(params, { replace: true })
+      
+      return updatedFilters
     })
-    setSearchParams(params, { replace: true })
-  }, [filters, setSearchParams])
+  }, [setSearchParams])
 
   const clearFilters = () => {
     setFilters({
@@ -333,7 +399,7 @@ const Hostels = () => {
           <div className="hidden lg:block w-[340px] flex-shrink-0 sticky top-6 self-start max-h-[calc(100vh-3rem)] overflow-y-auto no-scrollbar pb-6">
             <div className="bg-white p-7 rounded-3xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md">
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" /></svg>
+                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" /></svg>
                 Refine Search
               </h2>
               <FilterContentBlocks 
@@ -362,7 +428,7 @@ const Hostels = () => {
                   <input
                     type="text"
                     placeholder="Search colleges, hostels, locations ..."
-                    className="w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-yellow-custom/20 focus:border-yellow-custom text-sm font-medium transition-all"
+                    className="w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium transition-all"
                     value={filters.search}
                     onChange={(e) => updateFilters({ search: e.target.value })}
                   />
@@ -390,7 +456,8 @@ const Hostels = () => {
                     { value: 'rating', label: 'Highest Rated' }
                   ]}
                   isSearchable={false}
-                  menuPortalTarget={document.body}
+                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                  menuPosition="fixed"
                   styles={getSelectStyles()}
                 />
               </div>
@@ -399,7 +466,7 @@ const Hostels = () => {
             {/* Results Grid */}
             {loading ? (
               <div className="flex flex-col items-center justify-center py-32">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-[3px] border-yellow-400 border-t-transparent shadow-sm mb-4"></div>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-[3px] border-blue-600 border-t-transparent shadow-sm mb-4"></div>
                 <p className="text-gray-500 font-medium">Curating your spaces...</p>
               </div>
             ) : error ? (
@@ -443,7 +510,7 @@ const Hostels = () => {
                     <p className="text-gray-500 mb-8 max-w-sm mx-auto leading-relaxed">We couldn't find any properties matching your exact criteria. Try broadening your search.</p>
                     <button
                       onClick={clearFilters}
-                      className="bg-yellow-400 text-gray-900 px-8 py-3.5 rounded-xl font-bold hover:bg-yellow-500 hover:shadow-lg transition-all active:scale-95"
+                      className="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-blue-700 hover:shadow-lg transition-all active:scale-95"
                     >
                       Reset Filters
                     </button>
@@ -479,7 +546,7 @@ const Hostels = () => {
       </div>
 
       {/* Mobile Bottom Sheet (Hardware Accelerated CSS) */}
-      {showFilters && (
+      {showFilters && typeof document !== 'undefined' && createPortal(
         <>
           {/* Backdrop Blur */}
           <div
@@ -522,14 +589,15 @@ const Hostels = () => {
                 </button>
                 <button 
                   onClick={() => setShowFilters(false)} 
-                  className="flex-1 bg-yellow-400 text-gray-900 font-bold py-3.5 rounded-xl hover:bg-yellow-500 transition-colors shadow-sm active:scale-95"
+                  className="flex-1 bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-colors shadow-sm active:scale-95"
                 >
                   Show Results
                 </button>
               </div>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   )
