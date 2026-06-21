@@ -266,8 +266,8 @@ hostelSchema.pre('save', function(next) {
 });
 
 // Create geospatial index for location-based queries
-hostelSchema.index({ 
-  'mapCoordinates': '2dsphere' 
-});
+// hostelSchema.index({ 
+//   'mapCoordinates': '2dsphere' 
+// });
 
 module.exports = mongoose.model('Hostel', hostelSchema);
