@@ -5,8 +5,13 @@ const PrivacyPolicy = memo(() => {
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <Helmet>
-        <title>Privacy Policy - Kaunsa Hostel</title>
-        <meta name="description" content="Privacy Policy for Kaunsa Hostel" />
+        <title>Privacy Policy - KaunsaHostel</title>
+        <meta name="description" content="Read KaunsaHostel's Privacy Policy. Learn how we collect, use, and protect your personal information when you use our services." />
+        <link rel="canonical" href="https://kaunsahostel.com/privacy" />
+        <meta property="og:title" content="Privacy Policy - KaunsaHostel" />
+        <meta property="og:description" content="Read KaunsaHostel's Privacy Policy. Learn how we collect, use, and protect your personal information." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kaunsahostel.com/privacy" />
       </Helmet>
 
       {/* Hero Section */}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { hostelAPI, pageAPI } from '../services/api';
 import { stateManager } from '../utils/stateManager';
 import HeroSection from '../components/home/HeroSection';
@@ -64,7 +65,18 @@ const Home = () => {
   }, []);
 
   return (
-    <main className="relative">
+    <>
+      <Helmet>
+        <title>KaunsaHostel - Best Hostels in Greater Noida</title>
+        <meta name="description" content="Find the best hostels for students and working professionals in Greater Noida. Affordable, secure, and packed with amenities. Book your stay today!" />
+        <link rel="canonical" href="https://kaunsahostel.com/" />
+        <meta property="og:title" content="KaunsaHostel - Best Hostels in Greater Noida" />
+        <meta property="og:description" content="Find the best hostels for students and working professionals in Greater Noida. Affordable, secure, and packed with amenities." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kaunsahostel.com/" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
+      <main className="relative">
       {/* Fixed Static Background - GPU Optimized */}
       <div className="fixed top-0 left-0 w-full h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
         <div
@@ -104,6 +116,7 @@ const Home = () => {
       <FAQSection />
       <TalkToUs />
     </main>
+    </>
   );
 };
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { hostelAPI } from '../services/api'
 import EnquiryForm from '../components/EnquiryForm'
 import HostelMap from '../components/HostelMap'
@@ -260,8 +261,55 @@ const HostelDetails = () => {
     </div>
   )
 
+  const pageTitle = `${hostel.name} - Best ${hostel.type || 'Hostel'} in ${hostel.location} | KaunsaHostel`;
+  const pageDescription = hostel.description ? (hostel.description.length > 155 ? hostel.description.substring(0, 155) + '...' : hostel.description) : `Find the best ${hostel.gender || ''} ${hostel.type || 'Hostel'} in ${hostel.location}. ${hostel.name} offers great amenities and comfortable stay.`;
+  const canonicalUrl = `https://kaunsahostel.com/hostel/${hostel.slug}`;
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+    <>
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        {hostel.images && hostel.images.length > 0 && (
+          <meta property="og:image" content={`${UPLOADS_BASE_URL}/${hostel.images[0]}`} />
+        )}
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={canonicalUrl} />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        {hostel.images && hostel.images.length > 0 && (
+          <meta name="twitter:image" content={`${UPLOADS_BASE_URL}/${hostel.images[0]}`} />
+        )}
+
+        {/* Structured Data (Schema.org) */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LodgingBusiness",
+            "name": hostel.name,
+            "description": hostel.description || pageDescription,
+            "image": hostel.images && hostel.images.length > 0 ? `${UPLOADS_BASE_URL}/${hostel.images[0]}` : "",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": hostel.location,
+              "addressRegion": "Uttar Pradesh",
+              "addressCountry": "IN"
+            },
+            "priceRange": hostel.price ? `₹${hostel.price}` : "$$",
+            "url": canonicalUrl
+          })}
+        </script>
+      </Helmet>
+      <div className="min-h-screen bg-gray-50 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
       
       {/* 1. Big Preview Image Section (Now Padded & Rounded) */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pt-4 sm:pt-6">
@@ -867,6 +915,7 @@ const HostelDetails = () => {
         </div>
       )}
     </div>
+    </>
   )
 }
 

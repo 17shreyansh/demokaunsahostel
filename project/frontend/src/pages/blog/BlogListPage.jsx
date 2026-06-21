@@ -46,8 +46,14 @@ export default function BlogList() {
   return (
     <div className="min-h-screen bg-white">
       <Helmet>
-        <title>Blog - Kaunsa College | Latest Articles & Insights</title>
-        <meta name="description" content="Read our latest articles, guides, and insights about hostels, student life, and education." />
+        <title>KaunsaHostel Blog | Student Life, Hostel Guides & Insights</title>
+        <meta name="description" content="Discover the best tips for student living, hostel recommendations, study hacks, and more on the KaunsaHostel blog. Your guide to student life in Greater Noida." />
+        <link rel="canonical" href="https://kaunsahostel.com/blog" />
+        <meta property="og:title" content="KaunsaHostel Blog | Student Life & Hostel Guides" />
+        <meta property="og:description" content="Discover the best tips for student living, hostel recommendations, study hacks, and more." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kaunsahostel.com/blog" />
+        <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
 
       {/* Hero Section */}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { leadAPI, pageAPI } from '../services/api'
 
 const Contact = () => {
@@ -43,6 +44,16 @@ const Contact = () => {
 
   return (
     <div className="bg-white">
+      <Helmet>
+        <title>Contact Us | KaunsaHostel Support</title>
+        <meta name="description" content="Get in touch with KaunsaHostel. Have questions about our hostels, bookings, or services? We're here to help you find your perfect stay in Greater Noida." />
+        <link rel="canonical" href="https://kaunsahostel.com/contact" />
+        <meta property="og:title" content="Contact Us | KaunsaHostel" />
+        <meta property="og:description" content="Get in touch with KaunsaHostel. We're here to help you find your perfect stay in Greater Noida." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kaunsahostel.com/contact" />
+        <meta name="twitter:card" content="summary" />
+      </Helmet>
       {/* Hero Section */}
       <section className="bg-gray-900 py-16">
         <div className="container mx-auto px-6 text-center">

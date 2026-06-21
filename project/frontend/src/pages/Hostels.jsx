@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { hostelAPI } from '../services/api'
@@ -389,7 +390,18 @@ const Hostels = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pb-24 font-sans animate-in fade-in duration-500">
+    <>
+      <Helmet>
+        <title>Find Hostels & PGs in Greater Noida | KaunsaHostel</title>
+        <meta name="description" content="Browse our wide selection of verified hostels, PGs, and co-living spaces in Greater Noida. Filter by price, amenities, and location to find your perfect stay." />
+        <link rel="canonical" href="https://kaunsahostel.com/hostels" />
+        <meta property="og:title" content="Find Hostels & PGs in Greater Noida | KaunsaHostel" />
+        <meta property="og:description" content="Browse our wide selection of verified hostels, PGs, and co-living spaces in Greater Noida. Filter by price, amenities, and location." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kaunsahostel.com/hostels" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
+      <div className="min-h-screen bg-[#F9FAFB] pb-24 font-sans animate-in fade-in duration-500">
 
       {/* Sleek Hero Header */}
       <div className="bg-white border-b border-gray-100 pt-20 pb-12 mb-8">
@@ -611,6 +623,7 @@ const Hostels = () => {
         document.body
       )}
     </div>
+    </>
   )
 }
 

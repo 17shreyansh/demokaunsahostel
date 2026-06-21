@@ -5,8 +5,13 @@ const TermsOfService = memo(() => {
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <Helmet>
-        <title>Terms of Service - Kaunsa Hostel</title>
-        <meta name="description" content="Terms of Service for Kaunsa Hostel" />
+        <title>Terms of Service - KaunsaHostel</title>
+        <meta name="description" content="Read KaunsaHostel's Terms of Service. By using our website and services, you agree to these terms and conditions." />
+        <link rel="canonical" href="https://kaunsahostel.com/terms" />
+        <meta property="og:title" content="Terms of Service - KaunsaHostel" />
+        <meta property="og:description" content="Read KaunsaHostel's Terms of Service." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kaunsahostel.com/terms" />
       </Helmet>
 
       {/* Hero Section */}

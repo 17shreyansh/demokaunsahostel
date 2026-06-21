@@ -104,12 +104,13 @@ export default function BlogPost() {
         <title>{blog.seo?.title || blog.title}</title>
         <meta name="description" content={blog.seo?.description || blog.excerpt} />
         <meta name="keywords" content={blog.seo?.keywords?.join(', ')} />
-        <link rel="canonical" href={blog.seo?.canonicalUrl} />
+        <link rel="canonical" href={blog.seo?.canonicalUrl || `https://kaunsahostel.com/blog/${blog.slug}`} />
         
         <meta property="og:title" content={blog.seo?.title || blog.title} />
         <meta property="og:description" content={blog.seo?.description || blog.excerpt} />
         <meta property="og:image" content={blog.seo?.ogImage || blog.featuredImage?.url} />
         <meta property="og:type" content="article" />
+        <meta property="og:url" content={blog.seo?.canonicalUrl || `https://kaunsahostel.com/blog/${blog.slug}`} />
         
         <meta name="twitter:card" content={blog.seo?.twitterCard || 'summary_large_image'} />
         <meta name="twitter:title" content={blog.seo?.title || blog.title} />

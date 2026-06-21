@@ -5,8 +5,13 @@ const RefundPolicy = memo(() => {
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <Helmet>
-        <title>Refund Policy - Kaunsa Hostel</title>
-        <meta name="description" content="Refund and Cancellation Policy for Kaunsa Hostel" />
+        <title>Refund & Cancellation Policy - KaunsaHostel</title>
+        <meta name="description" content="Review KaunsaHostel's Refund and Cancellation Policy. Understand our guidelines for hostel bookings, cancellations, and refund eligibility." />
+        <link rel="canonical" href="https://kaunsahostel.com/refund" />
+        <meta property="og:title" content="Refund & Cancellation Policy - KaunsaHostel" />
+        <meta property="og:description" content="Review KaunsaHostel's Refund and Cancellation Policy." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kaunsahostel.com/refund" />
       </Helmet>
 
       {/* Hero Section */}

@@ -1,4 +1,5 @@
 import { useState, useEffect, memo } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { pageAPI } from '../services/api';
 import founderImage from '../assets/founder.jpeg';
 
@@ -69,6 +70,16 @@ const About = memo(() => {
 
   return (
     <div className="bg-white">
+      <Helmet>
+        <title>About Us | KaunsaHostel - Revolutionizing Student Living</title>
+        <meta name="description" content="Learn about KaunsaHostel's mission to provide premium, safe, and affordable student accommodation in Greater Noida. Meet our leadership team." />
+        <link rel="canonical" href="https://kaunsahostel.com/about" />
+        <meta property="og:title" content="About Us | KaunsaHostel" />
+        <meta property="og:description" content="Learn about KaunsaHostel's mission to provide premium, safe, and affordable student accommodation in Greater Noida." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kaunsahostel.com/about" />
+        <meta name="twitter:card" content="summary" />
+      </Helmet>
       {/* Hero Section */}
       <section className="bg-gray-900 py-24">
         <div className="container mx-auto px-6">
