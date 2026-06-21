@@ -21,6 +21,9 @@ import UserAuth from './pages/UserAuth'
 import UserProfile from './pages/UserProfile'
 import BlogList from './pages/blog/BlogListPage'
 import BlogPost from './pages/blog/BlogPostPage'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
+import RefundPolicy from './pages/RefundPolicy'
 
 // Admin & Manager Pages (Lazy loaded to reduce bundle size)
 const AdminLogin = lazy(() => import('./pages/AdminLogin'))
@@ -88,6 +91,9 @@ function App() {
                   <Route path="/user/profile" element={<UserProfile />} />
                   <Route path="/blog" element={<BlogList />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/refund" element={<RefundPolicy />} />
                 </Route>
 
                 {/* Admin Routes without Header/Footer */}

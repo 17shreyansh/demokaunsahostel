@@ -121,16 +121,13 @@ const Footer = memo(() => {
         <div className="mt-16 pt-8 border-t border-blue-900/30">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-gray-300 text-center md:text-left">
-              <p>&copy; 2026 Kaunsa Hostel. All Rights Reserved.</p>
+              <p>&copy; {new Date().getFullYear()} Kaunsa Hostel. All Rights Reserved.</p>
             </div>
-            {/* <div className="flex items-center space-x-2 text-gray-300">
-              <span>Made with</span>
-              <svg className="w-4 h-4 text-red-500 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-              <span>and craft by</span>
-              <a href="https://digitaladhyay.com" target="_blank" rel="noopener noreferrer" className="text-yellow-custom font-semibold hover:text-yellow-400 transition-colors">Digital Adhyay</a>
-            </div> */}
+            <div className="flex flex-wrap justify-center md:justify-end gap-6 text-sm text-gray-400">
+              <Link to="/privacy" className="hover:text-yellow-custom transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-yellow-custom transition-colors">Terms of Service</Link>
+              <Link to="/refund" className="hover:text-yellow-custom transition-colors">Refund Policy</Link>
+            </div>
           </div>
         </div>
       </div>
