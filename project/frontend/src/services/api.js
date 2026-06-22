@@ -22,7 +22,7 @@ api.interceptors.request.use((config) => {
   if (config.method === 'get') {
     const cacheKey = `${config.method}:${config.url}:${JSON.stringify(config.params)}`
     const cached = cache.get(cacheKey)
-    
+
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
       // LRU logic: move to newest
       cache.delete(cacheKey)
@@ -37,13 +37,13 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use((response) => {
   if (response.config.method === 'get') {
     const cacheKey = `${response.config.method}:${response.config.url}:${JSON.stringify(response.config.params)}`
-    
+
     // LRU eviction
     if (cache.size >= MAX_CACHE_SIZE && !cache.has(cacheKey)) {
       const oldestKey = cache.keys().next().value
       cache.delete(oldestKey)
     }
-    
+
     cache.set(cacheKey, {
       response,
       timestamp: Date.now()
@@ -199,16 +199,16 @@ export const hostelManagerAPI = {
   submitKYC: (formData) => uploadAPI.post('/hostel-manager/auth/kyc', formData),
   updateProfile: (data) => api.put('/hostel-manager/auth/profile', data),
   changePassword: (data) => api.put('/hostel-manager/auth/password', data),
-  
+
   // Dashboard
   getDashboard: () => api.get('/hostel-manager/dashboard'),
-  
+
   // Hostels
   getHostels: () => api.get('/hostel-manager/hostels'),
   createHostel: (formData) => uploadAPI.post('/hostel-manager/hostels', formData),
   updateHostel: (id, formData) => uploadAPI.put(`/hostel-manager/hostels/${id}`, formData),
   deleteHostel: (id) => api.delete(`/hostel-manager/hostels/${id}`),
-  
+
   // Reviews
   getReviews: () => api.get('/hostel-manager/reviews')
 }

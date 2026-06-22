@@ -15,17 +15,17 @@ const WhyTrustUs = () => {
         <div className="relative w-64 h-64 flex items-center justify-center">
           {/* Rotating glowing orb in background */}
           <div className="absolute w-40 h-40 bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-500 rounded-full blur-[40px] animate-pulse opacity-70" />
-          
+
           {/* Outer tech rings */}
           <div className="absolute inset-2 border-[1.5px] border-yellow-500/30 rounded-full animate-[spin_20s_linear_infinite]" style={{ borderTopColor: 'transparent', borderLeftColor: 'transparent' }} />
           <div className="absolute inset-6 border-[1.5px] border-yellow-400/40 rounded-full animate-[spin_15s_linear_infinite_reverse]" style={{ borderBottomColor: 'transparent', borderRightColor: 'transparent' }} />
 
           {/* The main Badge (Glass Shield) */}
           <div className="relative z-10 w-36 h-40 bg-white/40 backdrop-blur-2xl border border-white/80 shadow-[0_8px_32px_rgba(250,204,21,0.25)] flex flex-col items-center justify-center overflow-hidden animate-wtu-float-slow" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}>
-            
+
             {/* Inner subtle noise */}
             <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
-            
+
             {/* The Checkmark Coin */}
             <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center shadow-xl mb-2 mt-1">
               {/* Pulsing ring behind check */}
@@ -34,7 +34,7 @@ const WhyTrustUs = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            
+
             {/* Verification lines */}
             <div className="flex flex-col items-center space-y-1.5 mt-3 z-10">
               <div className="w-12 h-1.5 rounded-full bg-yellow-600/30" />
@@ -49,7 +49,7 @@ const WhyTrustUs = () => {
       )
     },
     {
-      title: "50,000+ Happy Students",
+      title: "5000+ Happy Students",
       description: "Join the largest community of students who have found their perfect home away from home. Our platform is built on trust, transparency, and wellbeing.",
       features: ["Vibrant student community", "Genuine resident reviews", "Community support events"],
       pill1: "Active Community",
@@ -59,7 +59,7 @@ const WhyTrustUs = () => {
         <div className="relative w-64 h-64 flex items-center justify-center">
           {/* Animated gradient mesh background */}
           <div className="absolute inset-0 bg-gradient-to-tr from-yellow-200 via-yellow-100 to-rose-100 rounded-full blur-3xl opacity-50 animate-pulse" />
-          
+
           {/* Network lines - super thin, elegant */}
           <svg className="absolute inset-0 w-full h-full text-gray-400/20" viewBox="0 0 200 200">
             <circle cx="100" cy="100" r="50" fill="none" stroke="currentColor" strokeWidth="1" className="animate-[spin_20s_linear_infinite]" strokeDasharray="4 12" />
@@ -82,7 +82,7 @@ const WhyTrustUs = () => {
               <div className="w-2.5 h-2.5 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
             </div>
           </div>
-          
+
           <div className="absolute inset-0 flex items-center justify-center animate-[spin_25s_linear_infinite_reverse]">
             <div className="absolute -left-8 w-16 h-16 bg-white/40 backdrop-blur-lg border border-white/50 rounded-full shadow-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
@@ -110,7 +110,7 @@ const WhyTrustUs = () => {
           <div className="relative z-10 w-48 h-40 bg-white/40 backdrop-blur-xl border border-white/60 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-end justify-between p-6 overflow-hidden animate-wtu-float-slow">
             {/* Grid background */}
             <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
-            
+
             {/* Chart Bars */}
             <div className="relative z-10 w-7 bg-gray-400/40 rounded-t-sm animate-[wtu-bar-1_4s_ease-in-out_infinite]" />
             <div className="relative z-10 w-7 bg-gray-400/40 rounded-t-sm animate-[wtu-bar-2_4s_ease-in-out_infinite]" style={{ animationDelay: '0.5s' }} />
@@ -155,7 +155,7 @@ const WhyTrustUs = () => {
               <div className="absolute w-full h-full bg-green-500 rounded-full animate-ping opacity-75" />
               <div className="relative w-3 h-3 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.8)]" />
             </div>
-            
+
             {/* Soundwave/Pulse visualization */}
             <div className="flex items-center space-x-1.5 h-8">
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -214,7 +214,7 @@ const WhyTrustUs = () => {
         .animate-wtu-pulse-ring { animation: wtu-pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
       `}</style>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-        
+
         {/* Minimalist Header */}
         <div className="text-center mb-20 lg:mb-32 max-w-3xl mx-auto">
           <div ref={headerRef} className="scroll-fade-up">
@@ -249,23 +249,23 @@ const ReasonBlock = ({ reason, index, isEven }) => {
   const textRef = useScrollAnimation();
 
   return (
-    <div 
+    <div
       className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12 lg:gap-24`}
     >
-      
+
       {/* Visual "Pro" Object Side */}
-      <div 
+      <div
         ref={artRef}
         className="w-full lg:w-1/2 scroll-fade-up"
       >
         <div className="relative w-full aspect-square sm:aspect-[4/3] lg:aspect-square bg-[#FAFAFA] rounded-[2rem] sm:rounded-[3rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex items-center justify-center group cursor-pointer">
-          
+
           {/* Minimalist Subtle Dot Grid Background */}
-          <div 
-            className="absolute inset-0 opacity-[0.15]" 
-            style={{ 
-              backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', 
-              backgroundSize: '24px 24px' 
+          <div
+            className="absolute inset-0 opacity-[0.15]"
+            style={{
+              backgroundImage: 'radial-gradient(#000 1px, transparent 1px)',
+              backgroundSize: '24px 24px'
             }}
           />
 
@@ -297,7 +297,7 @@ const ReasonBlock = ({ reason, index, isEven }) => {
       </div>
 
       {/* Details/Text Side */}
-      <div 
+      <div
         ref={textRef}
         className="w-full lg:w-1/2 flex flex-col justify-center relative scroll-fade-up stagger-2"
       >
@@ -305,7 +305,7 @@ const ReasonBlock = ({ reason, index, isEven }) => {
         <div className="absolute -top-16 -left-8 text-[12rem] font-black text-gray-50/80 pointer-events-none select-none z-0 hidden sm:block">
           0{index + 1}
         </div>
-        
+
         <div className="relative z-10 space-y-6">
           {/* Small Step Indicator for Mobile */}
           <span className="sm:hidden text-yellow-500 font-bold tracking-widest text-sm uppercase">
@@ -321,7 +321,7 @@ const ReasonBlock = ({ reason, index, isEven }) => {
 
           <ul className="space-y-4 pt-4">
             {reason.features.map((feature, fIndex) => (
-              <li 
+              <li
                 key={fIndex}
                 className="flex items-center space-x-4 group/item cursor-default"
               >

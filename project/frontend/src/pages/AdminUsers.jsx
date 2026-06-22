@@ -53,7 +53,7 @@ const AdminUsers = () => {
 
   const fetchAllHostels = async () => {
     try {
-      const response = await hostelAPI.getAll()
+      const response = await hostelAPI.getAll({ limit: 1000 })
       setAllHostels(response.data.hostels || [])
     } catch (error) {
       console.error('Failed to fetch hostels:', error)

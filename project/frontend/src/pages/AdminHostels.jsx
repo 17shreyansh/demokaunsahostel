@@ -27,7 +27,7 @@ const AdminHostels = () => {
       setLoading(true);
       if (force) hostelAPI.clearCache();
       
-      const response = await hostelAPI.getAll({ signal: abortSignal });
+      const response = await hostelAPI.getAll({ limit: 1000, signal: abortSignal });
       
       if (!abortSignal?.aborted) {
         setHostels(response.data?.hostels || response.data || []);

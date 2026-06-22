@@ -1,12 +1,12 @@
 import { useState, useEffect, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Form, Input, Select, Upload, message, 
-  InputNumber, DatePicker, Checkbox, Dropdown 
+import {
+  Form, Input, Select, Upload, message,
+  InputNumber, DatePicker, Checkbox, Dropdown
 } from 'antd';
 import dayjs from 'dayjs';
-import { 
-  Save, ArrowLeft, UploadCloud, Plus, 
+import {
+  Save, ArrowLeft, UploadCloud, Plus,
   Trash2, MapPin, Info, Layout, LayoutTemplate,
   Image as ImageIcon, Star, Loader2, DollarSign, Percent
 } from 'lucide-react';
@@ -96,7 +96,7 @@ const MemoizedMapPreview = memo(({ coordinates }) => {
       </div>
     );
   }
-  
+
   const [lat, lng] = coordinates.split(',').map(c => c.trim());
   if (isNaN(lat) || isNaN(lng)) return null;
 
@@ -125,7 +125,7 @@ const AdminHostelEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [fileList, setFileList] = useState([]);
@@ -153,11 +153,11 @@ const AdminHostelEdit = () => {
         setLoading(false);
         return;
       }
-      
+
       try {
         const response = await hostelAPI.getById(id);
         const data = response.data;
-        
+
         form.setFieldsValue({
           name: data.name || '',
           location: data.location || '',
@@ -208,7 +208,7 @@ const AdminHostelEdit = () => {
             isExisting: true
           })));
         }
-        
+
         if (data.contactInfo?.profileImage) {
           setProfileImage({
             uid: 'profile-existing',
@@ -231,10 +231,10 @@ const AdminHostelEdit = () => {
   const handleSubmit = async (values) => {
     setSubmitting(true);
     const hideLoading = message.loading('Saving property configuration...', 0);
-    
+
     try {
       const formData = new FormData();
-      
+
       ['amenities', 'rules', 'nearbyPlaces'].forEach(key => {
         formData.append(key, JSON.stringify(values[key] || (key === 'nearbyPlaces' ? {} : [])));
       });
@@ -275,27 +275,27 @@ const AdminHostelEdit = () => {
       if (values.paymentDetails) {
         formData.append('paymentDetails', JSON.stringify(values.paymentDetails));
       }
-      
+
       // Reservation settings - explicitly handle boolean and number
       const reservationEnabled = values.reservationEnabled === true;
       formData.append('reservationEnabled', reservationEnabled.toString());
-      
+
       const reservationAmount = Number(values.reservationAmount) || 0;
       formData.append('reservationAmount', reservationAmount.toString());
-      
+
       console.log('Saving reservation settings:', { reservationEnabled, reservationAmount });
 
       const newImages = fileList.filter(file => file.originFileObj);
       const keepImages = fileList.filter(file => file.isExisting && file.status === 'done');
-      
+
       newImages.forEach(file => formData.append('images', file.originFileObj));
-      
+
       if (profileImage?.originFileObj) {
         formData.append('profileImage', profileImage.originFileObj);
       } else if (profileImage?.isExisting) {
         formData.append('existingProfileImage', profileImage.name);
       }
-      
+
       formData.append('finalImages', JSON.stringify([...keepImages.map(f => f.name), ...newImages.map(f => f.name || `new-${Date.now()}`)]));
 
       if (id && id !== 'new') {
@@ -305,13 +305,13 @@ const AdminHostelEdit = () => {
         await hostelAPI.create(formData);
         message.success('Property created successfully');
       }
-      
+
       forceRefresh();
       hostelAPI.clearCache();
       invalidateData('hostels');
       invalidateData('homepage');
       invalidateData('dashboard');
-      
+
       navigate('/admin/hostels', { replace: true });
     } catch (error) {
       message.error(`Failed to save: ${error.response?.data?.message || error.message}`);
@@ -347,12 +347,12 @@ const AdminHostelEdit = () => {
 
   return (
     <div className="pb-16 bg-[#FAFAFA] min-h-screen font-sans text-gray-900">
-      
+
       {/* Sticky Enterprise Header */}
       <header className="sticky top-0 z-40 bg-white/80  border-b border-gray-200 px-4 sm:px-6 py-4 mb-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => navigate('/admin/hostels')}
               className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-label="Go back"
@@ -367,14 +367,14 @@ const AdminHostelEdit = () => {
             </div>
           </div>
           <div className="flex w-full sm:w-auto items-center gap-3">
-            <button 
-              onClick={() => navigate('/admin/hostels')} 
+            <button
+              onClick={() => navigate('/admin/hostels')}
               disabled={submitting}
               className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all disabled:opacity-50"
             >
               Discard
             </button>
-            <button 
+            <button
               onClick={() => form.submit()}
               disabled={submitting}
               className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
@@ -397,7 +397,7 @@ const AdminHostelEdit = () => {
           // Advanced Tailwind injected styling to force Antd components to look modern
           className="space-y-8 [&_.ant-form-item-label>label]:font-medium [&_.ant-form-item-label>label]:text-gray-700 [&_.ant-input]:rounded-lg [&_.ant-select-selector]:rounded-lg [&_.ant-input-number]:rounded-lg [&_.ant-input]:border-gray-300 [&_.ant-select-selector]:border-gray-300 [&_.ant-picker]:rounded-lg [&_.ant-picker]:border-gray-300"
         >
-          
+
           {/* Section 1: Basic Information */}
           <FormSection title="Basic Information" icon={Info}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
@@ -408,7 +408,7 @@ const AdminHostelEdit = () => {
                 <Input size="large" placeholder="e.g., Knowledge Park, Greater Noida" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
               </Form.Item>
             </div>
-            
+
             <Form.Item name="address" label="Full Street Address" className="mt-2">
               <TextArea rows={2} placeholder="Complete address for map routing" className="rounded-lg hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
             </Form.Item>
@@ -422,9 +422,9 @@ const AdminHostelEdit = () => {
           <FormSection title="Location & Mapping" icon={MapPin}>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
               <div className="flex flex-col gap-4">
-                <Form.Item 
-                  name="coordinates" 
-                  label="GPS Coordinates" 
+                <Form.Item
+                  name="coordinates"
+                  label="GPS Coordinates"
                   extra={<span className="text-xs text-gray-500 mt-1 block">Format: Latitude, Longitude (e.g., 28.4643, 77.4993)</span>}
                   className="mb-0"
                 >
@@ -452,9 +452,9 @@ const AdminHostelEdit = () => {
                   <Select.Option value="session">Per Session</Select.Option>
                 </Select>
               </Form.Item>
-              
-              <Form.Item 
-                noStyle 
+
+              <Form.Item
+                noStyle
                 shouldUpdate={(prev, curr) => prev.priceType !== curr.priceType}
               >
                 {({ getFieldValue }) => (
@@ -463,11 +463,11 @@ const AdminHostelEdit = () => {
                   </Form.Item>
                 )}
               </Form.Item>
-              
+
               <Form.Item name="securityDeposit" label="Security Deposit">
                 <InputNumber size="large" className="w-full" formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
               </Form.Item>
-              
+
               <Form.Item name="availability" label="Current Status" rules={[{ required: true }]}>
                 <Select size="large" className="w-full">
                   <Select.Option value="Available"><span className="text-emerald-600 font-semibold">● Available</span></Select.Option>
@@ -483,7 +483,7 @@ const AdminHostelEdit = () => {
                   <Select.Option value="Co-living">Co-living</Select.Option>
                 </Select>
               </Form.Item>
-              
+
               <Form.Item name="gender" label="Gender Restriction">
                 <Select size="large" className="w-full">
                   <Select.Option value="Boys">Boys Only</Select.Option>
@@ -499,15 +499,15 @@ const AdminHostelEdit = () => {
                   <Select.Option value="Non-Veg">Non-Veg</Select.Option>
                 </Select>
               </Form.Item>
-              
+
               <Form.Item name="verified" valuePropName="checked" label="Verification Status">
                 <Checkbox className="font-medium text-gray-700">Verified Property</Checkbox>
               </Form.Item>
-              
+
               <Form.Item name="capacity" label="Total Capacity">
                 <Input size="large" placeholder="e.g., 50 Students" />
               </Form.Item>
-              
+
               <Form.Item name="availableBeds" label="Open Beds">
                 <InputNumber size="large" className="w-full" min={0} />
               </Form.Item>
@@ -521,30 +521,30 @@ const AdminHostelEdit = () => {
                   <p className="text-sm text-purple-700">Allow users to reserve this hostel by paying an advance amount</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Form.Item name="reservationEnabled" valuePropName="checked" className="mb-0">
                   <Checkbox className="text-gray-700 font-medium">
                     Enable Reservation System
                   </Checkbox>
                 </Form.Item>
-                
-                <Form.Item 
-                  noStyle 
+
+                <Form.Item
+                  noStyle
                   shouldUpdate={(prev, curr) => prev.reservationEnabled !== curr.reservationEnabled}
                 >
                   {({ getFieldValue }) => (
-                    <Form.Item 
-                      name="reservationAmount" 
-                      label="Reservation Amount" 
+                    <Form.Item
+                      name="reservationAmount"
+                      label="Reservation Amount"
                       className="mb-0"
                     >
-                      <InputNumber 
-                        size="large" 
-                        className="w-full" 
+                      <InputNumber
+                        size="large"
+                        className="w-full"
                         min={0}
                         disabled={!getFieldValue('reservationEnabled')}
-                        formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} 
+                        formatter={value => `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                         parser={value => value.replace(/₹\s?|(,*)/g, '')}
                         placeholder="Enter reservation amount"
                       />
@@ -565,7 +565,7 @@ const AdminHostelEdit = () => {
                 <Select mode="tags" size="large" placeholder="Type a rule and press Enter..." className="w-full" />
               </Form.Item>
             </FormSection>
-            
+
             <FormSection title="Media Gallery" icon={ImageIcon} className="h-full">
               <Form.Item name="images" label="Property Photos" extra={<span className="text-xs text-gray-500 mt-1 block">Supported: JPG, PNG, WebP. Max 10 images.</span>}>
                 <Upload
@@ -608,7 +608,7 @@ const AdminHostelEdit = () => {
                           <Input size="large" placeholder="Brief description of the room..." className="w-full" />
                         </Form.Item>
                       </div>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => remove(name)}
                         className="absolute -top-3 -right-3 md:relative md:top-0 md:right-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white md:bg-transparent rounded-full md:rounded-lg border md:border-0 border-gray-200 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-sm md:shadow-none"
@@ -618,9 +618,9 @@ const AdminHostelEdit = () => {
                       </button>
                     </div>
                   ))}
-                  <button 
-                    type="button" 
-                    onClick={() => add()} 
+                  <button
+                    type="button"
+                    onClick={() => add()}
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
                   >
                     <Plus size={18} /> Add Room Configuration
@@ -668,7 +668,7 @@ const AdminHostelEdit = () => {
                           <InputNumber size="large" className="w-full" min={0} />
                         </Form.Item>
                       </div>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => remove(name)}
                         className="absolute -top-3 -right-3 md:relative md:top-auto md:right-auto md:self-end w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white rounded-full border border-gray-200 text-gray-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-sm"
@@ -678,9 +678,9 @@ const AdminHostelEdit = () => {
                       </button>
                     </div>
                   ))}
-                  <button 
-                    type="button" 
-                    onClick={() => add({ name: '', price: 0, priceType: 'month', available: 0 })} 
+                  <button
+                    type="button"
+                    onClick={() => add({ name: '', price: 0, priceType: 'month', available: 0 })}
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
                   >
                     <Plus size={18} /> Add Sharing Type
@@ -706,7 +706,7 @@ const AdminHostelEdit = () => {
                           <Input size="large" placeholder="Value (e.g., 30 Days)" className="w-full" />
                         </Form.Item>
                       </div>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => remove(name)}
                         className="absolute -top-3 -right-3 md:relative md:top-0 md:right-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white md:bg-transparent rounded-full md:rounded-lg border md:border-0 border-gray-200 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors focus:outline-none shadow-sm md:shadow-none"
@@ -716,9 +716,9 @@ const AdminHostelEdit = () => {
                       </button>
                     </div>
                   ))}
-                  <button 
-                    type="button" 
-                    onClick={() => add()} 
+                  <button
+                    type="button"
+                    onClick={() => add()}
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
                   >
                     <Plus size={18} /> Add Custom Field
@@ -734,7 +734,7 @@ const AdminHostelEdit = () => {
                 <div className="space-y-6">
                   {fields.map(({ key, name, ...restField }) => (
                     <div key={key} className="p-5 border border-gray-200 rounded-2xl bg-gray-50 relative group">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => remove(name)}
                         className="absolute top-4 right-4 p-2 text-gray-400 hover:text-rose-600 hover:bg-white rounded-lg transition-colors shadow-sm bg-gray-100 focus:outline-none"
@@ -742,7 +742,7 @@ const AdminHostelEdit = () => {
                       >
                         <Trash2 size={16} />
                       </button>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 pr-12">
                         <Form.Item {...restField} name={[name, 'name']} label="Reviewer Name" rules={[{ required: true }]} className="mb-0">
                           <Input size="large" />
@@ -759,9 +759,9 @@ const AdminHostelEdit = () => {
                       </Form.Item>
                     </div>
                   ))}
-                  <button 
-                    type="button" 
-                    onClick={() => add({ rating: 5 })} 
+                  <button
+                    type="button"
+                    onClick={() => add({ rating: 5 })}
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
                   >
                     <Plus size={18} /> Inject Customer Review
@@ -786,14 +786,14 @@ const AdminHostelEdit = () => {
                 <div className="space-y-6">
                   {fields.map(({ key, name, ...restField }) => (
                     <div key={key} className="p-5 border-2 border-blue-200 rounded-2xl bg-blue-50/30 relative">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => remove(name)}
                         className="absolute top-4 right-4 p-2 text-gray-400 hover:text-rose-600 hover:bg-white rounded-lg transition-colors shadow-sm focus:outline-none"
                       >
                         <Trash2 size={16} />
                       </button>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pr-12">
                         <Form.Item {...restField} name={[name, 'name']} label="Plan Name" rules={[{ required: true }]} className="mb-0">
                           <Input size="large" placeholder="e.g., 3 Installment Plan" />
@@ -826,9 +826,9 @@ const AdminHostelEdit = () => {
                                       <div key={iKey} className="flex items-center gap-3 mb-3">
                                         <span className="text-sm font-medium text-gray-600 w-20">#{index + 1}</span>
                                         <Form.Item {...iRestField} name={[iName, 'value']} className="mb-0 flex-1" rules={[{ required: true }]}>
-                                          <InputNumber 
-                                            size="large" 
-                                            className="w-full" 
+                                          <InputNumber
+                                            size="large"
+                                            className="w-full"
                                             min={0}
                                             max={planType === 'percentage' ? 100 : undefined}
                                             formatter={value => planType === 'percentage' ? `${value}%` : `₹ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
@@ -839,7 +839,7 @@ const AdminHostelEdit = () => {
                                         <Form.Item {...iRestField} name={[iName, 'dueDate']} className="mb-0 flex-1">
                                           <Input size="large" placeholder="e.g., Upon Admission" />
                                         </Form.Item>
-                                        <button 
+                                        <button
                                           type="button"
                                           onClick={() => removeInstallment(iName)}
                                           className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
@@ -848,9 +848,9 @@ const AdminHostelEdit = () => {
                                         </button>
                                       </div>
                                     ))}
-                                    <button 
-                                      type="button" 
-                                      onClick={() => addInstallment({ value: 0, dueDate: '' })} 
+                                    <button
+                                      type="button"
+                                      onClick={() => addInstallment({ value: 0, dueDate: '' })}
                                       className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-gray-50 border border-dashed border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:border-blue-400 hover:text-blue-600 transition-colors"
                                     >
                                       <Plus size={16} /> Add Installment
@@ -865,9 +865,9 @@ const AdminHostelEdit = () => {
                     </div>
                   ))}
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <button 
-                      type="button" 
-                      onClick={() => add({ name: '', type: 'percentage', installments: [] })} 
+                    <button
+                      type="button"
+                      onClick={() => add({ name: '', type: 'percentage', installments: [] })}
                       className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
                     >
                       <Plus size={18} /> Custom Plan
@@ -886,8 +886,8 @@ const AdminHostelEdit = () => {
                         })
                       })) : [{ key: 'empty', label: 'No templates found', disabled: true }]
                     }}>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 border-2 border-dashed border-blue-300 text-blue-600 font-medium rounded-xl hover:border-blue-400 hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.99]"
                       >
                         <LayoutTemplate size={18} /> Use Template

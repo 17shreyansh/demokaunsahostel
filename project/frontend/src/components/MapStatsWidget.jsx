@@ -17,7 +17,7 @@ const MapStatsWidget = () => {
 
   const fetchMapStats = async () => {
     try {
-      const response = await hostelAPI.getAll()
+      const response = await hostelAPI.getAll({ limit: 1000 })
       const hostels = response.data.hostels || []
       
       const total = hostels.length

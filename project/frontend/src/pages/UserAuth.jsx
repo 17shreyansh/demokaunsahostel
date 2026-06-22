@@ -49,7 +49,7 @@ const UserAuth = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const navigate = useNavigate();
   const { login, signup } = useUser();
 
@@ -90,21 +90,21 @@ const UserAuth = () => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden transform-gpu">
-      
+
       {/* GPU-Accelerated Premium Background Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-yellow-400/20 rounded-full blur-[100px] transform-gpu"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-900/10 rounded-full blur-[100px] transform-gpu"></div>
       </div>
 
-      <motion.div 
+      <motion.div
         className="max-w-md w-full relative z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="bg-white/80  p-8 sm:p-10 rounded-3xl shadow-2xl border border-white/60">
-          
+
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
@@ -114,11 +114,11 @@ const UserAuth = () => {
               {isLogin ? 'Enter your credentials to access your account' : 'Join us to find your perfect hostel stay'}
             </p>
           </div>
-          
+
           {/* Error Handling */}
           <AnimatePresence mode="wait">
             {error && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0, marginBottom: 0 }}
                 animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
                 exit={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -135,7 +135,7 @@ const UserAuth = () => {
           </AnimatePresence>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
-            
+
             {/* Animated Signup Fields */}
             <AnimatePresence initial={false}>
               {!isLogin && (
@@ -250,7 +250,7 @@ const UserAuth = () => {
               </button>
             </p>
           </div>
-          
+
         </div>
       </motion.div>
     </div>

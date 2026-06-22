@@ -60,7 +60,7 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const [hostelsRes, enquiriesRes, leadsRes] = await Promise.all([
-        hostelAPI.getAll().catch(() => ({ data: { hostels: [] } })),
+        hostelAPI.getAll({ limit: 1000 }).catch(() => ({ data: { hostels: [] } })),
         enquiryAPI.getAll().catch(() => ({ data: [] })),
         leadAPI.getAll().catch(() => ({ data: [] }))
       ]);
