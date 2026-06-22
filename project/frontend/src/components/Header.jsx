@@ -36,6 +36,11 @@ const SOCIAL_LINKS = [
     name: 'LinkedIn',
     url: '#',
     icon: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z" /><rect width="4" height="12" x="2" y="9" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /><circle cx="4" cy="4" r="2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></>
+  },
+  {
+    name: 'YouTube',
+    url: 'https://youtube.com/@kaunsahostel?si=QR4RBGML5XshOc5U',
+    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 00-1.94 2C1 8.16 1 12 1 12s0 3.84.46 5.58a2.78 2.78 0 001.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.42a2.78 2.78 0 001.94-2C23 15.84 23 12 23 12s0-3.84-.46-5.58zM9.54 15.54V8.46L15.82 12l-6.28 3.54z" />
   }
 ];
 
