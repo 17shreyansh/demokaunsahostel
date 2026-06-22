@@ -333,12 +333,12 @@ function RelatedPostCard({ post }) {
     <motion.div whileHover={{ y: -8, scale: 1.02 }} transition={{ duration: 0.3 }}>
       <Link to={`/blog/${post.slug}`} className="block group">
         <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 overflow-hidden h-full transition-all duration-300">
-          <div className="relative overflow-hidden h-48">
+          <div className="relative overflow-hidden aspect-[16/10] w-full">
             {post.featuredImage?.url ? (
               <img
                 src={post.featuredImage.url}
                 alt={post.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 loading="lazy"
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -346,7 +346,7 @@ function RelatedPostCard({ post }) {
                 }}
               />
             ) : null}
-            <div className={`w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-500 ${post.featuredImage?.url ? 'hidden' : 'flex'}`}>
+            <div className={`absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-500 ${post.featuredImage?.url ? 'hidden' : 'flex'}`}>
               <svg className="w-10 h-10 mb-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
               </svg>
