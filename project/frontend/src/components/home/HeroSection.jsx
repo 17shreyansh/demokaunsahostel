@@ -40,7 +40,7 @@ const StaticStyles = () => (
 /* MICRO-COMPONENTS                                                           */
 /* -------------------------------------------------------------------------- */
 
-const DEFAULT_TEXTS = ['Premium Hostels', 'Safe Accommodations', 'Modern PGs'];
+const DEFAULT_TEXTS = ['Second Home', 'Dream Hostel', 'Campus Stay', 'Study Haven', 'Comfort Zone'];
 const DEFAULT_HOSTELS = [];
 
 // 1. Premium Conveyor-Belt Text Rotator
@@ -59,8 +59,18 @@ const AnimatedTitle = memo(({ texts = DEFAULT_TEXTS }) => {
 
   if (!texts || !texts.length) return null;
 
+  // Find longest text for placeholder to reserve exact max height
+  const longestText = useMemo(() => {
+    return texts.reduce((a, b) => a.length > b.length ? a : b, '');
+  }, [texts]);
+
   return (
-    <span className="relative inline-block w-full sm:w-auto sm:min-w-[420px] align-bottom overflow-hidden h-[1.2em] sm:h-[1.2em]">
+    <span className="relative inline-block w-full sm:w-auto sm:min-w-[420px] align-bottom overflow-hidden">
+      {/* Invisible placeholder to establish max height, perfectly wraps on mobile */}
+      <span className="invisible block w-full pb-2 text-center sm:text-left font-black break-words whitespace-normal">
+        {longestText}
+      </span>
+      
       {texts.map((text, i) => {
         const isCurrent = i === index;
         const isPrev = i === (index - 1 + texts.length) % texts.length;
@@ -76,7 +86,7 @@ const AnimatedTitle = memo(({ texts = DEFAULT_TEXTS }) => {
         return (
           <span
             key={i}
-            className={`absolute left-0 top-0 w-full text-gradient font-black pb-2 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] text-center sm:text-left ${positionClass}`}
+            className={`absolute left-0 top-0 w-full h-full flex flex-col justify-center sm:justify-start sm:pt-0 text-gradient font-black pb-2 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] text-center sm:text-left ${positionClass}`}
             style={{ 
                pointerEvents: isCurrent ? 'auto' : 'none'
             }}
@@ -99,7 +109,7 @@ const SearchWidget = memo(({ content }) => {
   }, [searchQuery, navigate]);
 
   return (
-    <div className="relative z-30 mb-8 sm:mb-10 w-full max-w-xl search-widget opacity-0 px-2 sm:px-0">
+    <div className="relative z-30 mb-8 sm:mb-10 w-[94%] sm:w-full max-w-xl mx-auto lg:mx-0 search-widget opacity-0">
       <div className="glass-panel flex flex-col sm:flex-row items-center rounded-2xl sm:rounded-full p-2 transition-all duration-300 hover:shadow-xl hover:shadow-yellow-500/10 group gap-2 sm:gap-0">
         <div className="hidden sm:block pl-4 pr-2">
           <svg className="h-6 w-6 text-yellow-400 group-hover:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,7 +243,7 @@ const HeroSection = memo(({ hostels = DEFAULT_HOSTELS, loading, content }) => {
 
             <SearchWidget content={content} />
 
-            <div className="hero-buttons flex flex-col items-center gap-3 sm:gap-4 sm:flex-row w-full sm:w-auto mt-2 px-2 sm:px-0">
+            <div className="hero-buttons flex flex-col items-center gap-3 sm:gap-4 sm:flex-row w-[94%] max-w-[340px] sm:max-w-none sm:w-auto mt-2 mx-auto lg:mx-0">
               <Link to="/hostels" className="opacity-0 w-full sm:w-auto inline-flex items-center justify-center rounded-2xl sm:rounded-full bg-zinc-900 px-6 sm:px-8 py-3.5 sm:py-4 text-base font-bold text-white shadow-xl shadow-zinc-900/20 transition-all hover:scale-105 hover:bg-zinc-800 hover:shadow-zinc-900/30 active:scale-95 group">
                 {content?.primaryButton?.text || 'Explore Hostels'}
                 <svg className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
