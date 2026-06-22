@@ -8,8 +8,9 @@ const HostelCard = memo(({ hostel, variant = 'default' }) => {
   const isCompact = variant === 'compact'
   
   return (
-    <div
-      className={`bg-white rounded-2xl shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden group flex flex-col transition-all duration-300 ease-out hover:-translate-y-1 ${
+    <Link
+      to={`/hostel/${hostel.slug || hostel._id}`}
+      className={`bg-white rounded-2xl shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden group flex flex-col transition-all duration-300 ease-out hover:-translate-y-1 block ${
         isCompact ? 'h-auto' : 'h-full'
       }`}
     >
@@ -117,18 +118,17 @@ const HostelCard = memo(({ hostel, variant = 'default' }) => {
           
           {/* Premium Glowing Button */}
           <div className="flex-shrink-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]">
-            <Link 
-              to={`/hostel/${hostel.slug || hostel._id}`}
+            <div 
               className={`block bg-yellow-400 text-gray-900 font-bold rounded-xl text-center transition-all duration-300 shadow-[0_4px_14px_0_rgba(250,204,21,0.39)] hover:shadow-[0_6px_20px_rgba(250,204,21,0.6)] hover:bg-yellow-300 border border-yellow-300/50 ${
                 isCompact ? 'px-4 py-2.5 text-xs' : 'px-5 py-2.5 text-sm'
               }`}
             >
               View Details
-            </Link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 })
 
