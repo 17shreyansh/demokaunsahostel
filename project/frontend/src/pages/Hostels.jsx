@@ -426,7 +426,7 @@ const Hostels = () => {
             <div className="bg-white p-7 rounded-3xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md">
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" /></svg>
-                Refine Search
+                Filters
               </h2>
               <FilterContentBlocks 
                 filters={filters} 
@@ -463,10 +463,10 @@ const Hostels = () => {
                 {/* Mobile Filter Button */}
                 <button
                   onClick={() => setShowFilters(true)}
-                  className="lg:hidden flex-shrink-0 aspect-square sm:aspect-auto sm:px-5 px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gray-900 text-white hover:bg-gray-800 shadow-md active:scale-95"
+                  className="lg:hidden flex-shrink-0 px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gray-900 text-white hover:bg-gray-800 shadow-md active:scale-95"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" /></svg>
-                  <span className="hidden sm:block">Filters</span>
+                  <span>Filters</span>
                 </button>
 
                 {/* Share Button */}
@@ -611,7 +611,7 @@ const Hostels = () => {
           >
             {/* Header (sticky top) */}
             <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
-              <h3 className="text-xl font-bold text-gray-900">Refine Search</h3>
+              <h3 className="text-xl font-bold text-gray-900">Filters</h3>
               <button onClick={() => setShowFilters(false)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
