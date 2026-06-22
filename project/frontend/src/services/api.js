@@ -52,10 +52,9 @@ api.interceptors.response.use((response) => {
   return response
 })
 
-// Separate config for file uploads with no timeout
 const uploadAPI = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 0, // No timeout for uploads
+  timeout: 30000, // 30 seconds timeout to prevent infinite hang
   maxContentLength: Infinity,
   maxBodyLength: Infinity,
   withCredentials: true // Enable cookies
@@ -102,6 +101,9 @@ export const hostelAPI = {
     const result = await uploadAPI.post('/hostels', data)
     clearCache() // Clear cache after create
     return result
+  },
+  uploadImage: async (formData, onUploadProgress) => {
+    return await uploadAPI.post('/hostels/upload-image', formData, { onUploadProgress })
   },
   update: async (id, data) => {
     const result = await uploadAPI.put(`/hostels/${id}`, data)
@@ -208,6 +210,7 @@ export const hostelManagerAPI = {
   createHostel: (formData) => uploadAPI.post('/hostel-manager/hostels', formData),
   updateHostel: (id, formData) => uploadAPI.put(`/hostel-manager/hostels/${id}`, formData),
   deleteHostel: (id) => api.delete(`/hostel-manager/hostels/${id}`),
+  uploadImage: (formData, onUploadProgress) => uploadAPI.post('/hostel-manager/hostels/upload-image', formData, { onUploadProgress }),
 
   // Reviews
   getReviews: () => api.get('/hostel-manager/reviews')

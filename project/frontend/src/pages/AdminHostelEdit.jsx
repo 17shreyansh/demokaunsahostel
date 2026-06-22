@@ -14,6 +14,7 @@ import { hostelAPI, installmentTemplateAPI } from '../services/api';
 import { invalidateData } from '../utils/stateManager';
 import { forceRefresh } from '../utils/cacheManager';
 import NearbyPlacesSelector from '../components/NearbyPlacesSelector.jsx';
+import imageCompression from 'browser-image-compression';
 
 const { TextArea } = Input;
 
@@ -285,18 +286,24 @@ const AdminHostelEdit = () => {
 
       console.log('Saving reservation settings:', { reservationEnabled, reservationAmount });
 
-      const newImages = fileList.filter(file => file.originFileObj);
-      const keepImages = fileList.filter(file => file.isExisting && file.status === 'done');
+      console.log('Saving reservation settings:', { reservationEnabled, reservationAmount });
 
-      newImages.forEach(file => formData.append('images', file.originFileObj));
+      // Images are now uploaded immediately via customRequest, so they all have status === 'done' and a 'name'
+      const keepImages = fileList.filter(file => file.status === 'done' && file.name);
+      
+      console.log('--- DEBUG IMAGE SAVE ---');
+      console.log('Total fileList:', fileList);
+      console.log('Filtered keepImages:', keepImages);
 
-      if (profileImage?.originFileObj) {
+      if (profileImage?.originFileObj && profileImage.status !== 'done') {
         formData.append('profileImage', profileImage.originFileObj);
       } else if (profileImage?.isExisting) {
         formData.append('existingProfileImage', profileImage.name);
       }
 
-      formData.append('finalImages', JSON.stringify([...keepImages.map(f => f.name), ...newImages.map(f => f.name || `new-${Date.now()}`)]));
+      const finalImagesStr = JSON.stringify(keepImages.map(f => f.name));
+      console.log('Final images string sent to backend:', finalImagesStr);
+      formData.append('finalImages', finalImagesStr);
 
       if (id && id !== 'new') {
         await hostelAPI.update(id, formData);
@@ -567,23 +574,98 @@ const AdminHostelEdit = () => {
             </FormSection>
 
             <FormSection title="Media Gallery" icon={ImageIcon} className="h-full">
-              <Form.Item name="images" label="Property Photos" extra={<span className="text-xs text-gray-500 mt-1 block">Supported: JPG, PNG, WebP. Max 10 images.</span>}>
-                <Upload
-                  listType="picture-card"
-                  fileList={fileList}
-                  onChange={({ fileList: newFileList }) => setFileList(newFileList)}
-                  beforeUpload={() => false}
-                  multiple
-                  accept="image/*"
-                  className="[&_.ant-upload]:!rounded-xl [&_.ant-upload-list-item]:!rounded-xl"
-                >
-                  {fileList.length >= 10 ? null : (
-                    <div className="flex flex-col items-center justify-center text-gray-400 hover:text-blue-500 transition-colors w-full h-full">
-                      <UploadCloud size={24} className="mb-2" />
-                      <span className="text-sm font-medium">Upload</span>
+              <Form.Item name="images" label="Property Photos" extra={<span className="text-xs text-gray-500 mt-1 block">Supported: JPG, PNG, WebP. Max 20 images.</span>}>
+                  <div className="mt-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {fileList.map((file, index) => (
+                        <div key={file.uid || index} className="relative aspect-square rounded-xl border border-gray-200 overflow-hidden group bg-gray-50 flex flex-col items-center justify-center">
+                          {file.status === 'uploading' ? (
+                            <div className="flex flex-col items-center justify-center w-full h-full p-2">
+                              <Loader2 className="w-6 h-6 animate-spin text-blue-500 mb-2" />
+                              <span className="text-xs font-medium text-gray-600">{file.percent || 0}%</span>
+                            </div>
+                          ) : file.status === 'error' ? (
+                            <div className="flex flex-col items-center justify-center w-full h-full p-2 text-red-500">
+                              <Info className="w-6 h-6 mb-2" />
+                              <span className="text-xs font-medium text-center">Failed</span>
+                            </div>
+                          ) : (
+                            <>
+                              <img src={file.url || URL.createObjectURL(file.originFileObj)} alt="Property" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFileList(prev => prev.filter(f => f.uid !== file.uid));
+                                  }}
+                                  className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                      
+                      {fileList.length < 20 && (
+                        <label className="relative aspect-square rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-colors flex flex-col items-center justify-center cursor-pointer group">
+                          <input 
+                            type="file" 
+                            multiple 
+                            accept="image/*" 
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                            onChange={async (e) => {
+                              const files = Array.from(e.target.files);
+                              if (!files.length) return;
+                              
+                              const newFiles = files.map(file => ({
+                                uid: Math.random().toString(36).substring(7),
+                                name: file.name,
+                                status: 'uploading',
+                                percent: 0,
+                                originFileObj: file
+                              }));
+                              
+                              // Add to list immediately
+                              setFileList(prev => [...prev, ...newFiles]);
+                              
+                              // Upload them sequentially
+                              for (const newFile of newFiles) {
+                                try {
+                                  const formData = new FormData();
+                                  formData.append('image', newFile.originFileObj);
+                                  
+                                  const response = await hostelAPI.uploadImage(formData, (progressEvent) => {
+                                    if (progressEvent.total) {
+                                      const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                                      setFileList(prev => prev.map(f => f.uid === newFile.uid ? { ...f, percent: percentCompleted } : f));
+                                    }
+                                  });
+                                  
+                                  setFileList(prev => prev.map(f => f.uid === newFile.uid ? {
+                                    ...f,
+                                    status: 'done',
+                                    name: response.data.imageName,
+                                    url: `${import.meta.env.VITE_UPLOADS_BASE_URL || ''}/${response.data.imageName}`
+                                  } : f));
+                                } catch (err) {
+                                  console.error('Upload failed for', newFile.name, err);
+                                  setFileList(prev => prev.map(f => f.uid === newFile.uid ? { ...f, status: 'error' } : f));
+                                  message.error(`Upload failed for ${newFile.name}`);
+                                }
+                              }
+                              
+                              // Reset input
+                              e.target.value = '';
+                            }}
+                          />
+                          <UploadCloud size={24} className="mb-2 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                          <span className="text-sm font-medium text-gray-500 group-hover:text-blue-500 transition-colors">Upload</span>
+                        </label>
+                      )}
                     </div>
-                  )}
-                </Upload>
+                  </div>
               </Form.Item>
               <Form.Item name="videoTourUrl" label="Virtual Tour (YouTube URL)" className="mt-6 mb-0">
                 <Input size="large" placeholder="https://www.youtube.com/watch?v=..." className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />

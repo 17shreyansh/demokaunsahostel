@@ -470,6 +470,20 @@ router.get('/slug/:slug', async (req, res) => {
   }
 });
 
+// Upload single image immediately
+router.post('/upload-image', auth, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image provided' });
+    }
+    const optimizedImageName = await optimizeImage(req.file, 1200);
+    res.json({ success: true, imageName: optimizedImageName });
+  } catch (error) {
+    console.error('Upload image error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.post('/', auth, upload.any(), async (req, res) => {
   try {
     const hostelData = { ...req.body };
@@ -544,9 +558,20 @@ router.post('/', auth, upload.any(), async (req, res) => {
       }
     }
     
-    if (req.files && req.files.length > 0) {
+    if (hostelData.finalImages) {
+      try {
+        const parsedImages = JSON.parse(hostelData.finalImages);
+        hostelData.images = Array.isArray(parsedImages) ? parsedImages : [];
+      } catch (e) {
+        console.error('Error parsing finalImages:', e);
+      }
+    } else if (req.files && req.files.length > 0) {
       const imageFiles = req.files.filter(file => file.fieldname === 'images');
-      hostelData.images = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
+      hostelData.images = [];
+      for (const file of imageFiles) {
+        const optimized = await optimizeImage(file, 1200);
+        hostelData.images.push(optimized);
+      }
     }
     
     const hostel = new Hostel(hostelData);
@@ -684,24 +709,18 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
     if (updateData.finalImages) {
       try {
         const imageList = JSON.parse(updateData.finalImages);
-        const existingHostel = await Hostel.findById(req.params.id);
-        const currentImages = existingHostel?.images || [];
-        
-        // Keep existing images that are still in the list
-        const keepExisting = imageList.filter(img => currentImages.includes(img));
-        
-        // Add new uploaded images
-        const imageFiles = req.files ? req.files.filter(file => file.fieldname === 'images') : [];
-        const newImages = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
-        
-        finalImages = [...keepExisting, ...newImages];
+        finalImages = imageList;
         delete updateData.finalImages;
       } catch (e) {
         // Fallback: keep all existing + add new
+        const existingHostel = await Hostel.findById(req.params.id);
         finalImages = existingHostel?.images || [];
         if (req.files) {
           const imageFiles = req.files.filter(file => file.fieldname === 'images');
-          finalImages = [...finalImages, ...imageFiles.map(file => file.filename)];
+          for (const file of imageFiles) {
+            const optimized = await optimizeImage(file, 1200);
+            finalImages.push(optimized);
+          }
         }
       }
     } else {
@@ -709,8 +728,10 @@ router.put('/:id', auth, upload.any(), async (req, res) => {
       finalImages = existingHostel?.images || [];
       if (req.files) {
         const imageFiles = req.files.filter(file => file.fieldname === 'images');
-        const newImages = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
-        finalImages = [...finalImages, ...newImages];
+        for (const file of imageFiles) {
+          const optimized = await optimizeImage(file, 1200);
+          finalImages.push(optimized);
+        }
       }
     }
     

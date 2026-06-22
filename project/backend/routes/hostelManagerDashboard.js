@@ -94,6 +94,20 @@ router.get('/hostels', auth, async (req, res) => {
   }
 });
 
+// Upload single image immediately
+router.post('/hostels/upload-image', auth, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image provided' });
+    }
+    const optimizedImageName = await optimizeImage(req.file, 1200);
+    res.json({ success: true, imageName: optimizedImageName });
+  } catch (error) {
+    console.error('Upload image error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Add hostel - Create change request
 router.post('/hostels', auth, upload.any(), async (req, res) => {
   try {
@@ -145,7 +159,14 @@ router.post('/hostels', auth, upload.any(), async (req, res) => {
     delete hostelData.jobTitle;
     
     // Handle images - store just the filename
-    if (req.files && req.files.length > 0) {
+    if (hostelData.finalImages) {
+      try {
+        const parsedImages = JSON.parse(hostelData.finalImages);
+        hostelData.images = Array.isArray(parsedImages) ? parsedImages : [];
+      } catch (e) {
+        console.error('Error parsing finalImages:', e);
+      }
+    } else if (req.files && req.files.length > 0) {
       const imageFiles = req.files.filter(file => file.fieldname === 'images');
       hostelData.images = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
     }
@@ -229,10 +250,16 @@ router.put('/hostels/:id', auth, upload.any(), async (req, res) => {
     
     // Handle images - keep existing and add new ones (store just filename)
     let finalImages = existingHostel?.images || [];
-    if (req.files && req.files.length > 0) {
+    if (updateData.finalImages) {
+      try {
+        finalImages = JSON.parse(updateData.finalImages);
+      } catch(e) {}
+    } else if (req.files && req.files.length > 0) {
       const imageFiles = req.files.filter(file => file.fieldname === 'images');
-      const newImages = await Promise.all(imageFiles.map(file => optimizeImage(file, 1200)));
-      finalImages = [...finalImages, ...newImages];
+      for (const file of imageFiles) {
+        const optimized = await optimizeImage(file, 1200);
+        finalImages.push(optimized);
+      }
     }
     updateData.images = finalImages;
     
