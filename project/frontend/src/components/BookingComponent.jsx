@@ -130,26 +130,7 @@ const BookingComponent = ({ hostel }) => {
         </div>
         
         <div className="p-5 space-y-4">
-          {/* Contact Person Info */}
-          <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-            <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center ring-2 ring-white shadow-sm">
-              {profileImage ? (
-                <img 
-                  src={`${import.meta.env.VITE_UPLOADS_BASE_URL}/${profileImage}`}
-                  alt={contactPersonName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="bg-yellow-custom text-gray-900 w-full h-full flex items-center justify-center font-bold text-xl">
-                  {contactPersonName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                </div>
-              )}
-            </div>
-            <div>
-              <p className="font-bold text-gray-900">{contactPersonName}</p>
-              <p className="text-sm text-gray-600 font-medium">{jobTitle}</p>
-            </div>
-          </div>
+
 
           {/* Eligibility Banner */}
           {eligibility && eligibility.isFree && (

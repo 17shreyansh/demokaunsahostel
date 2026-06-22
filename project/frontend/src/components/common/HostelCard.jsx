@@ -100,10 +100,10 @@ const HostelCard = memo(({ hostel, variant = 'default' }) => {
         )} {/* <--- This was fixed (was accidentally </div>) */}
 
         {/* Price and Action Wrapper (Pushed to bottom) */}
-        <div className="mt-auto pt-4 border-t border-gray-100 flex items-end justify-between gap-3 px-4 pb-4 sm:px-5 sm:pb-5 -mx-4 sm:-mx-5 mb:-mb-5">
+        <div className="mt-auto pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 w-full">
           
           {/* Price Layout */}
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
               Starts from
             </span>

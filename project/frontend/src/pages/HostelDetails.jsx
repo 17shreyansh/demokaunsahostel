@@ -509,14 +509,6 @@ const HostelDetails = () => {
                     </button>
                   ))}
                 </div>
-                {selectedSharing && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl flex items-center justify-between">
-                    <span className="text-sm font-semibold text-gray-700">Selected: <span className="text-yellow-700">{selectedSharing.name}</span></span>
-                    <span className="text-lg font-bold text-yellow-600">
-                      ₹{Number(selectedSharing.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}<span className="text-xs font-normal text-gray-500 ml-1">/{selectedSharing.priceType || 'month'}</span>
-                    </span>
-                  </div>
-                )}
               </div>
             )}
 

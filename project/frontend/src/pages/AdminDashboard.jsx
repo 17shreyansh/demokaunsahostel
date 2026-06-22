@@ -54,6 +54,7 @@ const AdminDashboard = () => {
   const [enquiries, setEnquiries] = useState([]);
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [propertySearchTerm, setPropertySearchTerm] = useState('');
 
   // Network Fetching (Logic retained completely)
   const fetchData = useCallback(async () => {
@@ -137,6 +138,13 @@ const AdminDashboard = () => {
       featuredList: hostels.filter(h => h.featured === true)
     };
   }, [hostels, enquiries, leads]);
+
+  const filteredHostels = useMemo(() => {
+    return hostels.filter(h => 
+      (h.name || '').toLowerCase().includes(propertySearchTerm.toLowerCase()) || 
+      (h.location || '').toLowerCase().includes(propertySearchTerm.toLowerCase())
+    );
+  }, [hostels, propertySearchTerm]);
 
   // Actions (Logic retained completely)
   const toggleFeaturedHostel = useCallback(async (hostelId, currentStatus) => {
@@ -343,44 +351,60 @@ const AdminDashboard = () => {
       {/* BOTTOM SECTION: DATA TABLES/LISTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         
-        {/* Recent Properties List */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="text-base font-semibold text-gray-900">Recent Properties</h3>
-            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20">
-              {hostels.length} Total
-            </span>
+        {/* Properties List (Searchable for Featured Selection) */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[400px]">
+          <div className="px-6 py-4 border-b border-gray-100 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold text-gray-900">Manage Properties</h3>
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20">
+                {hostels.length} Total
+              </span>
+            </div>
+            <input 
+              type="text"
+              placeholder="Search by name or location..."
+              value={propertySearchTerm}
+              onChange={(e) => setPropertySearchTerm(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
-          <ul className="divide-y divide-gray-100">
-            {hostels.slice(0, 5).map(item => (
-              <li key={item._id} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50/80 transition-colors">
-                <div className="flex flex-col min-w-0 flex-1 mr-4">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
-                  <p className="text-sm text-gray-500 truncate mt-0.5">{item.location}</p>
-                </div>
-                <div className="flex items-center gap-6 text-right">
-                  <div className="hidden sm:block">
-                    <p className="text-sm font-semibold text-gray-900">₹{item.price}/mo</p>
-                    <div className="mt-1">
-                      <span className={getStatusBadge(item.availability)}>{item.availability}</span>
-                    </div>
+          <div className="flex-1 overflow-y-auto">
+            <ul className="divide-y divide-gray-100">
+              {filteredHostels.map(item => (
+                <li key={item._id} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50/80 transition-colors">
+                  <div className="flex flex-col min-w-0 flex-1 mr-4">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+                    <p className="text-sm text-gray-500 truncate mt-0.5">{item.location}</p>
                   </div>
-                  <button
-                    onClick={() => toggleFeaturedHostel(item._id, item.featured)}
-                    className={`inline-flex items-center justify-center p-2 rounded-lg text-sm font-medium transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-                      item.featured 
-                        ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 focus:ring-rose-500' 
-                        : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-900 focus:ring-gray-300'
-                    }`}
-                    title={item.featured ? 'Unfeature Property' : 'Feature Property'}
-                    aria-label={item.featured ? 'Remove from featured' : 'Add to featured'}
-                  >
-                    <Star size={16} className={item.featured ? 'fill-rose-600' : ''} />
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+                  <div className="flex items-center gap-6 text-right">
+                    <div className="hidden sm:block">
+                      <p className="text-sm font-semibold text-gray-900">₹{item.price}/mo</p>
+                      <div className="mt-1">
+                        <span className={getStatusBadge(item.availability)}>{item.availability}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => toggleFeaturedHostel(item._id, item.featured)}
+                      className={`inline-flex items-center justify-center p-2 rounded-lg text-sm font-medium transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-1 flex-shrink-0 ${
+                        item.featured 
+                          ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 focus:ring-rose-500' 
+                          : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-900 focus:ring-gray-300'
+                      }`}
+                      title={item.featured ? 'Unfeature Property' : 'Feature Property'}
+                      aria-label={item.featured ? 'Remove from featured' : 'Add to featured'}
+                    >
+                      <Star size={16} className={item.featured ? 'fill-rose-600' : ''} />
+                    </button>
+                  </div>
+                </li>
+              ))}
+              {filteredHostels.length === 0 && (
+                <li className="px-6 py-8 text-center text-sm text-gray-500">
+                  No properties found.
+                </li>
+              )}
+            </ul>
+          </div>
         </div>
 
         {/* Pending Enquiries List */}

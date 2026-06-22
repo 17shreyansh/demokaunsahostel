@@ -7,19 +7,12 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    email: '',
     userType: '',
-    institution: '',
-    course: '',
-    checkInDate: '',
-    budget: '',
-    message: '',
     source: source,
     hostelName: hostelName
   })
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]
     const savedData = localStorage.getItem('userEnquiryData')
     if (savedData) {
       const parsed = JSON.parse(savedData)
@@ -27,15 +20,8 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
         ...prev,
         name: parsed.name || '',
         phone: parsed.phone || '',
-        email: parsed.email || '',
-        userType: parsed.userType || '',
-        institution: parsed.institution || '',
-        course: parsed.course || '',
-        budget: parsed.budget || '',
-        checkInDate: today
+        userType: parsed.userType || ''
       }))
-    } else {
-      setFormData(prev => ({ ...prev, checkInDate: today }))
     }
   }, [])
   const [loading, setLoading] = useState(false)
@@ -45,13 +31,13 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
     e.preventDefault()
     
     // Validate required fields
-    if (!formData.phone.trim()) {
-      setToast({ message: 'Phone number is required', type: 'error' })
+    if (!formData.name.trim()) {
+      setToast({ message: 'Name is required', type: 'error' })
       return
     }
     
-    if (!formData.message.trim()) {
-      setToast({ message: 'Message is required', type: 'error' })
+    if (!formData.phone.trim()) {
+      setToast({ message: 'Phone number is required', type: 'error' })
       return
     }
     
@@ -62,34 +48,13 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
       return
     }
     
-    // Validate email format if provided
-    if (formData.email.trim()) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(formData.email.trim())) {
-        setToast({ message: 'Please enter a valid email address', type: 'error' })
-        return
-      }
-    }
-    
-    // Validate name if provided
-    if (formData.name.trim() && formData.name.trim().length < 2) {
-      setToast({ message: 'Name must be at least 2 characters long', type: 'error' })
-      return
-    }
-    
     setLoading(true)
     
     try {
       const enquiryData = {
         name: formData.name?.trim() || '',
         phone: formData.phone?.trim() || '',
-        email: formData.email?.trim() || '',
         userType: formData.userType || '',
-        institution: formData.institution?.trim() || '',
-        course: formData.course?.trim() || '',
-        checkInDate: formData.checkInDate || '',
-        budget: formData.budget || '',
-        message: formData.message?.trim() || '',
         source: formData.source || 'hostel-details',
         hostelName: formData.hostelName || '',
         hostelId: hostelId || ''
@@ -101,11 +66,7 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
       const userData = {
         name: formData.name,
         phone: formData.phone,
-        email: formData.email,
-        userType: formData.userType,
-        institution: formData.institution,
-        course: formData.course,
-        budget: formData.budget
+        userType: formData.userType
       }
       localStorage.setItem('userEnquiryData', JSON.stringify(userData))
       
@@ -114,13 +75,7 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
       setFormData({
         name: formData.name,
         phone: formData.phone,
-        email: formData.email,
         userType: formData.userType,
-        institution: formData.institution,
-        course: formData.course,
-        checkInDate: '',
-        budget: formData.budget,
-        message: '',
         source: source,
         hostelName: hostelName
       })
@@ -129,12 +84,10 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
       
       if (error.response?.data?.message) {
         const msg = error.response.data.message
-        if (msg.includes('message: Path `message` is required')) {
-          errorMessage = 'Please add a message to your enquiry'
-        } else if (msg.includes('validation failed')) {
+        if (msg.includes('validation failed')) {
           errorMessage = 'Please fill all required fields'
         } else {
-          errorMessage = 'Something went wrong'
+          errorMessage = msg
         }
       }
       
@@ -156,8 +109,9 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
           name="name"
           value={formData.name}
           onChange={handleChange}
+          required
           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent"
-          placeholder="Full Name"
+          placeholder="Full Name *"
         />
       </div>
       
@@ -170,17 +124,6 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
           onChange={handleChange}
           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent"
           placeholder="Phone Number *"
-        />
-      </div>
-      
-      <div>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent"
-          placeholder="Email"
         />
       </div>
 
@@ -214,112 +157,6 @@ const EnquiryForm = ({ hostelId, hostelName, source = 'hostel-details', onSucces
             }),
             menu: (base) => ({ ...base, borderRadius: '8px', fontSize: '14px' })
           }}
-        />
-      </div>
-
-      {formData.userType === 'Student' && (
-        <>
-          <div>
-            <input
-              type="text"
-              name="institution"
-              value={formData.institution}
-              onChange={handleChange}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent"
-              placeholder="College/University"
-            />
-          </div>
-          <div>
-            <input
-              type="text"
-              name="course"
-              value={formData.course}
-              onChange={handleChange}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent"
-              placeholder="Course/Branch"
-            />
-          </div>
-        </>
-      )}
-
-      {formData.userType === 'Working Professional' && (
-        <>
-          <div>
-            <input
-              type="text"
-              name="institution"
-              value={formData.institution}
-              onChange={handleChange}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent"
-              placeholder="Company"
-            />
-          </div>
-          <div>
-            <input
-              type="text"
-              name="course"
-              value={formData.course}
-              onChange={handleChange}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent"
-              placeholder="Job Role"
-            />
-          </div>
-        </>
-      )}
-      
-      <div>
-        <input
-          type="date"
-          name="checkInDate"
-          value={formData.checkInDate}
-          onChange={handleChange}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent"
-        />
-      </div>
-      
-      <div>
-        <Select
-          value={formData.budget ? { value: formData.budget, label: formData.budget === '5000-8000' ? '₹5,000 - ₹8,000' : formData.budget === '8000-12000' ? '₹8,000 - ₹12,000' : formData.budget === '12000-15000' ? '₹12,000 - ₹15,000' : '₹15,000+' } : null}
-          onChange={(option) => setFormData({ ...formData, budget: option?.value || '' })}
-          options={[
-            { value: '5000-8000', label: '₹5,000 - ₹8,000' },
-            { value: '8000-12000', label: '₹8,000 - ₹12,000' },
-            { value: '12000-15000', label: '₹12,000 - ₹15,000' },
-            { value: '15000+', label: '₹15,000+' }
-          ]}
-          placeholder="Budget Range"
-          isClearable
-          styles={{
-            control: (base, state) => ({
-              ...base,
-              borderRadius: '8px',
-              border: '1px solid #d1d5db',
-              boxShadow: state.isFocused ? '0 0 0 2px rgba(245, 158, 11, 0.2)' : 'none',
-              borderColor: state.isFocused ? '#f59e0b' : '#d1d5db',
-              padding: '2px',
-              fontSize: '14px',
-              minHeight: '38px'
-            }),
-            option: (base, state) => ({
-              ...base,
-              backgroundColor: state.isSelected ? '#f59e0b' : state.isFocused ? '#fef3c7' : '#ffffff',
-              color: state.isSelected ? '#1f2937' : '#374151',
-              fontSize: '14px'
-            }),
-            menu: (base) => ({ ...base, borderRadius: '8px', fontSize: '14px' })
-          }}
-        />
-      </div>
-      
-      <div>
-        <textarea
-          name="message"
-          rows="2"
-          required
-          value={formData.message}
-          onChange={handleChange}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-custom focus:border-transparent resize-none"
-          placeholder="Message *"
         />
       </div>
       

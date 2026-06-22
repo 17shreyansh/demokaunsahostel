@@ -130,7 +130,7 @@ export default function BlogList() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden animate-pulse">
-                  <div className="h-56 bg-gray-200"></div>
+                  <div className="aspect-[16/10] w-full bg-gray-200"></div>
                   <div className="p-6">
                     <div className="h-4 bg-gray-200 rounded mb-3"></div>
                     <div className="h-4 bg-gray-200 rounded w-2/3"></div>
@@ -209,12 +209,12 @@ function FeaturedBlogCard({ blog }) {
     <motion.div whileHover={{ y: -8, scale: 1.02 }} transition={{ duration: 0.3 }}>
       <Link to={`/blog/${blog.slug}`} className="block group">
         <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 overflow-hidden h-full transition-all duration-300">
-          <div className="relative overflow-hidden h-56">
+          <div className="relative overflow-hidden aspect-[16/10] w-full">
             {blog.featuredImage?.url ? (
               <img
                 src={blog.featuredImage.url}
                 alt={blog.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 loading="lazy"
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -222,7 +222,7 @@ function FeaturedBlogCard({ blog }) {
                 }}
               />
             ) : null}
-            <div className={`w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-500 ${blog.featuredImage?.url ? 'hidden' : 'flex'}`}>
+            <div className={`absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-500 ${blog.featuredImage?.url ? 'hidden' : 'flex'}`}>
               <svg className="w-12 h-12 mb-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
               </svg>
@@ -262,12 +262,12 @@ function BlogCard({ blog }) {
     <motion.div whileHover={{ y: -8, scale: 1.02 }} transition={{ duration: 0.3 }}>
       <Link to={`/blog/${blog.slug}`} className="block group">
         <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 overflow-hidden h-full transition-all duration-300">
-          <div className="relative overflow-hidden h-56">
+          <div className="relative overflow-hidden aspect-[16/10] w-full">
             {blog.featuredImage?.url ? (
               <img
                 src={blog.featuredImage.url}
                 alt={blog.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 loading="lazy"
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -275,7 +275,7 @@ function BlogCard({ blog }) {
                 }}
               />
             ) : null}
-            <div className={`w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-500 ${blog.featuredImage?.url ? 'hidden' : 'flex'}`}>
+            <div className={`absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-500 ${blog.featuredImage?.url ? 'hidden' : 'flex'}`}>
               <svg className="w-12 h-12 mb-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
               </svg>
