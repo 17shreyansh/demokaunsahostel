@@ -434,10 +434,17 @@ router.get('/filters/options', async (req, res) => {
     const amenities = await Hostel.distinct('amenities');
     const foodTypes = await Hostel.distinct('foodType');
     
-    // Get nearby places from NearbyPlaces collection
-    const NearbyPlaces = require('../models/NearbyPlaces');
-    const nearbyPlacesData = await NearbyPlaces.find({ active: true }, 'name').lean();
-    const nearbyPlaces = nearbyPlacesData.map(place => place.name).sort();
+    // Extract distinct educational nearby places directly from existing hostels
+    const hostels = await Hostel.find({ 'nearbyPlaces.educational': { $exists: true, $not: { $size: 0 } } }, 'nearbyPlaces.educational.name').lean();
+    const educationalPlaces = new Set();
+    hostels.forEach(h => {
+      if (h.nearbyPlaces && Array.isArray(h.nearbyPlaces.educational)) {
+        h.nearbyPlaces.educational.forEach(p => {
+          if (p && p.name) educationalPlaces.add(p.name);
+        });
+      }
+    });
+    const nearbyPlaces = Array.from(educationalPlaces).sort();
 
     // Get cities from City collection
     const City = require('../models/City');
