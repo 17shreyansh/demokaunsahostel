@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Form, Input, Select, Upload, message,
@@ -137,6 +137,16 @@ const AdminHostelEdit = () => {
   const [newCityName, setNewCityName] = useState('');
 
   const rawCoordinates = Form.useWatch('coordinates', form);
+
+  const currentCoordinates = React.useMemo(() => {
+    if (rawCoordinates) {
+      const coords = rawCoordinates.split(',').map(c => c.trim());
+      if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+        return { lat: parseFloat(coords[0]), lng: parseFloat(coords[1]) };
+      }
+    }
+    return mapCoordinates;
+  }, [rawCoordinates, mapCoordinates]);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -487,7 +497,7 @@ const AdminHostelEdit = () => {
                 </Form.Item>
                 <div className="flex-1 bg-gray-50/50 rounded-xl p-4 border border-gray-100">
                   <Form.Item name="nearbyPlaces" label="Points of Interest" className="mb-0">
-                    <NearbyPlacesSelector coordinates={mapCoordinates} />
+                    <NearbyPlacesSelector coordinates={currentCoordinates} />
                   </Form.Item>
                 </div>
               </div>
