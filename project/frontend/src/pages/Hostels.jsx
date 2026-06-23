@@ -185,21 +185,6 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
         </div>
       </div>
 
-      {/* Payment Period */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Payment Period</label>
-        <MemoizedSelect
-          value={filters.priceType ? { value: filters.priceType, label: filters.priceType === 'month' ? 'Monthly' : 'Per Session' } : null}
-          onChange={(opt) => updateFilters({ priceType: opt?.value || '' })}
-          options={[{ value: '', label: 'Any Period' }, { value: 'month', label: 'Monthly' }, { value: 'session', label: 'Per Session' }]}
-          placeholder="Any Period"
-          isClearable
-          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
-          menuPosition="fixed"
-          styles={getSelectStyles()}
-        />
-      </div>
-
       {/* Price Range */}
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-2">Price Range</label>
@@ -277,7 +262,6 @@ const Hostels = () => {
     nearbyPlace: searchParams.get('nearbyPlace') || '',
     verified: searchParams.get('verified') || '',
     foodType: searchParams.get('foodType') || '',
-    priceType: searchParams.get('priceType') || '',
     sortBy: searchParams.get('sortBy') || 'newest'
   })
 
@@ -295,7 +279,6 @@ const Hostels = () => {
       nearbyPlace: searchParams.get('nearbyPlace') || '',
       verified: searchParams.get('verified') || '',
       foodType: searchParams.get('foodType') || '',
-      priceType: searchParams.get('priceType') || '',
       sortBy: searchParams.get('sortBy') || 'newest'
     });
   }, [searchParams]);
@@ -387,7 +370,7 @@ const Hostels = () => {
   const clearFilters = () => {
     setFilters({
       search: '', city: '', minPrice: '', maxPrice: '',
-      gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', verified: '', foodType: '', priceType: '', sortBy: 'newest'
+      gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', verified: '', foodType: '', sortBy: 'newest'
     })
     setSearchParams({})
   }

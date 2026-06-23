@@ -119,20 +119,87 @@ router.get('/', async (req, res) => {
       query.city = { $regex: sanitizedCity, $options: 'i' };
     }
     
-    // Price range — match on base price OR any sharingType price
+    // Price range — match on base price OR any sharingType price, treating monthly price as 10-month session
     if (minPrice || maxPrice) {
-      const priceConditions = [];
-      const baseCondition = {};
-      if (minPrice && minPrice !== '') baseCondition.$gte = parseInt(minPrice);
-      if (maxPrice && maxPrice !== '') baseCondition.$lte = parseInt(maxPrice);
-      priceConditions.push({ price: baseCondition });
-      if (minPrice && maxPrice) {
-        priceConditions.push({ 'sharingTypes': { $elemMatch: { price: { $gte: parseInt(minPrice), $lte: parseInt(maxPrice) } } } });
-      } else if (minPrice) {
-        priceConditions.push({ 'sharingTypes': { $elemMatch: { price: { $gte: parseInt(minPrice) } } } });
-      } else {
-        priceConditions.push({ 'sharingTypes': { $elemMatch: { price: { $lte: parseInt(maxPrice) } } } });
-      }
+      const min = minPrice && minPrice !== '' ? parseInt(minPrice) : 0;
+      const max = maxPrice && maxPrice !== '' ? parseInt(maxPrice) : 999999999;
+      
+      const priceConditions = [
+        {
+          $expr: {
+            $and: [
+              {
+                $gte: [
+                  {
+                    $cond: {
+                      if: { $eq: ["$priceType", "session"] },
+                      then: "$price",
+                      else: { $multiply: ["$price", 10] }
+                    }
+                  },
+                  min
+                ]
+              },
+              {
+                $lte: [
+                  {
+                    $cond: {
+                      if: { $eq: ["$priceType", "session"] },
+                      then: "$price",
+                      else: { $multiply: ["$price", 10] }
+                    }
+                  },
+                  max
+                ]
+              }
+            ]
+          }
+        },
+        {
+          $expr: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: { $ifNull: ["$sharingTypes", []] },
+                    as: "st",
+                    cond: {
+                      $and: [
+                        {
+                          $gte: [
+                            {
+                              $cond: {
+                                if: { $eq: ["$$st.priceType", "session"] },
+                                then: "$$st.price",
+                                else: { $multiply: ["$$st.price", 10] }
+                              }
+                            },
+                            min
+                          ]
+                        },
+                        {
+                          $lte: [
+                            {
+                              $cond: {
+                                if: { $eq: ["$$st.priceType", "session"] },
+                                then: "$$st.price",
+                                else: { $multiply: ["$$st.price", 10] }
+                              }
+                            },
+                            max
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              0
+            ]
+          }
+        }
+      ];
+
       if (query.$and) {
         query.$and.push({ $or: priceConditions });
       } else if (query.$or) {
@@ -165,10 +232,7 @@ router.get('/', async (req, res) => {
       query.foodType = foodType.trim();
     }
     
-    // Price Type / Payment Period filter
-    if (priceType && priceType.trim() && priceType !== '') {
-      query.priceType = priceType.trim();
-    }
+
     
     // Amenities
     if (amenities && amenities.trim() && amenities !== '') {
