@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
     // Nearby Place filter - search hostels that have this place in their nearby places
     if (nearbyPlace && nearbyPlace.trim() && nearbyPlace !== '') {
       const placeName = nearbyPlace.trim();
-      const placeRegex = new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+      const placeRegex = new RegExp(placeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       nearbyQuery = {
         $or: [
           { 'nearbyPlaces.educational.name': placeRegex },
@@ -273,7 +273,7 @@ router.get('/', async (req, res) => {
         .lean();
       
       const placeName = nearbyPlace.trim().toLowerCase();
-      const placeRegex = new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+      const placeRegex = new RegExp(placeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
       allHostels.forEach(hostel => {
         let minDistance = 9999;
@@ -386,7 +386,18 @@ router.get('/filters/options', async (req, res) => {
     // Get educational nearby places from NearbyPlaces collection
     const NearbyPlaces = require('../models/NearbyPlaces');
     const nearbyPlacesData = await NearbyPlaces.find({ active: true, category: 'educational' }, 'name').lean();
-    const nearbyPlaces = nearbyPlacesData.map(place => place.name).sort();
+    const educationalPlaces = new Set(nearbyPlacesData.map(place => place.name));
+    
+    // Also extract directly from hostels to ensure no linked ones are missed
+    const hostels = await Hostel.find({ 'nearbyPlaces.educational': { $exists: true, $not: { $size: 0 } } }, 'nearbyPlaces.educational.name').lean();
+    hostels.forEach(h => {
+      if (h.nearbyPlaces && Array.isArray(h.nearbyPlaces.educational)) {
+        h.nearbyPlaces.educational.forEach(p => {
+          if (p && p.name) educationalPlaces.add(p.name);
+        });
+      }
+    });
+    const nearbyPlaces = Array.from(educationalPlaces).sort();
 
     // Get cities from City collection
     const City = require('../models/City');
