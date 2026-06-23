@@ -1,7 +1,7 @@
 import { useState, useEffect, memo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { pageAPI } from '../services/api';
-import founderImage from '../assets/IMG_8311.png';
+import founderImage from '../assets/IMG_8311.PNG';
 
 /* -------------------------------------------------------------------------- */
 /* STATIC ASSETS (Prevents Memory Reallocation)                               */
