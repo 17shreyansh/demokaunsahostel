@@ -1,7 +1,7 @@
 import { useState, useEffect, memo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { pageAPI } from '../services/api';
-import founderImage from '../assets/founder.jpeg';
+import founderImage from '../assets/IMG_8311.png';
 
 /* -------------------------------------------------------------------------- */
 /* STATIC ASSETS (Prevents Memory Reallocation)                               */
@@ -35,7 +35,7 @@ const About = memo(() => {
         const response = await pageAPI.getPageContent('about', {
           signal: abortController.signal
         });
-        
+
         if (!abortController.signal.aborted) {
           setContent(response.data.content || {});
         }
@@ -102,11 +102,11 @@ const About = memo(() => {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Students Choose Us</h2>
             <div className="w-16 h-1 bg-yellow-custom mx-auto rounded"></div>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {stats.map((stat, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 transform-gpu will-change-transform"
               >
                 <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
@@ -127,7 +127,7 @@ const About = memo(() => {
               </h2>
               <div className="w-16 h-1 bg-yellow-custom mx-auto rounded"></div>
             </div>
-            
+
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
                 <div className="bg-white rounded-lg shadow-lg p-8">
@@ -135,7 +135,7 @@ const About = memo(() => {
                   <p className="text-gray-700 leading-relaxed mb-6">
                     {content.about?.story?.content || 'StayNest was founded with a vision to revolutionize student living in Greater Noida. We understand the challenges students face when looking for safe, comfortable, and affordable accommodation. Our mission is to provide more than just a place to stay - we create communities where students can thrive academically and personally.'}
                   </p>
-                  
+
                   <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
                     <div className="w-12 h-12 bg-yellow-custom rounded-lg flex items-center justify-center">
                       <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,7 +149,7 @@ const About = memo(() => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-6">
                 {values.map((value, index) => (
                   <div key={index} className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-yellow-custom">
@@ -179,16 +179,16 @@ const About = memo(() => {
                 {content.leadership?.subtitle || 'Meet the visionary transforming student accommodation in Greater Noida'}
               </p>
             </div>
-            
+
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               {/* Founder Image Section */}
               <div className="order-2 lg:order-1">
                 <div className="relative group max-w-md mx-auto lg:max-w-none">
                   <div className="absolute inset-0 bg-gradient-to-r from-yellow-custom/20 to-yellow-custom/10 rounded-3xl transform rotate-3 group-hover:rotate-1 transition-transform duration-500 will-change-transform"></div>
                   <div className="relative bg-white p-4 md:p-6 rounded-3xl shadow-2xl transform -rotate-1 group-hover:rotate-0 transition-all duration-500 transform-gpu will-change-transform">
-                    <img 
+                    <img
                       src={content.leadership?.ceo?.image ? `${import.meta.env.VITE_API_URL}${content.leadership.ceo.image}` : founderImage}
-                      alt="Founder & CEO" 
+                      alt="Founder & CEO"
                       loading="lazy"
                       decoding="async"
                       className="w-full aspect-[4/5] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500 transform-gpu will-change-transform"
@@ -198,7 +198,7 @@ const About = memo(() => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Content Section */}
               <div className="order-1 lg:order-2 space-y-6">
                 <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
@@ -217,7 +217,7 @@ const About = memo(() => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="grid sm:grid-cols-2 gap-4 mb-6">
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <h4 className="font-semibold text-gray-900 mb-2 text-sm md:text-base">Experience</h4>
@@ -232,17 +232,17 @@ const About = memo(() => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <p className="text-gray-700 leading-relaxed mb-6 text-sm md:text-base">
                     {content.leadership?.ceo?.bio || 'Passionate about transforming student living experiences with innovative solutions and exceptional service quality. Committed to creating safe, comfortable, and affordable accommodation that feels like home.'}
                   </p>
-                  
+
                   {content.leadership?.ceo?.quote && (
                     <blockquote className="border-l-4 border-yellow-custom pl-4 md:pl-6 italic text-gray-600 mb-6 text-sm md:text-base">
                       "{content.leadership.ceo.quote}"
                     </blockquote>
                   )}
-                  
+
                   {content.leadership?.ceo?.achievements && content.leadership.ceo.achievements.length > 0 && (
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-3 text-sm md:text-base">Key Achievements</h4>
@@ -257,7 +257,7 @@ const About = memo(() => {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Contact Info */}
                 <div className="bg-gradient-to-r from-yellow-custom to-yellow-400 rounded-2xl p-6 md:p-8 text-center">
                   <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Ready to Connect?</h4>
@@ -278,7 +278,7 @@ const About = memo(() => {
           </div>
         </div>
       </section>
-      
+
       {/* Mission & Vision Section */}
       {(content.mission?.content || content.vision?.content) && (
         <section className="py-20">
@@ -300,7 +300,7 @@ const About = memo(() => {
                     </p>
                   </div>
                 )}
-                
+
                 {content.vision?.content && (
                   <div className="bg-white rounded-2xl shadow-xl p-8">
                     <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
