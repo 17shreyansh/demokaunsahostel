@@ -31,12 +31,12 @@ const mapGender = (val, name) => {
 };
 
 const mapFoodType = (val) => {
-  if (!val) return 'Both';
+  if (!val) return 'Veg';
   val = val.toLowerCase();
-  if (val.includes('veg') && val.includes('non')) return 'Both';
-  if (val.includes('veg')) return 'Veg Only';
-  if (val.includes('non')) return 'Non-Veg Only';
-  return 'Both';
+  if (val.includes('veg') && val.includes('non')) return 'Veg';
+  if (val.includes('veg')) return 'Pure Veg';
+  if (val.includes('non')) return 'Non-Veg';
+  return 'Veg';
 };
 
 const seed = async () => {

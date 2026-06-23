@@ -126,8 +126,8 @@ const hostelSchema = new mongoose.Schema({
   },
   foodType: {
     type: String,
-    enum: ['Veg Only', 'Non-Veg', 'Both'],
-    default: 'Both'
+    enum: ['Pure Veg', 'Veg', 'Non-Veg'],
+    default: 'Veg'
   },
   securityDeposit: {
     type: Number

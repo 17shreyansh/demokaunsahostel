@@ -170,7 +170,7 @@ const AdminHostelEdit = () => {
           rating: data.rating || 0,
           type: data.type || 'PG',
           gender: data.gender || 'Co-ed',
-          foodType: data.foodType || 'Both',
+          foodType: data.foodType || 'Veg',
           availableBeds: data.availableBeds || data.availableRooms || 0,
           securityDeposit: data.securityDeposit || 0,
           capacity: data.capacity || '',
@@ -501,8 +501,8 @@ const AdminHostelEdit = () => {
 
               <Form.Item name="foodType" label="Food Type">
                 <Select size="large" className="w-full">
-                  <Select.Option value="Both">Both (Veg & Non-Veg)</Select.Option>
-                  <Select.Option value="Veg Only">Veg Only</Select.Option>
+                  <Select.Option value="Pure Veg">Pure Veg</Select.Option>
+                  <Select.Option value="Veg">Veg</Select.Option>
                   <Select.Option value="Non-Veg">Non-Veg</Select.Option>
                 </Select>
               </Form.Item>
