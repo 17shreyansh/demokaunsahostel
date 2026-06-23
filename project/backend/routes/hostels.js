@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
     // Nearby Place filter - search hostels that have this place in their nearby places
     if (nearbyPlace && nearbyPlace.trim() && nearbyPlace !== '') {
       const placeName = nearbyPlace.trim();
-      const placeRegex = new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\\\]/g, '\\\\$&') + '$', 'i');
+      const placeRegex = new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
       nearbyQuery = {
         $or: [
           { 'nearbyPlaces.educational.name': placeRegex },
@@ -281,7 +281,7 @@ router.get('/', async (req, res) => {
                   as: "place",
                   in: {
                     $cond: {
-                      if: { $regexMatch: { input: "$$place.name", regex: new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\\\]/g, '\\\\$&') + '$', 'i') } },
+                      if: { $regexMatch: { input: "$$place.name", regex: new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } },
                       then: {
                         $cond: {
                           if: { $and: [{ $ne: ["$$place.distance", null] }, { $ne: ["$$place.distance", ""] }] },
