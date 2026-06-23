@@ -81,8 +81,10 @@ router.get('/distances', async (req, res) => {
 
     // Sort by distance
     placesWithDistances.sort((a, b) => {
-      const aNum = parseFloat(String(a.distance).replace(/[^\\d.-]/g, '')) || 999;
-      const bNum = parseFloat(String(b.distance).replace(/[^\\d.-]/g, '')) || 999;
+      let aNum = parseFloat(String(a.distance).replace(/[^\d.-]/g, '')) || 9999;
+      let bNum = parseFloat(String(b.distance).replace(/[^\d.-]/g, '')) || 9999;
+      if (String(a.distance).toLowerCase().includes('m') && !String(a.distance).toLowerCase().includes('km')) aNum /= 1000;
+      if (String(b.distance).toLowerCase().includes('m') && !String(b.distance).toLowerCase().includes('km')) bNum /= 1000;
       return aNum - bNum;
     });
 

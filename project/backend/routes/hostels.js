@@ -252,125 +252,8 @@ router.get('/', async (req, res) => {
     
     // Sorting
     let sort = {};
-    let useAggregation = false;
-    let aggregationPipeline = [];
     
-    if (nearbyPlace && nearbyPlace.trim()) {
-      // Sort by distance to specific nearby place using aggregation
-      useAggregation = true;
-      const placeName = nearbyPlace.trim();
-      aggregationPipeline = [
-        { $match: query },
-        {
-          $addFields: {
-            distanceToPlace: {
-              $min: {
-                $map: {
-                  input: {
-                    $concatArrays: [
-                      { $ifNull: ["$nearbyPlaces.educational", []] },
-                      { $ifNull: ["$nearbyPlaces.office", []] },
-                      { $ifNull: ["$nearbyPlaces.transportation", []] },
-                      { $ifNull: ["$nearbyPlaces.shopping", []] },
-                      { $ifNull: ["$nearbyPlaces.healthcare", []] },
-                      { $ifNull: ["$nearbyPlaces.entertainment", []] },
-                      { $ifNull: ["$nearbyPlaces.restaurant", []] },
-                      { $ifNull: ["$nearbyPlaces.banking", []] }
-                    ]
-                  },
-                  as: "place",
-                  in: {
-                    $cond: {
-                      if: { $regexMatch: { input: "$$place.name", regex: new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } },
-                      then: {
-                        $cond: {
-                          if: { $and: [{ $ne: ["$$place.distance", null] }, { $ne: ["$$place.distance", ""] }] },
-                          then: {
-                            $let: {
-                              vars: {
-                                rawDist: { $toLower: "$$place.distance" }
-                              },
-                              in: {
-                                $let: {
-                                  vars: {
-                                    isMeters: { 
-                                      $and: [
-                                        { $ne: [{ $indexOfBytes: ["$$rawDist", "m"] }, -1] },
-                                        { $eq: [{ $indexOfBytes: ["$$rawDist", "km"] }, -1] }
-                                      ]
-                                    },
-                                    numericVal: {
-                                      $convert: {
-                                        input: {
-                                          $trim: {
-                                            input: {
-                                              $replaceAll: {
-                                                input: {
-                                                  $replaceAll: {
-                                                    input: {
-                                                      $replaceAll: {
-                                                        input: {
-                                                          $replaceAll: {
-                                                            input: "$$rawDist",
-                                                            find: "~",
-                                                            replacement: ""
-                                                          }
-                                                        },
-                                                        find: "km",
-                                                        replacement: ""
-                                                      }
-                                                    },
-                                                    find: "m",
-                                                    replacement: ""
-                                                  }
-                                                },
-                                                find: " ",
-                                                replacement: ""
-                                              }
-                                            }
-                                          }
-                                        },
-                                        to: "double",
-                                        onError: 9999,
-                                        onNull: 9999
-                                      }
-                                    }
-                                  },
-                                  in: {
-                                    $cond: {
-                                      if: "$$isMeters",
-                                      then: { $divide: ["$$numericVal", 1000] },
-                                      else: "$$numericVal"
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          else: 999
-                        }
-                      },
-                      else: 9999
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        { $match: { distanceToPlace: { $lt: 9999 } } },
-        { $sort: { distanceToPlace: 1, featured: -1, rating: -1 } },
-        { $skip: skip },
-        { $limit: parseInt(limit) },
-        {
-          $project: {
-            name: 1, slug: 1, description: 1, location: 1, price: 1, priceType: 1, sessionPrice: 1,
-            sharingTypes: 1, images: 1, amenities: 1, availability: 1, rating: 1,
-            featured: 1, gender: 1, type: 1, verified: 1, distanceToPlace: 1
-          }
-        }
-      ];
-    } else {
+    if (!nearbyPlace || !nearbyPlace.trim()) {
       switch (sortBy) {
         case 'price_low': sort = { price: 1 }; break;
         case 'price_high': sort = { price: -1 }; break;
@@ -383,25 +266,47 @@ router.get('/', async (req, res) => {
     // Execute query
     let hostels, total;
     
-    if (useAggregation && aggregationPipeline.length > 0) {
-      try {
-        [hostels, total] = await Promise.all([
-          Hostel.aggregate(aggregationPipeline),
-          Hostel.countDocuments(query)
-        ]);
-      } catch (aggError) {
-        console.error('Aggregation error:', aggError);
-        // Fallback to regular query
-        [hostels, total] = await Promise.all([
-          Hostel.find(query)
-            .select('name slug description location price priceType sessionPrice sharingTypes images amenities availability rating featured gender type verified')
-            .sort(sort)
-            .skip(skip)
-            .limit(parseInt(limit))
-            .lean(),
-          Hostel.countDocuments(query)
-        ]);
-      }
+    if (nearbyPlace && nearbyPlace.trim()) {
+      // Use JS parsing to safely sort by distance without MongoDB version/aggregation issues
+      const allHostels = await Hostel.find(query)
+        .select('name slug description location price priceType sessionPrice sharingTypes images amenities availability rating featured gender type verified nearbyPlaces')
+        .lean();
+      
+      const placeName = nearbyPlace.trim().toLowerCase();
+      const placeRegex = new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+
+      allHostels.forEach(hostel => {
+        let minDistance = 9999;
+        const categories = ['educational', 'office', 'transportation', 'shopping', 'healthcare', 'entertainment', 'restaurant', 'banking'];
+        
+        categories.forEach(cat => {
+          if (hostel.nearbyPlaces && hostel.nearbyPlaces[cat]) {
+            hostel.nearbyPlaces[cat].forEach(place => {
+              if (place && place.name && placeRegex.test(place.name)) {
+                if (place.distance) {
+                  const distStr = String(place.distance).toLowerCase();
+                  let num = parseFloat(distStr.replace(/[^\d.-]/g, '')) || 9999;
+                  if (distStr.includes('m') && !distStr.includes('km')) {
+                    num = num / 1000;
+                  }
+                  if (num < minDistance) minDistance = num;
+                }
+              }
+            });
+          }
+        });
+        hostel.distanceToPlace = minDistance;
+      });
+
+      // Sort mathematically
+      allHostels.sort((a, b) => {
+        if (a.distanceToPlace !== b.distanceToPlace) return a.distanceToPlace - b.distanceToPlace;
+        if (a.featured !== b.featured) return a.featured ? -1 : 1;
+        return (b.rating || 0) - (a.rating || 0);
+      });
+
+      total = allHostels.length;
+      hostels = allHostels.slice(skip, skip + parseInt(limit));
     } else {
       [hostels, total] = await Promise.all([
         Hostel.find(query)
