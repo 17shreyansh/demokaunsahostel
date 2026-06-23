@@ -84,16 +84,17 @@ router.get('/', async (req, res) => {
     // Nearby Place filter - search hostels that have this place in their nearby places
     if (nearbyPlace && nearbyPlace.trim() && nearbyPlace !== '') {
       const placeName = nearbyPlace.trim();
+      const placeRegex = new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\\\]/g, '\\\\$&') + '$', 'i');
       nearbyQuery = {
         $or: [
-          { 'nearbyPlaces.educational.name': placeName },
-          { 'nearbyPlaces.office.name': placeName },
-          { 'nearbyPlaces.transportation.name': placeName },
-          { 'nearbyPlaces.shopping.name': placeName },
-          { 'nearbyPlaces.healthcare.name': placeName },
-          { 'nearbyPlaces.entertainment.name': placeName },
-          { 'nearbyPlaces.restaurant.name': placeName },
-          { 'nearbyPlaces.banking.name': placeName }
+          { 'nearbyPlaces.educational.name': placeRegex },
+          { 'nearbyPlaces.office.name': placeRegex },
+          { 'nearbyPlaces.transportation.name': placeRegex },
+          { 'nearbyPlaces.shopping.name': placeRegex },
+          { 'nearbyPlaces.healthcare.name': placeRegex },
+          { 'nearbyPlaces.entertainment.name': placeRegex },
+          { 'nearbyPlaces.restaurant.name': placeRegex },
+          { 'nearbyPlaces.banking.name': placeRegex }
         ]
       };
     }
@@ -280,21 +281,26 @@ router.get('/', async (req, res) => {
                   as: "place",
                   in: {
                     $cond: {
-                      if: { $eq: ["$$place.name", placeName] },
+                      if: { $regexMatch: { input: "$$place.name", regex: new RegExp('^' + placeName.replace(/[.*+?^${}()|[\]\\\\]/g, '\\\\$&') + '$', 'i') } },
                       then: {
                         $cond: {
                           if: { $and: [{ $ne: ["$$place.distance", null] }, { $ne: ["$$place.distance", ""] }] },
                           then: {
-                            $toDouble: {
-                              $arrayElemAt: [
-                                { 
-                                  $split: [
-                                    { $replaceAll: { input: "$$place.distance", find: "~", replacement: "" } }, 
-                                    " "
-                                  ] 
-                                },
-                                0
-                              ]
+                            $convert: {
+                              input: {
+                                $arrayElemAt: [
+                                  { 
+                                    $split: [
+                                      { $replaceAll: { input: "$$place.distance", find: "~", replacement: "" } }, 
+                                      " "
+                                    ] 
+                                  },
+                                  0
+                                ]
+                              },
+                              to: "double",
+                              onError: 999,
+                              onNull: 999
                             }
                           },
                           else: 999
@@ -344,7 +350,7 @@ router.get('/', async (req, res) => {
         // Fallback to regular query
         [hostels, total] = await Promise.all([
           Hostel.find(query)
-            .select('name slug description location price priceType sessionPrice images amenities availability rating featured gender type verified')
+            .select('name slug description location price priceType sessionPrice sharingTypes images amenities availability rating featured gender type verified')
             .sort(sort)
             .skip(skip)
             .limit(parseInt(limit))
