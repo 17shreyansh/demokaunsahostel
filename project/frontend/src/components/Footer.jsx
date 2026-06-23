@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useState, useEffect, memo } from 'react'
 import { pageAPI } from '../services/api'
-import logo from '../assets/logo2.png'
+import logo from '../assets/logo-white.png'
 
 const Footer = memo(() => {
   const [contactInfo, setContactInfo] = useState({})
@@ -38,7 +38,7 @@ const Footer = memo(() => {
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center mb-6 group">
-              <img src={logo} alt="Kaunsa Hostel Logo" loading="lazy" decoding="async" width="128" height="128" className="h-32 w-auto group-hover:scale-105 transition-transform" />
+              <img src={logo} alt="Kaunsa Hostel Logo" loading="lazy" decoding="async" className="h-20 sm:h-24 w-auto group-hover:scale-105 transition-transform" />
             </Link>
             <p className="text-gray-200 leading-relaxed mb-6">
               Your trusted partner in finding premium hostels in Greater Noida. We create comfortable, safe, and vibrant communities for students and professionals.

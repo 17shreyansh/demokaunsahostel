@@ -168,13 +168,13 @@ const Header = memo(() => {
       <nav className="container mx-auto flex items-center justify-between px-4 md:px-6 py-2 sm:py-0">
 
         <div className="gsap-stagger-item shrink-0 py-2">
-          <Link to="/">
+          <Link to="/" className="flex items-center h-12 sm:h-14 md:h-16">
             <img
               src={logo}
               alt="KaunsaHostel"
               fetchPriority="high"
               decoding="async"
-              className="h-12 sm:h-14 md:h-16 w-auto object-contain transition-transform duration-300 hover:scale-105"
+              className="h-20 sm:h-24 md:h-28 w-auto max-w-none object-contain transition-transform duration-300 hover:scale-105"
             />
           </Link>
         </div>
