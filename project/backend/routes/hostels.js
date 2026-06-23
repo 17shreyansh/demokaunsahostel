@@ -286,21 +286,65 @@ router.get('/', async (req, res) => {
                         $cond: {
                           if: { $and: [{ $ne: ["$$place.distance", null] }, { $ne: ["$$place.distance", ""] }] },
                           then: {
-                            $convert: {
-                              input: {
-                                $arrayElemAt: [
-                                  { 
-                                    $split: [
-                                      { $replaceAll: { input: "$$place.distance", find: "~", replacement: "" } }, 
-                                      " "
-                                    ] 
-                                  },
-                                  0
-                                ]
+                            $let: {
+                              vars: {
+                                rawDist: { $toLower: "$$place.distance" }
                               },
-                              to: "double",
-                              onError: 999,
-                              onNull: 999
+                              in: {
+                                $let: {
+                                  vars: {
+                                    isMeters: { 
+                                      $and: [
+                                        { $ne: [{ $indexOfBytes: ["$$rawDist", "m"] }, -1] },
+                                        { $eq: [{ $indexOfBytes: ["$$rawDist", "km"] }, -1] }
+                                      ]
+                                    },
+                                    numericVal: {
+                                      $convert: {
+                                        input: {
+                                          $trim: {
+                                            input: {
+                                              $replaceAll: {
+                                                input: {
+                                                  $replaceAll: {
+                                                    input: {
+                                                      $replaceAll: {
+                                                        input: {
+                                                          $replaceAll: {
+                                                            input: "$$rawDist",
+                                                            find: "~",
+                                                            replacement: ""
+                                                          }
+                                                        },
+                                                        find: "km",
+                                                        replacement: ""
+                                                      }
+                                                    },
+                                                    find: "m",
+                                                    replacement: ""
+                                                  }
+                                                },
+                                                find: " ",
+                                                replacement: ""
+                                              }
+                                            }
+                                          }
+                                        },
+                                        to: "double",
+                                        onError: 9999,
+                                        onNull: 9999
+                                      }
+                                    }
+                                  },
+                                  in: {
+                                    $cond: {
+                                      if: "$$isMeters",
+                                      then: { $divide: ["$$numericVal", 1000] },
+                                      else: "$$numericVal"
+                                    }
+                                  }
+                                }
+                              }
                             }
                           },
                           else: 999
@@ -322,7 +366,7 @@ router.get('/', async (req, res) => {
           $project: {
             name: 1, slug: 1, description: 1, location: 1, price: 1, priceType: 1, sessionPrice: 1,
             sharingTypes: 1, images: 1, amenities: 1, availability: 1, rating: 1,
-            featured: 1, gender: 1, type: 1, verified: 1
+            featured: 1, gender: 1, type: 1, verified: 1, distanceToPlace: 1
           }
         }
       ];
@@ -434,17 +478,10 @@ router.get('/filters/options', async (req, res) => {
     const amenities = await Hostel.distinct('amenities');
     const foodTypes = await Hostel.distinct('foodType');
     
-    // Extract distinct educational nearby places directly from existing hostels
-    const hostels = await Hostel.find({ 'nearbyPlaces.educational': { $exists: true, $not: { $size: 0 } } }, 'nearbyPlaces.educational.name').lean();
-    const educationalPlaces = new Set();
-    hostels.forEach(h => {
-      if (h.nearbyPlaces && Array.isArray(h.nearbyPlaces.educational)) {
-        h.nearbyPlaces.educational.forEach(p => {
-          if (p && p.name) educationalPlaces.add(p.name);
-        });
-      }
-    });
-    const nearbyPlaces = Array.from(educationalPlaces).sort();
+    // Get educational nearby places from NearbyPlaces collection
+    const NearbyPlaces = require('../models/NearbyPlaces');
+    const nearbyPlacesData = await NearbyPlaces.find({ active: true, category: 'educational' }, 'name').lean();
+    const nearbyPlaces = nearbyPlacesData.map(place => place.name).sort();
 
     // Get cities from City collection
     const City = require('../models/City');
