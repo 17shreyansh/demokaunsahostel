@@ -510,7 +510,7 @@ router.get('/slug/:slug', async (req, res) => {
     let hostel = await Hostel.findOne({ slug: req.params.slug });
     
     // If not found by slug, try to find by ID (fallback for old URLs)
-    if (!hostel) {
+    if (!hostel && /^[0-9a-fA-F]{24}$/.test(req.params.slug)) {
       hostel = await Hostel.findById(req.params.slug);
     }
     

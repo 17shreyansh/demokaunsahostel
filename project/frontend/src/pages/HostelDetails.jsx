@@ -73,8 +73,13 @@ const HostelDetails = () => {
     } catch (error) {
       if (error.name !== 'CanceledError') {
         console.error('Error fetching hostel details:', error)
-        setError('Failed to load hostel details. Please check your connection and try again.')
-        setHostel(null)
+        if (error.response && error.response.status === 404) {
+          setHostel(null)
+          setError(null)
+        } else {
+          setError('Failed to load hostel details. Please check your connection and try again.')
+          setHostel(null)
+        }
       }
     } finally {
       if (!abortController?.signal.aborted) {
