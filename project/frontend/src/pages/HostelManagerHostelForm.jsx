@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Form, Input, Select, Upload, message,
-  InputNumber, Checkbox, Dropdown
+  InputNumber, Checkbox, Dropdown, Space, Button, Divider
 } from 'antd';
 import {
   Save, ArrowLeft, UploadCloud, Plus,
@@ -11,7 +11,7 @@ import {
   Image as ImageIcon, Star, Loader2, DollarSign, Percent
 } from 'lucide-react';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
-import { installmentTemplateAPI, hostelManagerAPI } from '../services/api';
+import { installmentTemplateAPI, hostelManagerAPI, cityAPI } from '../services/api';
 import NearbyPlacesSelector from '../components/NearbyPlacesSelector.jsx';
 import imageCompression from 'browser-image-compression';
 
@@ -132,6 +132,8 @@ const HostelManagerHostelForm = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [mapCoordinates, setMapCoordinates] = useState({ lat: 28.6139, lng: 77.2090 });
   const [templateOptions, setTemplateOptions] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [newCityName, setNewCityName] = useState('');
 
   const rawCoordinates = Form.useWatch('coordinates', form);
 
@@ -142,6 +144,12 @@ const HostelManagerHostelForm = () => {
         setTemplateOptions(res.data);
       } catch (error) {
         console.error('Failed to fetch installment templates:', error);
+      }
+      try {
+        const res = await cityAPI.getAll();
+        setCities(res.data);
+      } catch (error) {
+        console.error('Failed to fetch cities:', error);
       }
     };
     fetchTemplates();
@@ -160,6 +168,7 @@ const HostelManagerHostelForm = () => {
 
         form.setFieldsValue({
           name: data.name || '',
+          city: data.city || 'Greater Noida',
           location: data.location || '',
           description: data.description || '',
           price: data.price || 0,
@@ -222,6 +231,20 @@ const HostelManagerHostelForm = () => {
 
     fetchHostel();
   }, [id, form]);
+
+  const handleAddCity = async (e) => {
+    e.preventDefault();
+    if (!newCityName) return;
+    try {
+      const res = await cityAPI.create({ name: newCityName });
+      setCities([...cities, res.data]);
+      form.setFieldValue('city', res.data.name);
+      setNewCityName('');
+      message.success('City added successfully');
+    } catch (error) {
+      message.error(error.response?.data?.message || 'Failed to add city');
+    }
+  };
 
   const handleSubmit = async (values) => {
     setSubmitting(true);
@@ -398,12 +421,37 @@ const HostelManagerHostelForm = () => {
 
             {/* Section 1: Basic Information */}
             <FormSection title="Basic Information" icon={Info}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
                 <Form.Item name="name" label="Property Name" rules={[{ required: true, message: 'Property name is required' }]}>
                   <Input size="large" placeholder="e.g., Sunrise Student Living" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
                 </Form.Item>
-                <Form.Item name="location" label="City / Area" rules={[{ required: true, message: 'Location is required' }]}>
-                  <Input size="large" placeholder="e.g., Knowledge Park, Greater Noida" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
+                <Form.Item name="city" label="City" rules={[{ required: true, message: 'City is required' }]}>
+                  <Select
+                    size="large"
+                    showSearch
+                    placeholder="Select or add a city"
+                    dropdownRender={(menu) => (
+                      <>
+                        {menu}
+                        <Divider style={{ margin: '8px 0' }} />
+                        <Space style={{ padding: '0 8px 4px' }}>
+                          <Input
+                            placeholder="Please enter city name"
+                            value={newCityName}
+                            onChange={(e) => setNewCityName(e.target.value)}
+                            onKeyDown={(e) => e.stopPropagation()}
+                          />
+                          <Button type="text" icon={<Plus size={14} />} onClick={handleAddCity}>
+                            Add
+                          </Button>
+                        </Space>
+                      </>
+                    )}
+                    options={cities.map((city) => ({ label: city.name, value: city.name }))}
+                  />
+                </Form.Item>
+                <Form.Item name="location" label="Locality / Area" rules={[{ required: true, message: 'Locality is required' }]}>
+                  <Input size="large" placeholder="e.g., Knowledge Park" className="hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500/20" />
                 </Form.Item>
               </div>
 

@@ -46,7 +46,7 @@ const upload = multer({
 router.get('/', async (req, res) => {
   try {
     const { 
-      search, location, minPrice, maxPrice, gender, type,
+      search, location, city, minPrice, maxPrice, gender, type,
       amenities, availability, sortBy, nearbyPlace, verified, foodType, priceType, page = 1, limit = 12 
     } = req.query;
     
@@ -111,6 +111,12 @@ router.get('/', async (req, res) => {
     if (location && location.trim() && location !== '') {
       const sanitizedLocation = location.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.location = { $regex: sanitizedLocation, $options: 'i' };
+    }
+    
+    // City filter
+    if (city && city.trim() && city !== '') {
+      const sanitizedCity = city.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.city = { $regex: sanitizedCity, $options: 'i' };
     }
     
     // Price range — match on base price OR any sharingType price
@@ -362,9 +368,15 @@ router.get('/filters/options', async (req, res) => {
     const NearbyPlaces = require('../models/NearbyPlaces');
     const nearbyPlacesData = await NearbyPlaces.find({ active: true }, 'name').lean();
     const nearbyPlaces = nearbyPlacesData.map(place => place.name).sort();
+
+    // Get cities from City collection
+    const City = require('../models/City');
+    const citiesData = await City.find({ active: true }, 'name').lean();
+    const cities = citiesData.map(city => city.name).sort();
     
     res.json({
       locations: locations.filter(Boolean).sort(),
+      cities: cities.filter(Boolean).sort(),
       genders: genders.filter(Boolean).sort(),
       types: types.filter(Boolean).sort(),
       foodTypes: foodTypes.filter(Boolean).sort(),

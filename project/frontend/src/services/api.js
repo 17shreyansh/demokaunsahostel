@@ -230,4 +230,9 @@ export const installmentTemplateAPI = {
   delete: (id) => api.delete(`/installment-templates/${id}`)
 }
 
+export const cityAPI = {
+  getAll: () => api.get('/cities'),
+  create: (data) => api.post('/cities', data)
+}
+
 export default api

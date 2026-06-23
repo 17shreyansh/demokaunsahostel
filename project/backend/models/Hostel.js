@@ -17,6 +17,11 @@ const hostelSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  city: {
+    type: String,
+    required: true,
+    default: 'Greater Noida'
+  },
   price: {
     type: Number,
     required: true

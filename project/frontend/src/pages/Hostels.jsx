@@ -112,9 +112,9 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-2">City</label>
         <MemoizedSelect
-          value={filters.location ? { value: filters.location, label: filters.location } : null}
-          onChange={(opt) => updateFilters({ location: opt?.value || '' })}
-          options={[{ value: '', label: 'All Cities' }, ...(filterOptions.locations || []).map(loc => ({ value: loc, label: loc }))]}
+          value={filters.city ? { value: filters.city, label: filters.city } : null}
+          onChange={(opt) => updateFilters({ city: opt?.value || '' })}
+          options={[{ value: '', label: 'All Cities' }, ...(filterOptions.cities || []).map(city => ({ value: city, label: city }))]}
           placeholder="All Cities"
           isClearable
           menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
@@ -267,7 +267,7 @@ const Hostels = () => {
 
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
-    location: searchParams.get('location') || '',
+    city: searchParams.get('city') || '',
     minPrice: searchParams.get('minPrice') || '',
     maxPrice: searchParams.get('maxPrice') || '',
     gender: searchParams.get('gender') || '',
@@ -285,7 +285,7 @@ const Hostels = () => {
   useEffect(() => {
     setFilters({
       search: searchParams.get('search') || '',
-      location: searchParams.get('location') || '',
+      city: searchParams.get('city') || '',
       minPrice: searchParams.get('minPrice') || '',
       maxPrice: searchParams.get('maxPrice') || '',
       gender: searchParams.get('gender') || '',
@@ -386,7 +386,7 @@ const Hostels = () => {
 
   const clearFilters = () => {
     setFilters({
-      search: '', location: '', minPrice: '', maxPrice: '',
+      search: '', city: '', minPrice: '', maxPrice: '',
       gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', verified: '', foodType: '', priceType: '', sortBy: 'newest'
     })
     setSearchParams({})
