@@ -16,28 +16,32 @@ const MemoizedSelect = memo(Select)
 const getSelectStyles = () => ({
   control: (base, state) => ({
     ...base,
-    borderRadius: '12px',
-    border: '2px solid #e5e7eb',
-    boxShadow: state.isFocused ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none',
-    borderColor: state.isFocused ? '#3b82f6' : '#e5e7eb',
-    padding: '4px',
-    background: '#ffffff',
-    fontSize: '16px',
-    '&:hover': { borderColor: '#93c5fd' },
-    transition: 'all 0.2s ease'
+    borderRadius: '16px',
+    border: '2px solid #f3f4f6',
+    boxShadow: state.isFocused ? '0 0 0 4px rgba(59, 130, 246, 0.1)' : 'none',
+    borderColor: state.isFocused ? '#3b82f6' : '#f3f4f6',
+    padding: '6px',
+    background: state.isFocused ? '#ffffff' : '#f9fafb',
+    fontSize: '15px',
+    fontWeight: '500',
+    '&:hover': { borderColor: '#bfdbfe', background: '#ffffff' },
+    transition: 'all 0.25s ease',
+    cursor: 'pointer'
   }),
   option: (base, state) => ({
     ...base,
     backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : '#ffffff',
     color: state.isSelected ? '#ffffff' : '#374151',
     fontWeight: state.isSelected ? '600' : '500',
-    padding: '12px 16px',
-    fontSize: '16px',
+    padding: '14px 16px',
+    fontSize: '15px',
     cursor: 'pointer',
-    transition: 'background-color 0.15s ease'
+    transition: 'all 0.2s ease',
+    '&:active': { backgroundColor: state.isSelected ? '#2563eb' : '#dbeafe' }
   }),
-  menu: (base) => ({ ...base, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', zIndex: 9999 }),
-  menuPortal: (base) => ({ ...base, zIndex: 99999 })
+  menu: (base) => ({ ...base, borderRadius: '16px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', border: '1px solid #f3f4f6', zIndex: 9999 }),
+  menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+  indicatorSeparator: () => ({ display: 'none' })
 })
 
 // Reusable Filter Content
@@ -47,7 +51,13 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
 
       {/* Verified Property */}
       <div>
-        <label className="flex items-center gap-3 cursor-pointer group bg-gray-50 p-3 rounded-xl border border-gray-100 hover:border-blue-200 transition-all">
+        <label className="flex items-center justify-between gap-3 cursor-pointer group bg-gradient-to-r from-blue-50/50 to-white p-4 rounded-2xl border border-blue-100 hover:border-blue-300 hover:shadow-md transition-all shadow-sm">
+          <div className="flex items-center gap-3">
+             <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+             </div>
+             <span className="text-sm sm:text-base font-bold text-gray-800">Verified Properties</span>
+          </div>
           <div className="relative flex items-center">
             <input 
               type="checkbox" 
@@ -55,16 +65,15 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
               checked={filters.verified === 'true'}
               onChange={(e) => updateFilters({ verified: e.target.checked ? 'true' : '' })}
             />
-            <div className={`w-10 h-6 bg-gray-200 rounded-full transition-colors duration-300 ease-in-out ${filters.verified === 'true' ? 'bg-blue-500' : ''}`}></div>
-            <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${filters.verified === 'true' ? 'transform translate-x-4' : ''}`}></div>
+            <div className={`w-12 h-7 bg-gray-200 rounded-full transition-colors duration-300 ease-in-out ${filters.verified === 'true' ? 'bg-blue-600' : ''}`}></div>
+            <div className={`absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300 ease-in-out shadow-sm ${filters.verified === 'true' ? 'transform translate-x-5' : ''}`}></div>
           </div>
-          <span className="text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">Verified Property Only</span>
         </label>
       </div>
 
       {/* Type */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Property Type</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2.5">Property Type</label>
         <MemoizedSelect
           value={filters.type ? { value: filters.type, label: filters.type } : null}
           onChange={(opt) => updateFilters({ type: opt?.value || '' })}
@@ -79,7 +88,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
 
       {/* Gender */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Gender</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2.5">Gender</label>
         <MemoizedSelect
           value={filters.gender ? { value: filters.gender, label: filters.gender === 'Boys' ? 'Boys Only' : filters.gender === 'Girls' ? 'Girls Only' : 'Co-ed' } : null}
           onChange={(opt) => updateFilters({ gender: opt?.value || '' })}
@@ -94,7 +103,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
 
       {/* Nearby College */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Nearby College</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2.5">Nearby College</label>
         <MemoizedSelect
           value={filters.nearbyPlace ? { value: filters.nearbyPlace, label: filters.nearbyPlace } : null}
           onChange={(opt) => updateFilters({ nearbyPlace: opt?.value || '' })}
@@ -110,7 +119,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
 
       {/* City */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">City</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2.5">City</label>
         <MemoizedSelect
           value={filters.city ? { value: filters.city, label: filters.city } : null}
           onChange={(opt) => updateFilters({ city: opt?.value || '' })}
@@ -125,7 +134,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
 
       {/* Food Type */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Food Type</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2.5">Food Type</label>
         <MemoizedSelect
           value={filters.foodType ? { value: filters.foodType, label: filters.foodType } : null}
           onChange={(opt) => updateFilters({ foodType: opt?.value || '' })}
@@ -140,7 +149,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
 
       {/* Availability */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Availability</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2.5">Availability</label>
         <MemoizedSelect
           value={filters.availability ? { value: filters.availability, label: filters.availability } : null}
           onChange={(opt) => updateFilters({ availability: opt?.value || '' })}
@@ -156,14 +165,14 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
       {/* Amenities Multi-Select Checklist */}
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-3">Amenities</label>
-        <div className="p-4 border-2 border-gray-100 rounded-xl bg-gray-50 shadow-inner max-h-60 overflow-y-auto custom-scrollbar">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="p-3 border-2 border-gray-100/60 rounded-2xl bg-gray-50/50 shadow-inner max-h-64 overflow-y-auto custom-scrollbar">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {(filterOptions.amenities || []).map(amenity => {
               const selectedAmenities = filters.amenities ? filters.amenities.split(',') : []
               const isSelected = selectedAmenities.includes(amenity)
               return (
-                <label key={amenity} className="flex items-center gap-2 cursor-pointer group">
-                  <div className="relative flex items-center justify-center w-5 h-5">
+                <label key={amenity} className={`flex items-center gap-3 cursor-pointer group p-2.5 rounded-xl transition-all border ${isSelected ? 'bg-blue-50/80 border-blue-200 shadow-sm' : 'bg-white border-gray-100 hover:border-blue-300 hover:bg-blue-50/30'}`}>
+                  <div className="relative flex items-center justify-center w-5 h-5 flex-shrink-0">
                     <input
                       type="checkbox"
                       className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer"
@@ -173,11 +182,11 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
                         updateFilters({ amenities: newAmenities.length > 0 ? newAmenities.join(',') : '' })
                       }}
                     />
-                    <svg className="absolute w-3.5 h-3.5 text-gray-900 pointer-events-none opacity-0 peer-checked:opacity-100 transform scale-50 peer-checked:scale-100 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <svg className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transform scale-50 peer-checked:scale-100 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition-colors truncate">{amenity}</span>
+                  <span className={`text-sm font-medium transition-colors truncate ${isSelected ? 'text-blue-700 font-semibold' : 'text-gray-700 group-hover:text-gray-900'}`}>{amenity}</span>
                 </label>
               )
             })}
@@ -585,23 +594,28 @@ const Hostels = () => {
           {/* Backdrop Blur */}
           <div
             onClick={() => setShowFilters(false)}
-            className="fixed inset-0 bg-gray-900/50 z-[100] lg:hidden animate-in fade-in duration-300"
+            className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] lg:hidden animate-in fade-in duration-300"
           />
 
           {/* Bottom Sheet */}
           <div
             className="fixed inset-x-0 bottom-0 z-[110] bg-white rounded-t-[32px] shadow-2xl lg:hidden flex flex-col h-[85dvh] will-change-transform animate-in slide-in-from-bottom-full duration-300 ease-out"
           >
+            {/* Drag Handle */}
+            <div className="w-full flex justify-center pt-4 pb-2 shrink-0 bg-white rounded-t-[32px]" onClick={() => setShowFilters(false)}>
+              <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            </div>
+
             {/* Header (sticky top) */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
-              <h3 className="text-xl font-bold text-gray-900">Filters</h3>
-              <button onClick={() => setShowFilters(false)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <div className="flex justify-between items-center px-6 pb-4 border-b border-gray-100 shrink-0">
+              <h3 className="text-2xl font-extrabold text-gray-900">Filters</h3>
+              <button onClick={() => setShowFilters(false)} className="p-2.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors active:scale-95">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
 
             {/* Scrollable Content */}
-            <div className="p-6 pb-24 overflow-y-auto overscroll-contain flex-1 relative custom-scrollbar">
+            <div className="px-6 py-4 pb-28 overflow-y-auto overscroll-contain flex-1 relative custom-scrollbar">
               <FilterContentBlocks 
                 filters={filters} 
                 updateFilters={updateFilters} 
@@ -613,19 +627,22 @@ const Hostels = () => {
             </div>
 
             {/* Footer Actions (sticky bottom) */}
-            <div className="p-5 border-t border-gray-100 shrink-0 bg-white w-full absolute bottom-0 z-20">
+            <div className="p-4 border-t border-gray-100/60 shrink-0 bg-white/90 backdrop-blur-md w-full absolute bottom-0 z-20">
               <div className="flex items-center gap-4">
                 <button 
                   onClick={clearFilters} 
-                  className="px-4 py-3.5 text-sm text-gray-700 font-bold bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors w-1/3 text-center"
+                  className="px-4 py-4 text-sm text-gray-700 font-bold bg-gray-100 rounded-2xl hover:bg-gray-200 transition-colors w-[35%] text-center active:scale-95"
                 >
                   Clear All
                 </button>
                 <button 
                   onClick={() => setShowFilters(false)} 
-                  className="flex-1 bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-colors shadow-sm active:scale-95"
+                  className="flex-1 bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30 active:scale-95 flex justify-center items-center gap-2"
                 >
-                  Show Results
+                  <span>Show Results</span>
+                  {hostels.length > 0 && (
+                    <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs">{hostels.length}</span>
+                  )}
                 </button>
               </div>
             </div>
