@@ -38,6 +38,9 @@ const visitBookingSchema = new mongoose.Schema({
   visitDate: {
     type: Date
   },
+  visitTime: {
+    type: String
+  },
   visitStatus: {
     type: String,
     enum: ['pending', 'scheduled', 'completed', 'cancelled'],

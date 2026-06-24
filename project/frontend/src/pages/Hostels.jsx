@@ -205,21 +205,16 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
         <MemoizedSelect
           value={
             (!filters.minPrice && !filters.maxPrice) ? { value: '', label: 'Any Budget' } :
-              (filters.minPrice === '0' && filters.maxPrice === '50000') ? { value: '0-50000', label: 'Under ₹50,000' } :
-                (filters.minPrice === '50000' && filters.maxPrice === '75000') ? { value: '50000-75000', label: '₹50,000 - ₹75,000' } :
-                  (filters.minPrice === '75000' && filters.maxPrice === '90000') ? { value: '75000-90000', label: '₹75,000 - ₹90,000' } :
-                    (filters.minPrice === '90000' && filters.maxPrice === '105000') ? { value: '90000-105000', label: '₹90,000 - ₹1,05,000' } :
-                      (filters.minPrice === '105000' && filters.maxPrice === '120000') ? { value: '105000-120000', label: '₹1,05,000 - ₹1,20,000' } :
-                        (filters.minPrice === '120000' && filters.maxPrice === '135000') ? { value: '120000-135000', label: '₹1,20,000 - ₹1,35,000' } :
-                          (filters.minPrice === '135000' && filters.maxPrice === '150000') ? { value: '135000-150000', label: '₹1,35,000 - ₹1,50,000' } :
-                            (filters.minPrice === '150000' && filters.maxPrice === '165000') ? { value: '150000-165000', label: '₹1,50,000 - ₹1,65,000' } :
-                              (filters.minPrice === '165000' && filters.maxPrice === '180000') ? { value: '165000-180000', label: '₹1,65,000 - ₹1,80,000' } :
-                                (filters.minPrice === '180000' && filters.maxPrice === '195000') ? { value: '180000-195000', label: '₹1,80,000 - ₹1,95,000' } :
-                                  (filters.minPrice === '195000' && filters.maxPrice === '210000') ? { value: '195000-210000', label: '₹1,95,000 - ₹2,10,000' } :
-                                    (filters.minPrice === '210000' && filters.maxPrice === '225000') ? { value: '210000-225000', label: '₹2,10,000 - ₹2,25,000' } :
-                                      (filters.minPrice === '225000' && filters.maxPrice === '240000') ? { value: '225000-240000', label: '₹2,25,000 - ₹2,40,000' } :
-                                        (filters.minPrice === '240000' && !filters.maxPrice) ? { value: '240000-', label: 'Above ₹2,40,000' } :
-                                          { value: 'custom', label: `Custom: ₹${filters.minPrice || 0} - ₹${filters.maxPrice || 'Any'}` }
+              (filters.minPrice === '0' && filters.maxPrice === '100000') ? { value: '0-100000', label: 'Under ₹1,00,000' } :
+                (filters.minPrice === '100000' && filters.maxPrice === '120000') ? { value: '100000-120000', label: '₹1,00,000 - ₹1,20,000' } :
+                  (filters.minPrice === '120000' && filters.maxPrice === '140000') ? { value: '120000-140000', label: '₹1,20,000 - ₹1,40,000' } :
+                    (filters.minPrice === '140000' && filters.maxPrice === '160000') ? { value: '140000-160000', label: '₹1,40,000 - ₹1,60,000' } :
+                      (filters.minPrice === '160000' && filters.maxPrice === '180000') ? { value: '160000-180000', label: '₹1,60,000 - ₹1,80,000' } :
+                        (filters.minPrice === '180000' && filters.maxPrice === '200000') ? { value: '180000-200000', label: '₹1,80,000 - ₹2,00,000' } :
+                          (filters.minPrice === '200000' && filters.maxPrice === '220000') ? { value: '200000-220000', label: '₹2,00,000 - ₹2,20,000' } :
+                            (filters.minPrice === '220000' && filters.maxPrice === '240000') ? { value: '220000-240000', label: '₹2,20,000 - ₹2,40,000' } :
+                              (filters.minPrice === '240000' && !filters.maxPrice) ? { value: '240000-', label: 'Above ₹2,40,000' } :
+                                { value: 'custom', label: `Custom: ₹${filters.minPrice || 0} - ₹${filters.maxPrice || 'Any'}` }
           }
           onChange={(opt) => {
             if (!opt || !opt.value || opt.value === 'custom') {
@@ -231,19 +226,14 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
           }}
           options={[
             { value: '', label: 'Any Budget' },
-            { value: '0-50000', label: 'Under ₹50,000' },
-            { value: '50000-75000', label: '₹50,000 - ₹75,000' },
-            { value: '75000-90000', label: '₹75,000 - ₹90,000' },
-            { value: '90000-105000', label: '₹90,000 - ₹1,05,000' },
-            { value: '105000-120000', label: '₹1,05,000 - ₹1,20,000' },
-            { value: '120000-135000', label: '₹1,20,000 - ₹1,35,000' },
-            { value: '135000-150000', label: '₹1,35,000 - ₹1,50,000' },
-            { value: '150000-165000', label: '₹1,50,000 - ₹1,65,000' },
-            { value: '165000-180000', label: '₹1,65,000 - ₹1,80,000' },
-            { value: '180000-195000', label: '₹1,80,000 - ₹1,95,000' },
-            { value: '195000-210000', label: '₹1,95,000 - ₹2,10,000' },
-            { value: '210000-225000', label: '₹2,10,000 - ₹2,25,000' },
-            { value: '225000-240000', label: '₹2,25,000 - ₹2,40,000' },
+            { value: '0-100000', label: 'Under ₹1,00,000' },
+            { value: '100000-120000', label: '₹1,00,000 - ₹1,20,000' },
+            { value: '120000-140000', label: '₹1,20,000 - ₹1,40,000' },
+            { value: '140000-160000', label: '₹1,40,000 - ₹1,60,000' },
+            { value: '160000-180000', label: '₹1,60,000 - ₹1,80,000' },
+            { value: '180000-200000', label: '₹1,80,000 - ₹2,00,000' },
+            { value: '200000-220000', label: '₹2,00,000 - ₹2,20,000' },
+            { value: '220000-240000', label: '₹2,20,000 - ₹2,40,000' },
             { value: '240000-', label: 'Above ₹2,40,000' }
           ]}
           placeholder="Any Budget"

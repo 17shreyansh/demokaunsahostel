@@ -35,7 +35,7 @@ router.get('/check-eligibility', auth, async (req, res) => {
 // Create visit booking order
 router.post('/create-order', auth, async (req, res) => {
   try {
-    const { hostelId } = req.body;
+    const { hostelId, visitDate, visitTime } = req.body;
 
     const hostel = await Hostel.findById(hostelId);
     if (!hostel) {
@@ -60,7 +60,9 @@ router.post('/create-order', auth, async (req, res) => {
         amount: 0,
         isFree: true,
         paymentStatus: 'completed',
-        visitStatus: 'scheduled'
+        visitStatus: 'scheduled',
+        visitDate,
+        visitTime
       });
 
       await booking.save();
@@ -80,7 +82,9 @@ router.post('/create-order', auth, async (req, res) => {
       amount: 299,
       isFree: false,
       paymentStatus: 'pending',
-      visitStatus: 'pending'
+      visitStatus: 'pending',
+      visitDate,
+      visitTime
     });
 
     await booking.save();
@@ -189,7 +193,7 @@ router.get('/admin/all', auth, adminOnly, async (req, res) => {
 // Admin: Update booking status
 router.patch('/admin/:id', auth, adminOnly, async (req, res) => {
   try {
-    const { visitStatus, visitDate, notes } = req.body;
+    const { visitStatus, visitDate, visitTime, notes } = req.body;
 
     const booking = await VisitBooking.findById(req.params.id)
       .populate('user', 'name email phone')
@@ -209,6 +213,7 @@ router.patch('/admin/:id', auth, adminOnly, async (req, res) => {
 
     if (visitStatus) booking.visitStatus = visitStatus;
     if (visitDate) booking.visitDate = visitDate;
+    if (visitTime !== undefined) booking.visitTime = visitTime;
     if (notes) booking.notes = notes;
 
     await booking.save();

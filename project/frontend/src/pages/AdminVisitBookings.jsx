@@ -126,6 +126,7 @@ const AdminVisitBookings = () => {
                   <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">Property Details</th>
                   <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">Payment</th>
                   <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">Visit Status</th>
+                  <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">Visit Date & Time</th>
                   <th className="px-6 py-3.5 text-left font-semibold text-gray-900 tracking-tight">Booking Date</th>
                   <th className="px-6 py-3.5 text-right font-semibold text-gray-900 tracking-tight">Actions</th>
                 </tr>
@@ -192,10 +193,21 @@ const AdminVisitBookings = () => {
                       </div>
                     </td>
 
+                    {/* Scheduled Visit Date & Time */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {booking.visitDate ? (
+                        <div className="flex flex-col text-sm font-medium text-gray-900">
+                          <span className="flex items-center gap-1.5"><Calendar size={14} className="text-blue-500" /> {new Date(booking.visitDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                          {booking.visitTime && <span className="flex items-center gap-1.5 mt-1 text-gray-500"><Clock size={14} className="text-gray-400" /> {booking.visitTime}</span>}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400 italic">Not set</span>
+                      )}
+                    </td>
+
                     {/* Booking Date */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-600 gap-1.5 font-medium">
-                        <Calendar size={14} className="text-gray-400" />
                         {new Date(booking.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                       </div>
                     </td>
@@ -314,10 +326,25 @@ const AdminVisitBookings = () => {
                   <div>
                     <dt className="text-xs font-medium text-gray-500 mb-1">Booking Date</dt>
                     <dd className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
-                      <Clock size={14} className="text-gray-400"/>
                       {new Date(selectedBooking.createdAt).toLocaleString(undefined, { 
                         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' 
                       })}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-medium text-gray-500 mb-1">Scheduled Visit Date</dt>
+                    <dd className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                      <Calendar size={14} className="text-blue-400"/>
+                      {selectedBooking.visitDate ? new Date(selectedBooking.visitDate).toLocaleDateString(undefined, { 
+                        year: 'numeric', month: 'long', day: 'numeric' 
+                      }) : 'Not set'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-medium text-gray-500 mb-1">Scheduled Visit Time</dt>
+                    <dd className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                      <Clock size={14} className="text-blue-400"/>
+                      {selectedBooking.visitTime ? selectedBooking.visitTime : 'Not set'}
                     </dd>
                   </div>
                   <div>

@@ -218,7 +218,7 @@ export const hostelManagerAPI = {
 
 export const visitBookingAPI = {
   checkEligibility: () => api.get('/visit-bookings/check-eligibility'),
-  createOrder: (hostelId) => api.post('/visit-bookings/create-order', { hostelId }),
+  createOrder: (hostelId, visitDate, visitTime) => api.post('/visit-bookings/create-order', { hostelId, visitDate, visitTime }),
   verifyPayment: (data) => api.post('/visit-bookings/verify-payment', data),
   getMyBookings: () => api.get('/visit-bookings/my-bookings')
 }

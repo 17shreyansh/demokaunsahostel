@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useUser } from '../contexts/UserContext'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -11,7 +12,10 @@ const BookingComponent = ({ hostel }) => {
   const [eligibility, setEligibility] = useState(null)
   const [currentBookingId, setCurrentBookingId] = useState(null)
   const [showReservation, setShowReservation] = useState(false)
+  const [showVisitModal, setShowVisitModal] = useState(false)
   const [activeTab, setActiveTab] = useState('visit') // Added tab state
+  const [visitDate, setVisitDate] = useState('')
+  const [visitTime, setVisitTime] = useState('')
   const { user } = useUser()
   const navigate = useNavigate()
   const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
@@ -30,13 +34,22 @@ const BookingComponent = ({ hostel }) => {
       navigate('/user/auth')
       return
     }
+    setShowVisitModal(true)
+  }
+
+  const confirmBookVisit = async () => {
+
+    if (activeTab === 'visit' && (!visitDate || !visitTime)) {
+      alert('Please select both date and time for your visit.')
+      return
+    }
 
     try {
       setLoading(true)
 
       // Create order - using withCredentials for cookie auth
       const { data } = await axios.post(`${API_URL}/visit-bookings/create-order`, 
-        { hostelId: hostel._id },
+        { hostelId: hostel._id, visitDate, visitTime },
         { withCredentials: true }
       )
 
@@ -57,6 +70,7 @@ const BookingComponent = ({ hostel }) => {
       alert(error.response?.data?.message || 'Failed to create booking')
     } finally {
       setLoading(false)
+      setShowVisitModal(false)
     }
   }
 
@@ -112,6 +126,61 @@ const BookingComponent = ({ hostel }) => {
           navigate('/user/profile')
         }}
       />
+
+      {/* Visit Scheduling Modal */}
+      {showVisitModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900">Schedule Your Visit</h3>
+              <button onClick={() => setShowVisitModal(false)} className="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-5">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Select Date</label>
+                  <input
+                    type="date"
+                    value={visitDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setVisitDate(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors shadow-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Select Time</label>
+                  <input
+                    type="time"
+                    value={visitTime}
+                    onChange={(e) => setVisitTime(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors shadow-sm"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 bg-gray-50 border-t border-gray-100 flex gap-3">
+              <button 
+                onClick={() => setShowVisitModal(false)}
+                className="flex-1 px-4 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmBookVisit}
+                disabled={loading}
+                className="flex-1 px-4 py-3 text-white bg-green-600 rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md disabled:opacity-50 flex items-center justify-center"
+              >
+                {loading ? 'Confirming...' : 'Confirm Visit'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Booking Component */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
@@ -171,7 +240,7 @@ const BookingComponent = ({ hostel }) => {
           )}
 
           {/* Action Buttons - Conditional based on active tab */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             {(!hostel?.reservationEnabled || activeTab === 'visit') && (
               <button
                 onClick={handleBookVisit}
