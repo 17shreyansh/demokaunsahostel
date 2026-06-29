@@ -269,7 +269,7 @@ router.get('/', async (req, res) => {
     if (nearbyPlace && nearbyPlace.trim()) {
       // Use JS parsing to safely sort by distance without MongoDB version/aggregation issues
       const allHostels = await Hostel.find(query)
-        .select('name slug description location price priceType sessionPrice sharingTypes images amenities availability rating featured gender type verified nearbyPlaces')
+        .select('name slug description location price priceType sessionPrice sharingTypes images amenities availability rating featured gender type verified nearbyPlaces securityDeposit')
         .lean();
       
       const placeName = nearbyPlace.trim().toLowerCase();
@@ -310,7 +310,7 @@ router.get('/', async (req, res) => {
     } else {
       [hostels, total] = await Promise.all([
         Hostel.find(query)
-          .select('name slug description location price priceType sessionPrice sharingTypes images amenities availability rating featured gender type verified')
+          .select('name slug description location price priceType sessionPrice sharingTypes images amenities availability rating featured gender type verified securityDeposit')
           .sort(sort)
           .skip(skip)
           .limit(parseInt(limit))
@@ -319,8 +319,27 @@ router.get('/', async (req, res) => {
       ]);
     }
     
+    // Subtract security deposit from price for display
+    const processedHostels = hostels.map(hostel => {
+      const deposit = hostel.securityDeposit || 0;
+      if (deposit > 0) {
+        if (hostel.price && hostel.price > deposit) {
+          hostel.price -= deposit;
+        }
+        if (hostel.sharingTypes && hostel.sharingTypes.length > 0) {
+          hostel.sharingTypes = hostel.sharingTypes.map(st => {
+            if (st.price && st.price > deposit) {
+              return { ...st, price: st.price - deposit };
+            }
+            return st;
+          });
+        }
+      }
+      return hostel;
+    });
+    
     const result = {
-      hostels,
+      hostels: processedHostels,
       pagination: {
         current: parseInt(page),
         pages: Math.ceil(total / limit),
@@ -464,7 +483,23 @@ router.get('/:id/payment-details', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const hostel = await Hostel.findById(req.params.id);
+    const hostel = await Hostel.findById(req.params.id).lean();
+    if (hostel) {
+      const deposit = hostel.securityDeposit || 0;
+      if (deposit > 0) {
+        if (hostel.price && hostel.price > deposit) {
+          hostel.price -= deposit;
+        }
+        if (hostel.sharingTypes && hostel.sharingTypes.length > 0) {
+          hostel.sharingTypes = hostel.sharingTypes.map(st => {
+            if (st.price && st.price > deposit) {
+              return { ...st, price: st.price - deposit };
+            }
+            return st;
+          });
+        }
+      }
+    }
     res.json(hostel);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -506,7 +541,23 @@ router.get('/slug/:slug', async (req, res) => {
       await hostel.save();
     }
     
-    res.json(hostel);
+    const hostelResponse = hostel.toObject ? hostel.toObject() : hostel;
+    const deposit = hostelResponse.securityDeposit || 0;
+    if (deposit > 0) {
+      if (hostelResponse.price && hostelResponse.price > deposit) {
+        hostelResponse.price -= deposit;
+      }
+      if (hostelResponse.sharingTypes && hostelResponse.sharingTypes.length > 0) {
+        hostelResponse.sharingTypes = hostelResponse.sharingTypes.map(st => {
+          if (st.price && st.price > deposit) {
+            return { ...st, price: st.price - deposit };
+          }
+          return st;
+        });
+      }
+    }
+    
+    res.json(hostelResponse);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
