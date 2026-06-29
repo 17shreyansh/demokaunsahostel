@@ -319,27 +319,8 @@ router.get('/', async (req, res) => {
       ]);
     }
     
-    // Subtract security deposit from price for display
-    const processedHostels = hostels.map(hostel => {
-      const deposit = hostel.securityDeposit || 0;
-      if (deposit > 0) {
-        if (hostel.price && hostel.price > deposit) {
-          hostel.price -= deposit;
-        }
-        if (hostel.sharingTypes && hostel.sharingTypes.length > 0) {
-          hostel.sharingTypes = hostel.sharingTypes.map(st => {
-            if (st.price && st.price > deposit) {
-              return { ...st, price: st.price - deposit };
-            }
-            return st;
-          });
-        }
-      }
-      return hostel;
-    });
-    
     const result = {
-      hostels: processedHostels,
+      hostels,
       pagination: {
         current: parseInt(page),
         pages: Math.ceil(total / limit),
@@ -484,22 +465,6 @@ router.get('/:id/payment-details', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const hostel = await Hostel.findById(req.params.id).lean();
-    if (hostel) {
-      const deposit = hostel.securityDeposit || 0;
-      if (deposit > 0) {
-        if (hostel.price && hostel.price > deposit) {
-          hostel.price -= deposit;
-        }
-        if (hostel.sharingTypes && hostel.sharingTypes.length > 0) {
-          hostel.sharingTypes = hostel.sharingTypes.map(st => {
-            if (st.price && st.price > deposit) {
-              return { ...st, price: st.price - deposit };
-            }
-            return st;
-          });
-        }
-      }
-    }
     res.json(hostel);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -541,23 +506,7 @@ router.get('/slug/:slug', async (req, res) => {
       await hostel.save();
     }
     
-    const hostelResponse = hostel.toObject ? hostel.toObject() : hostel;
-    const deposit = hostelResponse.securityDeposit || 0;
-    if (deposit > 0) {
-      if (hostelResponse.price && hostelResponse.price > deposit) {
-        hostelResponse.price -= deposit;
-      }
-      if (hostelResponse.sharingTypes && hostelResponse.sharingTypes.length > 0) {
-        hostelResponse.sharingTypes = hostelResponse.sharingTypes.map(st => {
-          if (st.price && st.price > deposit) {
-            return { ...st, price: st.price - deposit };
-          }
-          return st;
-        });
-      }
-    }
-    
-    res.json(hostelResponse);
+    res.json(hostel);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
