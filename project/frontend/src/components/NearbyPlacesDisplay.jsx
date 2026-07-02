@@ -6,16 +6,21 @@ const NearbyPlacesDisplay = ({ hostelCoordinates, hostelNearbyPlaces }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (hostelNearbyPlaces && Object.keys(hostelNearbyPlaces).length > 0) {
-      // Use hostel's saved nearby places
-      const flatPlaces = []
+    let hasPlaces = false;
+    const flatPlaces = []
+    
+    if (hostelNearbyPlaces) {
       Object.entries(hostelNearbyPlaces).forEach(([category, places]) => {
-        if (Array.isArray(places)) {
+        if (Array.isArray(places) && places.length > 0) {
+          hasPlaces = true;
           places.forEach(place => {
             flatPlaces.push({ ...place, category })
           })
         }
       })
+    }
+
+    if (hasPlaces) {
       setNearbyPlaces(flatPlaces)
       setLoading(false)
     } else if (hostelCoordinates?.lat && hostelCoordinates?.lng) {
@@ -176,21 +181,16 @@ const NearbyPlacesDisplay = ({ hostelCoordinates, hostelNearbyPlaces }) => {
               </div>
             </div>
             
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {sortedPlaces.slice(0, 5).map((place, index) => (
-                <div key={place._id} className="flex items-center justify-between">
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+              {sortedPlaces.map((place, index) => (
+                <div key={place._id || index} className="flex items-center justify-between">
                   <div className="flex items-center flex-1 min-w-0">
                     <span className={`w-2 h-2 ${categoryInfo.dotColor} rounded-full mr-3 flex-shrink-0`}></span>
-                    <span className="text-gray-700 text-sm truncate">{place.name}</span>
+                    <span className="text-gray-700 text-sm truncate" title={place.name}>{place.name}</span>
                   </div>
                   <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{place.distance}</span>
                 </div>
               ))}
-              {places.length > 5 && (
-                <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-200">
-                  +{places.length - 5} more locations
-                </div>
-              )}
             </div>
           </div>
         )
