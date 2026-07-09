@@ -51,6 +51,7 @@ const CategoryPanel = memo(({ category, info, selectedPlaces, availableForSelect
               actions={[
                 <Tooltip title="Remove Place">
                   <Button
+                    htmlType="button"
                     key="delete"
                     type="text"
                     icon={<Trash2 size={16} />}
@@ -343,6 +344,7 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
 
         <Space wrap>
           <Button 
+            htmlType="button"
             icon={<RefreshCw size={14} />} 
             onClick={() => window.location.reload()} // Simplified refresh for demonstration, ideally call fetchAvailablePlaces
             disabled={loading}
@@ -350,6 +352,7 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
             Sync DB
           </Button>
           <Button 
+            htmlType="button"
             icon={<MapPin size={14} />} 
             onClick={recalculateDistances}
             loading={distanceLoading}
@@ -358,6 +361,7 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
             Calc Distances
           </Button>
           <Button 
+            htmlType="button"
             icon={<XCircle size={14} />} 
             onClick={clearAllPlaces}
             disabled={!hasSelectedPlaces()}
@@ -366,6 +370,7 @@ const NearbyPlacesSelector = ({ coordinates, value = {}, onChange }) => {
             Clear
           </Button>
           <Button 
+            htmlType="button"
             icon={<Plus size={14} />} 
             onClick={fetchAllNearbyPlaces}
             loading={loading || distanceLoading}

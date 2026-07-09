@@ -121,6 +121,48 @@ MemoizedMapPreview.displayName = 'MemoizedMapPreview';
 /* MAIN COMPONENT                                                             */
 /* -------------------------------------------------------------------------- */
 
+const CityDropdownExtension = ({ menu, cities, setCities, form }) => {
+  const [newCityName, setNewCityName] = useState('');
+
+  const handleAddCity = async (e) => {
+    e.preventDefault();
+    if (!newCityName) return;
+    try {
+      const res = await cityAPI.create({ name: newCityName });
+      setCities([...cities, res.data]);
+      form.setFieldValue('city', res.data.name);
+      setNewCityName('');
+      message.success('City added successfully');
+    } catch (error) {
+      message.error(error.response?.data?.message || 'Failed to add city');
+    }
+  };
+
+  return (
+    <>
+      {menu}
+      <Divider style={{ margin: '8px 0' }} />
+      <Space style={{ padding: '0 8px 4px' }}>
+        <Input
+          placeholder="Please enter city name"
+          value={newCityName}
+          onChange={(e) => setNewCityName(e.target.value)}
+          onKeyDown={(e) => {
+            e.stopPropagation();
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleAddCity(e);
+            }
+          }}
+        />
+        <Button htmlType="button" type="text" icon={<Plus size={14} />} onClick={handleAddCity}>
+          Add
+        </Button>
+      </Space>
+    </>
+  );
+};
+
 const HostelManagerHostelForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -242,20 +284,7 @@ const HostelManagerHostelForm = () => {
     fetchHostel();
   }, [id, form]);
 
-  const handleAddCity = async (e) => {
-    e.preventDefault();
-    if (!newCityName) return;
-    try {
-      const res = await cityAPI.create({ name: newCityName });
-      setCities([...cities, res.data]);
-      form.setFieldValue('city', res.data.name);
-      setNewCityName('');
-      message.success('City added successfully');
-    } catch (error) {
-      message.error(error.response?.data?.message || 'Failed to add city');
-    }
-  };
-
+  // City dropdown state handled by CityDropdownExtension
   const handleSubmit = async (values) => {
     setSubmitting(true);
     const hideLoading = message.loading('Saving property configuration...', 0);
@@ -441,21 +470,7 @@ const HostelManagerHostelForm = () => {
                     showSearch
                     placeholder="Select or add a city"
                     dropdownRender={(menu) => (
-                      <>
-                        {menu}
-                        <Divider style={{ margin: '8px 0' }} />
-                        <Space style={{ padding: '0 8px 4px' }}>
-                          <Input
-                            placeholder="Please enter city name"
-                            value={newCityName}
-                            onChange={(e) => setNewCityName(e.target.value)}
-                            onKeyDown={(e) => e.stopPropagation()}
-                          />
-                          <Button type="text" icon={<Plus size={14} />} onClick={handleAddCity}>
-                            Add
-                          </Button>
-                        </Space>
-                      </>
+                      <CityDropdownExtension menu={menu} cities={cities} setCities={setCities} form={form} />
                     )}
                     options={cities.map((city) => ({ label: city.name, value: city.name }))}
                   />
