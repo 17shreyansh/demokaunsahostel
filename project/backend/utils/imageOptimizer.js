@@ -23,8 +23,8 @@ const optimizeImage = async (file, maxWidth = 1200) => {
       fit: 'inside'
     });
     
-    // Apply watermark using our utility
-    imageStream = await applyWatermark(imageStream, maxWidth);
+    // Apply watermark using our utility (temporarily disabled)
+    // imageStream = await applyWatermark(imageStream, maxWidth);
     
     await imageStream
       .webp({ quality: 80, effort: 4 })

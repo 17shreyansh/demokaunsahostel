@@ -10,7 +10,7 @@ async function getLogoInfo() {
     return { base64: cachedLogoBase64, meta: cachedLogoMeta };
   }
 
-  const logoPath = path.resolve(__dirname, '../../frontend/src/assets/logo.png');
+  const logoPath = path.resolve(__dirname, '../../frontend/src/assets/logo-white.png');
   const logoBuffer = await fs.readFile(logoPath);
   cachedLogoBase64 = logoBuffer.toString('base64');
   cachedLogoMeta = await sharp(logoBuffer).metadata();
@@ -21,32 +21,29 @@ async function getLogoInfo() {
 /**
  * Generates a watermark buffer with the given target width
  */
-async function getWatermarkBuffer(targetImageWidth) {
+async function getWatermarkBuffer(targetImageWidth, targetImageHeight) {
   const { base64, meta } = await getLogoInfo();
 
-  // Base logo width is 30% of target image width for a pro look
-  let logoWidth = Math.round(targetImageWidth * 0.30);
+  // Base logo width is 50% of target image width
+  let logoWidth = Math.round(targetImageWidth * 0.50);
   if (logoWidth < 100) logoWidth = 100;
-  if (logoWidth > 400) logoWidth = 400;
+  if (logoWidth > 800) logoWidth = 800;
 
   const logoHeight = Math.round(meta.height * (logoWidth / meta.width));
 
-  // Padding for the white background pill
+  // Padding for the white background pill (though removed, we still have padding around logo)
   const paddingX = Math.round(logoWidth * 0.12);
   const paddingY = Math.round(logoHeight * 0.15);
 
   const bgWidth = logoWidth + (paddingX * 2);
   const bgHeight = logoHeight + (paddingY * 2);
-  const borderRadius = Math.round(bgHeight * 0.25); // Rounded corners
 
-  // Extra space so it sits a little above the bottom edge
-  const marginBottom = Math.round(targetImageWidth * 0.04);
   const totalWidth = bgWidth;
-  const totalHeight = bgHeight + marginBottom;
+  const totalHeight = bgHeight;
 
   const svgWrapper = `
     <svg width="${totalWidth}" height="${totalHeight}" xmlns="http://www.w3.org/2000/svg">
-      <g opacity="0.8">
+      <g opacity="0.4">
         <image 
           href="data:image/png;base64,${base64}" 
           width="${logoWidth}" height="${logoHeight}" 
@@ -69,11 +66,27 @@ async function getWatermarkBuffer(targetImageWidth) {
  */
 async function applyWatermark(sharpInstance, targetWidth) {
   try {
-    const watermarkBuffer = await getWatermarkBuffer(targetWidth || 800);
+    const meta = await sharpInstance.metadata();
+    
+    // Calculate actual resized dimensions
+    // Sharp resize only provides width, so it scales height proportionally.
+    // withoutEnlargement means it won't scale up if smaller than target.
+    const originalWidth = meta.width || 800;
+    const originalHeight = meta.height || 600;
+    
+    let finalWidth = originalWidth;
+    let finalHeight = originalHeight;
+    
+    if (targetWidth && originalWidth > targetWidth) {
+      finalWidth = targetWidth;
+      finalHeight = Math.round(originalHeight * (targetWidth / originalWidth));
+    }
+    
+    const watermarkBuffer = await getWatermarkBuffer(finalWidth, finalHeight);
     return sharpInstance.composite([
       {
         input: watermarkBuffer,
-        gravity: 'south'
+        gravity: 'center'
       }
     ]);
   } catch (error) {
