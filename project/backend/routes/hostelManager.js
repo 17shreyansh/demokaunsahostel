@@ -151,8 +151,8 @@ router.post('/kyc', auth, upload.single('qrCode'), async (req, res) => {
     const { accountNumber, ifscCode, bankName, accountHolderName, upiId } = req.body;
     
     // Validate required fields
-    if (!accountNumber || !ifscCode || !bankName || !accountHolderName || !upiId) {
-      return res.status(400).json({ message: 'All fields are required' });
+    if (!accountNumber || !ifscCode || !bankName || !accountHolderName) {
+      return res.status(400).json({ message: 'All bank details are required' });
     }
 
     // Validate QR code file

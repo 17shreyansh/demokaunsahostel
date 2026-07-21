@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { Card, Row, Col, Typography, Avatar, Tag, Descriptions, Divider } from 'antd';
-import { 
-  FiUser, FiMail, FiPhone, FiCalendar, FiCheckCircle, 
-  FiClock, FiAlertCircle, FiShield, FiBriefcase, FiHash 
+import {
+  FiUser, FiMail, FiPhone, FiCalendar, FiCheckCircle,
+  FiClock, FiAlertCircle, FiShield, FiBriefcase, FiHash
 } from 'react-icons/fi';
 import { useHostelManager } from '../contexts/HostelManagerContext';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
@@ -33,8 +33,8 @@ const HostelManagerProfile = () => {
 
   const memberSince = useMemo(() => {
     if (!manager?.createdAt) return 'N/A';
-    return new Date(manager.createdAt).toLocaleDateString('en-US', { 
-      year: 'numeric', month: 'long', day: 'numeric' 
+    return new Date(manager.createdAt).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric'
     });
   }, [manager?.createdAt]);
 
@@ -45,7 +45,7 @@ const HostelManagerProfile = () => {
   return (
     <HostelManagerLayout>
       <div className="max-w-5xl mx-auto pb-12">
-        
+
         {/* Header Section */}
         <div className="mb-8">
           <Title level={3} className="!m-0 text-slate-900">Partner Profile</Title>
@@ -55,14 +55,14 @@ const HostelManagerProfile = () => {
         </div>
 
         <Row gutter={[24, 24]}>
-          
+
           {/* Identity Card (Replaces the consumer gradient banner) */}
           <Col xs={24}>
             <Card bordered={false} className="shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                <Avatar 
-                  size={96} 
-                  icon={<FiUser />} 
+                <Avatar
+                  size={96}
+                  icon={<FiUser />}
                   className="bg-slate-100 text-slate-400 flex items-center justify-center border-4 border-white shadow-md flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
@@ -75,7 +75,7 @@ const HostelManagerProfile = () => {
                         <FiBriefcase className="text-slate-400" /> Account Manager
                       </p>
                     </div>
-                    
+
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-100 ${kycConfig.bg}`}>
                       <FiShield className={kycConfig.color === 'success' ? 'text-emerald-500' : 'text-slate-400'} />
                       <div className="flex flex-col">
@@ -93,9 +93,9 @@ const HostelManagerProfile = () => {
 
           {/* Contact Information */}
           <Col xs={24} lg={10}>
-            <Card 
-              title={<span className="text-lg font-bold text-slate-800">Contact Details</span>} 
-              bordered={false} 
+            <Card
+              title={<span className="text-lg font-bold text-slate-800">Contact Details</span>}
+              bordered={false}
               className="shadow-sm border border-slate-200 rounded-2xl h-full"
             >
               <div className="space-y-6">
@@ -136,14 +136,14 @@ const HostelManagerProfile = () => {
 
           {/* Business & KYC Information */}
           <Col xs={24} lg={14}>
-            <Card 
-              title={<span className="text-lg font-bold text-slate-800">Business Registration</span>} 
-              bordered={false} 
+            <Card
+              title={<span className="text-lg font-bold text-slate-800">Business Registration</span>}
+              bordered={false}
               className="shadow-sm border border-slate-200 rounded-2xl h-full"
             >
               {manager?.kyc?.status !== 'pending' ? (
-                <Descriptions 
-                  layout="vertical" 
+                <Descriptions
+                  layout="vertical"
                   column={{ xs: 1, sm: 2, md: 2 }}
                   labelStyle={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b' }}
                   contentStyle={{ fontSize: '15px', fontWeight: 600, color: '#0f172a', paddingBottom: '24px' }}
@@ -151,17 +151,17 @@ const HostelManagerProfile = () => {
                   <Descriptions.Item label="Registered Entity Name" span={2}>
                     {manager?.kyc?.companyDetails?.companyName || 'N/A'}
                   </Descriptions.Item>
-                  
+
                   <Descriptions.Item label="Entity Structure">
                     <span className="capitalize">{manager?.kyc?.companyDetails?.companyType?.replace('-', ' ') || 'N/A'}</span>
                   </Descriptions.Item>
-                  
+
                   <Descriptions.Item label="GST Identification">
                     <span className="font-mono bg-slate-50 px-2 py-1 rounded border border-slate-200">
                       {manager?.kyc?.companyDetails?.gstNumber || 'N/A'}
                     </span>
                   </Descriptions.Item>
-                  
+
                   <Descriptions.Item label="Settlement Bank" span={2}>
                     <div className="flex items-center gap-2">
                       <FiHash className="text-slate-400" />

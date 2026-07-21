@@ -150,6 +150,7 @@ export const userAPI = {
   },
   getStats: () => api.get('/users/stats'),
   getById: (id) => api.get(`/users/${id}`),
+  update: (id, data) => api.put(`/users/${id}`, data),
   toggleStatus: (id) => api.patch(`/users/${id}/toggle-status`),
   delete: (id) => api.delete(`/users/${id}`),
   assignHostels: (userId, hostelIds) => {

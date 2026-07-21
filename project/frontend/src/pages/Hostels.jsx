@@ -6,7 +6,7 @@ import { hostelAPI } from '../services/api'
 import HostelCard from '../components/common/HostelCard'
 import Select from 'react-select'
 import { debounce } from '../utils/performance'
-import { motion, AnimatePresence } from 'framer-motion' // Removed for performance
+import { motion, AnimatePresence } from 'framer-motion'
 
 // Memoized components
 const MemoizedHostelCard = memo(HostelCard)
@@ -112,7 +112,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
           options={[{ value: '', label: 'All Colleges' }, ...(filterOptions.nearbyPlaces || []).map(place => ({ value: place, label: place }))]}
           placeholder="Select College"
           isClearable
-          isSearchable={isDesktop}
+          isSearchable={true}
           menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
           menuPosition="fixed"
           styles={getSelectStyles()}
@@ -128,7 +128,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
           options={[{ value: '', label: 'All Cities' }, ...(filterOptions.cities || []).map(city => ({ value: city, label: city }))]}
           placeholder="All Cities"
           isClearable
-          isSearchable={isDesktop}
+          isSearchable={true}
           menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
           menuPosition="fixed"
           styles={getSelectStyles()}
@@ -144,7 +144,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
           options={[{ value: '', label: 'All Food Types' }, ...(filterOptions.foodTypes || []).map(food => ({ value: food, label: food }))]}
           placeholder="All Food Types"
           isClearable
-          isSearchable={isDesktop}
+          isSearchable={true}
           menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
           menuPosition="fixed"
           styles={getSelectStyles()}
@@ -519,12 +519,7 @@ const Hostels = () => {
               </div>
 
               {/* Results Grid */}
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-32">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-[3px] border-blue-600 border-t-transparent shadow-sm mb-4"></div>
-                  <p className="text-gray-500 font-medium">Curating your spaces...</p>
-                </div>
-              ) : error ? (
+              {error ? (
                 <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-red-100">
                   <div className="text-5xl mb-4">⚠️</div>
                   <h4 className="text-xl font-bold mb-2 text-gray-900">Network Issue</h4>
@@ -537,28 +532,49 @@ const Hostels = () => {
                   </button>
                 </div>
               ) : (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-300">
+                  
 
-                  <div className="flex justify-between items-center mb-6 px-2 lg:hidden">
-                    <p className="text-gray-500 text-sm font-medium">
-                      Found <span className="text-gray-900 font-bold">{hostels.length}</span> results
-                    </p>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {hostels.map((hostel) => (
-                      <MemoizedHostelCard
-                        key={hostel._id}
-                        hostel={{
-                          ...hostel,
-                          image: hostel.images?.[0] ? `${import.meta.env.VITE_UPLOADS_BASE_URL}/${hostel.images[0]}` : null
-                        }}
-                        variant="compact"
-                      />
-                    ))}
-                  </div>
+                  {loading && hostels.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-32">
+                      <div className="inline-block animate-spin rounded-full h-12 w-12 border-[3px] border-blue-600 border-t-transparent shadow-sm mb-4"></div>
+                      <p className="text-gray-500 font-medium">Curating your spaces...</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-6 px-2 lg:hidden">
+                        <p className="text-gray-500 text-sm font-medium">
+                          Found <span className="text-gray-900 font-bold">{pagination.total || hostels.length}</span> results
+                        </p>
+                      </div>
 
-                  {hostels.length === 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <AnimatePresence>
+                          {hostels.map((hostel) => (
+                            <motion.div
+                              key={hostel._id}
+                              initial={{ opacity: 0, y: 15 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              <MemoizedHostelCard
+                                hostel={{
+                                  ...hostel,
+                                  image: hostel.images?.[0] ? `${import.meta.env.VITE_UPLOADS_BASE_URL}/${hostel.images[0]}` : null
+                                }}
+                                variant="compact"
+                              />
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
+                      </div>
+
+                    </>
+                  )}
+
+                  {hostels.length === 0 && !loading && (
                     <div className="text-center py-24 bg-white rounded-3xl shadow-sm border border-gray-100 mt-2">
                       <div className="text-6xl mb-6">🔍</div>
                       <h4 className="text-2xl font-bold mb-3 text-gray-900">No matches found</h4>
@@ -573,7 +589,7 @@ const Hostels = () => {
                   )}
 
                   {/* Pagination */}
-                  {pagination.pages > 1 && (
+                  {pagination.pages > 1 && !loading && (
                     <div className="flex justify-center mt-12 mb-8">
                       <div className="flex items-center space-x-1 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100">
                         {[...Array(pagination.pages)].map((_, i) => (

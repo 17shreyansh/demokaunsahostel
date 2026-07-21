@@ -131,6 +131,36 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
+// Update admin profile
+router.put('/admin/profile', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    const { username, currentPassword, newPassword } = req.body;
+    const admin = await Admin.findById(req.user.id);
+    
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+    
+    if (currentPassword && newPassword) {
+      if (!(await admin.comparePassword(currentPassword))) {
+        return res.status(400).json({ message: 'Current password is incorrect' });
+      }
+      admin.password = newPassword;
+    }
+    
+    if (username) admin.username = username;
+    
+    await admin.save();
+    res.json({ message: 'Profile updated successfully', success: true, admin: { username: admin.username } });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // Create admin (protected - for initial setup only)
 router.post('/admin/register', async (req, res) => {
   try {

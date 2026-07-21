@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { userAPI, hostelAPI } from '../services/api'
 import { 
   Edit2, X, Check, Home, Users, UserCheck, 
-  UserX, Star, Search, Trash2, Power, PowerOff, Loader2, AlertCircle 
+  UserX, Star, Search, Trash2, Power, PowerOff, Loader2, AlertCircle, Eye 
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([])
@@ -241,69 +242,118 @@ const AdminUsers = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto custom-scrollbar">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50/50">
+                <thead className="bg-gray-50/80">
                   <tr>
-                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-900 tracking-wider">User</th>
-                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-900 tracking-wider">Contact</th>
-                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-900 tracking-wider">Assigned Properties</th>
-                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-900 tracking-wider">Status</th>
-                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-900 tracking-wider">Joined Date</th>
-                    <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-900 tracking-wider">Actions</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 tracking-wider">User Details</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 tracking-wider hidden md:table-cell">Academic / KYC</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 tracking-wider">Assigned Properties</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 tracking-wider hidden sm:table-cell">Status & Date</th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-900 tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {users.map((user) => (
                     <tr key={user._id} className="hover:bg-gray-50/80 transition-colors group">
+                      
+                      {/* User Details */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center text-gray-700 font-semibold text-sm shadow-sm">
+                        <Link to={`/admin/users/${user._id}`} className="flex items-start gap-3 group/link">
+                          <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 font-semibold text-sm shadow-sm flex-shrink-0 mt-0.5">
                             {user.name?.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
-                            <p className="text-xs text-gray-500 font-mono">ID: {user._id.slice(-6)}</p>
+                            <p className="font-semibold text-blue-600 group-hover/link:text-blue-700 text-sm mb-0.5">{user.name}</p>
+                            <p className="text-xs text-gray-600 font-medium mb-0.5">{user.email}</p>
+                            <p className="text-xs text-gray-500">{user.phone || 'No phone'}</p>
                           </div>
+                        </Link>
+                      </td>
+
+                      {/* Academic / KYC (Hidden on small screens) */}
+                      <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                        <div className="flex flex-col gap-1.5">
+                          {user.college ? (
+                            <span className="text-xs text-gray-700 font-medium truncate max-w-[180px] block" title={user.college}>
+                              🏫 {user.college}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400 italic">No college set</span>
+                          )}
+                          {user.aadhar ? (
+                            <span className="text-[10px] font-mono bg-gray-100 text-gray-700 px-2 py-0.5 rounded border border-gray-200 inline-block w-fit">
+                              ID: {user.aadhar.slice(0,4)} •••• {user.aadhar.slice(-4)}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 italic">No ID set</span>
+                          )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm text-gray-900 font-medium">{user.email}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{user.phone || 'No phone provided'}</p>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-semibold bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20">
-                            {user.assignedHostels?.length || 0}
-                          </span>
+
+                      {/* Assigned Properties */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-2">
+                          <div className="flex flex-wrap gap-1.5 max-w-[250px]">
+                            {user.assignedHostels && user.assignedHostels.length > 0 ? (
+                              user.assignedHostels.slice(0, 2).map(hostelId => {
+                                const hostel = allHostels.find(h => h._id === hostelId)
+                                return (
+                                  <span key={hostelId} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100 truncate max-w-[150px]">
+                                    {hostel ? hostel.name : 'Unknown Property'}
+                                  </span>
+                                )
+                              })
+                            ) : (
+                              <span className="text-xs text-gray-400 italic">None assigned</span>
+                            )}
+                            {user.assignedHostels && user.assignedHostels.length > 2 && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                +{user.assignedHostels.length - 2} more
+                              </span>
+                            )}
+                          </div>
                           <button
                             onClick={() => openAssignModal(user)}
-                            className="text-gray-400 hover:text-blue-600 flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded transition-colors hover:bg-blue-50"
+                            className="text-blue-600 hover:text-blue-700 flex items-center gap-1.5 text-xs font-semibold transition-colors w-fit group/btn"
                           >
-                            <Edit2 size={12} /> Manage
+                            <Edit2 size={12} className="group-hover/btn:rotate-12 transition-transform" /> Manage Assignment
                           </button>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ring-1 ring-inset ${
-                          user.isActive 
-                            ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' 
-                            : 'bg-rose-50 text-rose-700 ring-rose-600/20'
-                        }`}>
-                          {user.isActive ? 'Active' : 'Inactive'}
-                        </span>
+
+                      {/* Status & Date (Hidden on tiny screens) */}
+                      <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
+                        <div className="flex flex-col items-start gap-1.5">
+                          <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                            user.isActive 
+                              ? 'bg-green-50 text-green-700 border-green-200' 
+                              : 'bg-gray-50 text-gray-600 border-gray-200'
+                          }`}>
+                            {user.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                          <span className="text-xs text-gray-500 font-medium">
+                            Joined {new Date(user.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                        {new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                      </td>
+
+                      {/* Actions */}
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <div className="flex justify-end gap-1 sm:gap-2">
+                          <Link
+                            to={`/admin/users/${user._id}`}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none"
+                            title="View Profile"
+                          >
+                            <Eye size={16} />
+                          </Link>
                           <button
                             onClick={() => handleToggleStatus(user._id)}
-                            className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 ${
+                            className={`p-1.5 rounded-lg transition-colors focus:outline-none ${
                               user.isActive 
-                                ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 focus:ring-amber-500' 
-                                : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 focus:ring-emerald-500'
+                                ? 'text-gray-400 hover:text-gray-700 hover:bg-gray-100' 
+                                : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
                             }`}
                             title={user.isActive ? 'Deactivate User' : 'Activate User'}
                           >
@@ -311,7 +361,7 @@ const AdminUsers = () => {
                           </button>
                           <button
                             onClick={() => handleDelete(user._id)}
-                            className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500"
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors focus:outline-none"
                             title="Delete User"
                           >
                             <Trash2 size={16} />
@@ -330,7 +380,7 @@ const AdminUsers = () => {
                 <button
                   onClick={() => setPage(Math.max(1, page - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                  className="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none"
                 >
                   Previous
                 </button>
@@ -340,7 +390,7 @@ const AdminUsers = () => {
                 <button
                   onClick={() => setPage(Math.min(totalPages, page + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                  className="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none"
                 >
                   Next
                 </button>

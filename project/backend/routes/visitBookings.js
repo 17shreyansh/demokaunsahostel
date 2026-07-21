@@ -17,15 +17,15 @@ router.get('/check-eligibility', auth, async (req, res) => {
       paymentStatus: 'completed'
     });
 
-    const isFree = completedCount < 3;
-    const remainingFree = isFree ? 3 - completedCount : 0;
+    const isFree = true;
+    const remainingFree = 'Unlimited';
 
     res.json({
       success: true,
       isFree,
       completedVisits: completedCount,
       remainingFreeVisits: remainingFree,
-      nextVisitAmount: isFree ? 0 : 299
+      nextVisitAmount: 0
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -48,9 +48,9 @@ router.post('/create-order', auth, async (req, res) => {
       paymentStatus: 'completed'
     });
 
-    // First 3 bookings are free
-    const isFree = completedCount < 3;
-    const amount = isFree ? 0 : 299;
+    // All bookings are free
+    const isFree = true;
+    const amount = 0;
 
     if (isFree) {
       // Create free booking directly
@@ -71,7 +71,7 @@ router.post('/create-order', auth, async (req, res) => {
         success: true,
         isFree: true,
         bookingId: booking._id,
-        message: `Free visit booking confirmed! You have ${3 - completedCount - 1} free visits remaining.`
+        message: `Free visit booking confirmed!`
       });
     }
 

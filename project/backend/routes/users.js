@@ -128,6 +128,42 @@ router.get('/:id', auth, adminOnly, async (req, res) => {
   }
 });
 
+// Update user details
+router.put('/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const { name, phone, college, dob, aadhar } = req.body;
+    
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (name !== undefined) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    if (college !== undefined) user.college = college;
+    if (dob !== undefined) user.dob = dob;
+    if (aadhar !== undefined) user.aadhar = aadhar;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'User updated successfully',
+      user
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 // Toggle user status
 router.patch('/:id/toggle-status', auth, adminOnly, async (req, res) => {
   try {

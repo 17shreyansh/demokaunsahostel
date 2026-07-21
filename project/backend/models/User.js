@@ -23,6 +23,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  college: {
+    type: String,
+    trim: true
+  },
+  dob: {
+    type: Date
+  },
+  aadhar: {
+    type: String,
+    trim: true
+  },
   avatar: {
     type: String,
     default: ''

@@ -10,17 +10,19 @@ async function migrate() {
     });
     console.log('Connected to MongoDB.');
 
-    const resultBoth = await Hostel.updateMany(
-      { foodType: 'Both' },
-      { $set: { foodType: 'Veg' } }
-    );
-    console.log(`Updated ${resultBoth.modifiedCount} hostels from 'Both' to 'Veg'.`);
-
-    const resultVegOnly = await Hostel.updateMany(
-      { foodType: 'Veg Only' },
+    // 1. Change 'Veg' and 'Veg Only' to 'Pure Veg'
+    const resultVeg = await Hostel.updateMany(
+      { foodType: { $in: ['Veg', 'Veg Only'] } },
       { $set: { foodType: 'Pure Veg' } }
     );
-    console.log(`Updated ${resultVegOnly.modifiedCount} hostels from 'Veg Only' to 'Pure Veg'.`);
+    console.log(`Updated ${resultVeg.modifiedCount} hostels to 'Pure Veg'.`);
+
+    // 2. Remove any other food types (e.g. 'Both') except 'Pure Veg' and 'Non-Veg'
+    const resultOther = await Hostel.updateMany(
+      { foodType: { $nin: ['Pure Veg', 'Non-Veg'] } },
+      { $unset: { foodType: "" } }
+    );
+    console.log(`Removed foodType from ${resultOther.modifiedCount} hostels (others).`);
 
     console.log('Migration complete.');
     process.exit(0);

@@ -259,9 +259,8 @@ const HostelManagerKYC = () => {
                 <Col xs={24} md={12}>
                   <Form.Item 
                     name="upiId" 
-                    label={<span className="font-semibold text-slate-700">UPI ID</span>} 
+                    label={<span className="font-semibold text-slate-700">UPI ID (Optional)</span>} 
                     rules={[
-                      { required: true, message: 'UPI ID is required' },
                       { pattern: /^[a-zA-Z0-9.\-_]+@[a-zA-Z]+$/, message: 'Invalid UPI ID format' }
                     ]}
                   >

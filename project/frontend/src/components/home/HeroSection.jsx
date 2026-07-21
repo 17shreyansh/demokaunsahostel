@@ -105,7 +105,11 @@ const SearchWidget = memo(({ content }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = useCallback(() => {
-    if (searchQuery.trim()) navigate(`/hostels?search=${encodeURIComponent(searchQuery)}`);
+    if (searchQuery.trim()) {
+      navigate(`/hostels?search=${encodeURIComponent(searchQuery)}`);
+    } else {
+      navigate('/hostels');
+    }
   }, [searchQuery, navigate]);
 
   return (

@@ -9,6 +9,7 @@ import BookingComponent from '../components/BookingComponent'
 import ReviewSection from '../components/ReviewSection'
 // framer-motion removed for 120 FPS optimization
 import blueTick from '../assets/blue.svg'
+import { Share2, Check } from 'lucide-react'
 
 const MemoizedEnquiryForm = memo(EnquiryForm)
 const MemoizedHostelMap = memo(HostelMap)
@@ -39,6 +40,7 @@ const HostelDetails = () => {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
   
   const [selectedSharing, setSelectedSharing] = useState(null)
+  const [isCopied, setIsCopied] = useState(false)
   
   const touchStartRef = useRef(null)
   const touchEndRef = useRef(null)
@@ -200,6 +202,26 @@ const HostelDetails = () => {
   const handleRetryFetch = useCallback(() => {
     fetchHostelDetails(new AbortController())
   }, [fetchHostelDetails])
+
+  const handleShare = useCallback(async () => {
+    const shareData = {
+      title: `${hostel?.name || 'Hostel'} - KaunsaHostel`,
+      text: hostel?.description || `Check out ${hostel?.name || 'this hostel'} on KaunsaHostel!`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  }, [hostel]);
 
   const formattedPrice = useMemo(() => 
     Number(hostel?.price || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','), 
@@ -431,15 +453,39 @@ const HostelDetails = () => {
             </span>
           </div>
           
-          <div className="flex flex-wrap items-center gap-4 mb-3">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">{hostel.name}</h1>
-            {/* Premium Verified Badge */}
-            {hostel.verified && (
-              <span className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center shadow-sm border border-blue-200">
-                <img src={blueTick} alt="Verified" className="w-4 h-4 mr-1.5" />
-                Verified
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+            <div className="flex flex-wrap items-center gap-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">{hostel.name}</h1>
+              {/* Premium Verified Badge */}
+              {hostel.verified && (
+                <span className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center shadow-sm border border-blue-200">
+                  <img src={blueTick} alt="Verified" className="w-4 h-4 mr-1.5" />
+                  Verified
+                </span>
+              )}
+            </div>
+
+            {/* Pro Share Button */}
+            <button
+              onClick={handleShare}
+              className={`flex items-center w-fit gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-semibold transition-all duration-300 shadow-sm border ${
+                isCopied 
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md'
+              }`}
+              aria-label="Share Hostel"
+            >
+              <div className={`relative flex items-center justify-center w-5 h-5 transition-transform duration-300 ${isCopied ? 'scale-110' : 'scale-100'}`}>
+                {isCopied ? (
+                  <Check className="w-5 h-5 text-green-600" />
+                ) : (
+                  <Share2 className="w-5 h-5 text-gray-600" />
+                )}
+              </div>
+              <span className="text-sm sm:text-base">
+                {isCopied ? 'Copied!' : 'Share'}
               </span>
-            )}
+            </button>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

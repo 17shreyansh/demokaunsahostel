@@ -18,24 +18,19 @@ const AdminSettings = () => {
   const BASE_URL = API_URL.replace('/api', '') // For non-api routes like /uploads
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken')
-    if (token) {
-      fetchProfile()
-      checkApiKey()
-      fetchPaymentSettings()
-    }
+    fetchProfile()
+    checkApiKey()
+    fetchPaymentSettings()
   }, [])
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem('adminToken')
-      const response = await fetch(`${API_URL}/auth/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await axios.get(`${API_URL}/auth/me`, {
+        withCredentials: true
       })
       
-      if (response.ok) {
-        const data = await response.json()
-        setCurrentUser(data.admin.username)
+      if (response.data.success && response.data.role === 'admin') {
+        setCurrentUser(response.data.user.username)
       }
     } catch (error) {
       console.error('Profile fetch error:', error)
@@ -58,10 +53,8 @@ const AdminSettings = () => {
 
   const fetchPaymentSettings = async () => {
     try {
-      const token = localStorage.getItem('adminToken')
       const response = await axios.get(`${API_URL}/settings/payment-config`, { 
-        withCredentials: true,
-        headers: { 'Authorization': `Bearer ${token}` }
+        withCredentials: true
       })
       if (response.data.success && response.data.settings) {
         setPaymentSettings(response.data.settings)
@@ -79,34 +72,26 @@ const AdminSettings = () => {
     setApiLoading(true)
     try {
       const formData = new FormData(e.target)
-      const token = localStorage.getItem('adminToken')
       
-      const response = await fetch(`${API_URL}/settings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          key: 'openroute_api_key',
-          value: formData.get('apiKey'),
-          encrypted: true,
-          description: 'OpenRouteService API Key for distance calculations',
-          category: 'api'
-        })
+      const response = await axios.post(`${API_URL}/settings`, {
+        key: 'openroute_api_key',
+        value: formData.get('apiKey'),
+        encrypted: true,
+        description: 'OpenRouteService API Key for distance calculations',
+        category: 'api'
+      }, {
+        withCredentials: true
       })
       
-      const result = await response.json()
-      
-      if (response.ok) {
+      if (response.data) {
         alert('API Key saved successfully')
         e.target.reset()
         setApiSaved(true)
       } else {
-        alert(result.message || 'Failed to save')
+        alert('Failed to save')
       }
     } catch (error) {
-      alert('Failed to save API key')
+      alert(error.response?.data?.message || 'Failed to save API key')
     } finally {
       setApiLoading(false)
     }
@@ -130,27 +115,19 @@ const AdminSettings = () => {
         return
       }
       
-      const token = localStorage.getItem('adminToken')
-      const response = await fetch(`${API_URL}/auth/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(values)
+      const response = await axios.put(`${API_URL}/auth/admin/profile`, values, {
+        withCredentials: true
       })
-
-      const result = await response.json()
       
-      if (response.ok) {
+      if (response.data.success) {
         alert('Profile updated successfully')
         e.target.reset()
         setCurrentUser(values.username || currentUser)
       } else {
-        alert(result.message || 'Failed to update')
+        alert('Failed to update')
       }
     } catch (error) {
-      alert('Failed to update profile')
+      alert(error.response?.data?.message || 'Failed to update profile')
     } finally {
       setProfileLoading(false)
     }
@@ -160,7 +137,6 @@ const AdminSettings = () => {
     e.preventDefault()
     setPaymentLoading(true)
     try {
-      const token = localStorage.getItem('adminToken')
       const formData = new FormData()
       formData.append('upiId', paymentSettings.upiId)
       formData.append('paymentInstructions', paymentSettings.paymentInstructions)
@@ -169,10 +145,7 @@ const AdminSettings = () => {
       }
 
       const response = await axios.post(`${API_URL}/settings/payment-config`, formData, {
-        withCredentials: true,
-        headers: { 
-          'Authorization': `Bearer ${token}`
-        }
+        withCredentials: true
       })
 
       if (response.data.success) {

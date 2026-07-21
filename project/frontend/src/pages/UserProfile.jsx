@@ -703,7 +703,7 @@ const BookingHistoryManager = memo(() => {
               </p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-green-600">{eligibility.completedVisits}/3</div>
+              <div className="text-3xl font-bold text-green-600">{eligibility.completedVisits}{eligibility.remainingFreeVisits !== 'Unlimited' ? '/3' : ''}</div>
               <div className="text-xs text-gray-500 font-semibold">Visits Completed</div>
             </div>
           </div>
