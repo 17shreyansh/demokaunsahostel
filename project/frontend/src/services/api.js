@@ -232,8 +232,10 @@ export const installmentTemplateAPI = {
 }
 
 export const cityAPI = {
-  getAll: () => api.get('/cities'),
-  create: (data) => api.post('/cities', data)
+  getAll: (all = false) => api.get(`/cities${all ? '?all=true' : ''}`),
+  create: (data) => api.post('/cities', data),
+  update: (id, data) => api.put(`/cities/${id}`, data),
+  delete: (id) => api.delete(`/cities/${id}`)
 }
 
 export default api

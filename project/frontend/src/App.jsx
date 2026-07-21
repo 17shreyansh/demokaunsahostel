@@ -43,6 +43,7 @@ const AdminPayments = lazy(() => import('./pages/AdminPayments'))
 const AdminBlogList = lazy(() => import('./pages/blog/AdminBlogList'))
 const AdminBlogEditor = lazy(() => import('./pages/blog/AdminBlogEditor'))
 const AdminFAQ = lazy(() => import('./pages/AdminFAQ'))
+const AdminCities = lazy(() => import('./pages/AdminCities'))
 const AdminInstallmentTemplates = lazy(() => import('./pages/AdminInstallmentTemplates'))
 const HostelManagerAuth = lazy(() => import('./pages/HostelManagerAuth'))
 const HostelManagerProtectedRoute = lazy(() => import('./components/HostelManagerProtectedRoute'))
@@ -129,6 +130,7 @@ function App() {
                   <Route path="blog/new" element={<AdminBlogEditor />} />
                   <Route path="blog/edit/:id" element={<AdminBlogEditor />} />
                   <Route path="faq" element={<AdminFAQ />} />
+                  <Route path="cities" element={<AdminCities />} />
                 </Route>
 
                 {/* Hostel Manager Routes */}

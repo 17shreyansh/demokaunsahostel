@@ -3,7 +3,7 @@ import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { 
   Home, LayoutGrid, Users, Settings, FileText, 
-  Folder, MessageSquare, Star, Menu, LogOut, Bell, ChevronDown
+  Folder, MessageSquare, Star, Menu, LogOut, Bell, ChevronDown, MapPin
 } from 'lucide-react';
 
 /* -------------------------------------------------------------------------- */
@@ -19,6 +19,7 @@ const MENU_ITEMS = [
   { key: 'reviews', label: 'Reviews', icon: Star, path: '/admin/reviews' },
   { key: 'blog', label: 'Blog Posts', icon: FileText, path: '/admin/blog' },
   { key: 'faq', label: 'FAQ Management', icon: MessageSquare, path: '/admin/faq' },
+  { key: 'cities', label: 'Cities Management', icon: MapPin, path: '/admin/cities' },
   { key: 'nearbyplaces', label: 'Nearby Places', icon: MessageSquare, path: '/admin/nearbyplaces' },
   { key: 'leads', label: 'Bookings', icon: Folder, path: '/admin/leads' },
   { key: 'page-content', label: 'CMS Content', icon: FileText, path: '/admin/page-content' },
