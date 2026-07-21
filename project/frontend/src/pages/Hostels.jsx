@@ -167,6 +167,22 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
         />
       </div>
 
+      {/* Occupancy */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-2.5">Occupancy</label>
+        <MemoizedSelect
+          value={filters.occupancy ? { value: filters.occupancy, label: filters.occupancy } : null}
+          onChange={(opt) => updateFilters({ occupancy: opt?.value || '' })}
+          options={[{ value: '', label: 'Any Occupancy' }, ...(filterOptions.occupancies || []).map(occ => ({ value: occ, label: occ }))]}
+          placeholder="Any Occupancy"
+          isClearable
+          isSearchable={false}
+          menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+          menuPosition="fixed"
+          styles={getSelectStyles()}
+        />
+      </div>
+
       {/* Amenities Multi-Select Checklist */}
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-3">Amenities</label>
@@ -267,7 +283,7 @@ const Hostels = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [pagination, setPagination] = useState({ current: 1, pages: 1, total: 0 })
-  const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [] })
+  const [filterOptions, setFilterOptions] = useState({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [], occupancies: [] })
   const [showFilters, setShowFilters] = useState(false)
   const searchTimeout = useRef(null)
 
@@ -283,6 +299,7 @@ const Hostels = () => {
     nearbyPlace: searchParams.get('nearbyPlace') || '',
     verified: searchParams.get('verified') || '',
     foodType: searchParams.get('foodType') || '',
+    occupancy: searchParams.get('occupancy') || '',
     sortBy: searchParams.get('sortBy') || 'newest'
   })
 
@@ -300,6 +317,7 @@ const Hostels = () => {
       nearbyPlace: searchParams.get('nearbyPlace') || '',
       verified: searchParams.get('verified') || '',
       foodType: searchParams.get('foodType') || '',
+      occupancy: searchParams.get('occupancy') || '',
       sortBy: searchParams.get('sortBy') || 'newest'
     });
   }, [searchParams]);
@@ -342,10 +360,10 @@ const Hostels = () => {
   const fetchFilterOptions = useCallback(async () => {
     try {
       const response = await hostelAPI.getFilterOptions()
-      setFilterOptions(response.data || { locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [] })
+      setFilterOptions(response.data || { locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [], occupancies: [] })
     } catch (error) {
       console.error('Error fetching filter options:', error)
-      setFilterOptions({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [] })
+      setFilterOptions({ locations: [], roomTypes: [], amenities: [], nearbyPlaces: [], foodTypes: [], occupancies: [] })
     }
   }, [])
 
@@ -391,7 +409,7 @@ const Hostels = () => {
   const clearFilters = () => {
     setFilters({
       search: '', city: '', minPrice: '', maxPrice: '',
-      gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', verified: '', foodType: '', sortBy: 'newest'
+      gender: '', type: '', amenities: '', availability: '', nearbyPlace: '', verified: '', foodType: '', occupancy: '', sortBy: 'newest'
     })
     setSearchParams({})
   }

@@ -153,9 +153,9 @@ export const userAPI = {
   update: (id, data) => api.put(`/users/${id}`, data),
   toggleStatus: (id) => api.patch(`/users/${id}/toggle-status`),
   delete: (id) => api.delete(`/users/${id}`),
-  assignHostels: (userId, hostelIds) => {
+  assignHostels: (userId, assignments) => {
     clearCache() // Clear cache after assignment update
-    return api.put(`/users/${userId}/assign-hostels`, { hostelIds })
+    return api.put(`/users/${userId}/assign-hostels`, { assignments })
   }
 }
 

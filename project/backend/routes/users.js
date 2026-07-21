@@ -38,7 +38,7 @@ router.get('/', auth, adminOnly, async (req, res) => {
     const userIds = users.map(u => u._id);
     const assignments = await UserHostelAssignment.aggregate([
       { $match: { user: { $in: userIds } } },
-      { $group: { _id: '$user', hostels: { $push: '$hostel' } } }
+      { $group: { _id: '$user', hostels: { $push: { hostelId: '$hostel', occupancy: '$selectedSharingType' } } } }
     ]);
 
     const assignmentMap = {};
@@ -229,7 +229,7 @@ router.delete('/:id', auth, adminOnly, async (req, res) => {
 // Assign hostels to user (bulk operation)
 router.put('/:id/assign-hostels', auth, adminOnly, async (req, res) => {
   try {
-    const { hostelIds } = req.body;
+    const { assignments } = req.body;
     const userId = req.params.id;
 
     const user = await User.findById(userId);
@@ -244,21 +244,22 @@ router.put('/:id/assign-hostels', auth, adminOnly, async (req, res) => {
     await UserHostelAssignment.deleteMany({ user: userId });
 
     // Create new assignments
-    if (hostelIds && hostelIds.length > 0) {
-      const assignments = hostelIds.map(hostelId => ({
+    if (assignments && assignments.length > 0) {
+      const newAssignments = assignments.map(a => ({
         user: userId,
-        hostel: hostelId,
+        hostel: a.hostelId,
         assignedBy: req.user.id,
-        canReview: true
+        canReview: true,
+        selectedSharingType: a.occupancy || ''
       }));
 
-      await UserHostelAssignment.insertMany(assignments);
+      await UserHostelAssignment.insertMany(newAssignments);
     }
 
     res.json({
       success: true,
-      message: `Successfully assigned ${hostelIds.length} hostel(s) to user`,
-      assignedCount: hostelIds.length
+      message: `Successfully updated hostel assignments for user`,
+      assignedCount: assignments ? assignments.length : 0
     });
 
   } catch (error) {

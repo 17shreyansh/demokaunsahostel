@@ -99,12 +99,19 @@ const AdminUsers = () => {
 
   const handleToggleHostel = (hostelId) => {
     setAssignedHostels(prev => {
-      if (prev.includes(hostelId)) {
-        return prev.filter(id => id !== hostelId)
+      const existingIndex = prev.findIndex(h => h.hostelId === hostelId || h === hostelId)
+      if (existingIndex >= 0) {
+        return prev.filter((h, i) => i !== existingIndex)
       } else {
-        return [...prev, hostelId]
+        return [...prev, { hostelId, occupancy: '' }]
       }
     })
+  }
+
+  const handleUpdateOccupancy = (hostelId, occupancy) => {
+    setAssignedHostels(prev => 
+      prev.map(h => (h.hostelId === hostelId || h === hostelId) ? { ...(typeof h === 'string' ? { hostelId: h } : h), occupancy } : h)
+    )
   }
 
   const handleSaveAssignments = async () => {
@@ -296,11 +303,12 @@ const AdminUsers = () => {
                         <div className="flex flex-col gap-2">
                           <div className="flex flex-wrap gap-1.5 max-w-[250px]">
                             {user.assignedHostels && user.assignedHostels.length > 0 ? (
-                              user.assignedHostels.slice(0, 2).map(hostelId => {
-                                const hostel = allHostels.find(h => h._id === hostelId)
+                              user.assignedHostels.slice(0, 2).map(assignment => {
+                                const hId = typeof assignment === 'object' ? assignment.hostelId : assignment;
+                                const hostel = allHostels.find(h => h._id === hId)
                                 return (
-                                  <span key={hostelId} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100 truncate max-w-[150px]">
-                                    {hostel ? hostel.name : 'Unknown Property'}
+                                  <span key={hId} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100 truncate max-w-[150px]">
+                                    {hostel ? `${hostel.name}${assignment?.occupancy ? ` (${assignment.occupancy})` : ''}` : 'Unknown Property'}
                                   </span>
                                 )
                               })
@@ -464,39 +472,66 @@ const AdminUsers = () => {
               ) : (
                 <div className="divide-y divide-gray-100">
                   {filteredHostels.map((hostel) => {
-                    const isAssigned = assignedHostels.includes(hostel._id)
+                    const assignment = assignedHostels.find(a => a.hostelId === hostel._id || a === hostel._id)
+                    const isAssigned = !!assignment
                     return (
                       <div
                         key={hostel._id}
-                        onClick={() => handleToggleHostel(hostel._id)}
-                        className={`p-4 cursor-pointer transition-colors group flex items-start gap-3 ${
+                        className={`p-4 transition-colors group flex flex-col gap-3 ${
                           isAssigned ? 'bg-blue-50/30' : 'hover:bg-gray-50'
                         }`}
                       >
-                        <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
-                          isAssigned 
-                            ? 'bg-blue-600 border-blue-600 text-white' 
-                            : 'border-gray-300 bg-white text-transparent group-hover:border-gray-400'
-                        }`}>
-                          <Check size={14} strokeWidth={3} />
+                        <div className="flex items-start gap-3 cursor-pointer" onClick={() => handleToggleHostel(hostel._id)}>
+                          <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+                            isAssigned 
+                              ? 'bg-blue-600 border-blue-600 text-white' 
+                              : 'border-gray-300 bg-white text-transparent group-hover:border-gray-400'
+                          }`}>
+                            <Check size={14} strokeWidth={3} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-900 truncate">
+                              {hostel.name}
+                            </h4>
+                            <p className="text-xs text-gray-500 truncate mt-0.5">
+                              {hostel.location}
+                            </p>
+                          </div>
+                          {hostel.availability && (
+                            <div className="flex-shrink-0">
+                              <span className={`inline-block px-2 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-md ring-1 ring-inset ${
+                                hostel.availability === 'Available' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' :
+                                hostel.availability === 'Limited' ? 'bg-amber-50 text-amber-700 ring-amber-600/20' : 
+                                'bg-rose-50 text-rose-700 ring-rose-600/20'
+                              }`}>
+                                {hostel.availability}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate">
-                            {hostel.name}
-                          </h4>
-                          <p className="text-xs text-gray-500 truncate mt-0.5">
-                            {hostel.location}
-                          </p>
-                        </div>
-                        {hostel.availability && (
-                          <div className="flex-shrink-0">
-                            <span className={`inline-block px-2 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-md ring-1 ring-inset ${
-                              hostel.availability === 'Available' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' :
-                              hostel.availability === 'Limited' ? 'bg-amber-50 text-amber-700 ring-amber-600/20' : 
-                              'bg-rose-50 text-rose-700 ring-rose-600/20'
-                            }`}>
-                              {hostel.availability}
-                            </span>
+                        
+                        {isAssigned && (
+                          <div className="ml-8 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Occupancy / Sharing Type</label>
+                            <select
+                              value={assignment.occupancy || ''}
+                              onChange={(e) => handleUpdateOccupancy(hostel._id, e.target.value)}
+                              className="w-full max-w-xs px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white text-gray-700"
+                            >
+                              <option value="">Select Occupancy</option>
+                              {hostel.sharingTypes?.length > 0 ? (
+                                hostel.sharingTypes.map(st => (
+                                  <option key={st._id || st.name} value={st.name}>{st.name}</option>
+                                ))
+                              ) : (
+                                <>
+                                  <option value="Single">Single Sharing</option>
+                                  <option value="Double">Double Sharing</option>
+                                  <option value="Triple">Triple Sharing</option>
+                                  <option value="Quad">Quad Sharing</option>
+                                </>
+                              )}
+                            </select>
                           </div>
                         )}
                       </div>

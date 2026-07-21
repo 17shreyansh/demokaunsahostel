@@ -46,7 +46,7 @@ const upload = multer({
 router.get('/', async (req, res) => {
   try {
     const { 
-      search, location, city, minPrice, maxPrice, gender, type,
+      search, location, city, minPrice, maxPrice, gender, type, occupancy,
       amenities, availability, sortBy, nearbyPlace, verified, foodType, priceType, page = 1, limit = 12 
     } = req.query;
     
@@ -233,8 +233,26 @@ router.get('/', async (req, res) => {
       query.foodType = foodType.trim();
     }
     
-
-    
+    // Occupancy filter
+    if (occupancy && occupancy.trim() && occupancy !== '') {
+      const occList = occupancy.split(',').map(o => o.trim()).filter(Boolean);
+      if (occList.length > 0) {
+        const occupancyCondition = {
+          $or: [
+            { 'sharingTypes.name': { $in: occList } },
+            { 'roomTypes.type': { $in: occList } },
+            { 'roomTypes.name': { $in: occList } }
+          ]
+        };
+        
+        if (query.$and) {
+          query.$and.push(occupancyCondition);
+        } else {
+          query.$and = [occupancyCondition];
+        }
+      }
+    }
+      
     // Amenities
     if (amenities && amenities.trim() && amenities !== '') {
       const amenityList = amenities.split(',').map(a => a.trim()).filter(a => a);
@@ -411,6 +429,7 @@ router.get('/filters/options', async (req, res) => {
       types: types.filter(Boolean).sort(),
       foodTypes: foodTypes.filter(Boolean).sort(),
       amenities: amenities.filter(Boolean).sort(),
+      occupancies: ['Single Occupancy', 'Double Occupancy', 'Triple Occupancy', 'Four Occupancy'],
       nearbyPlaces
     });
   } catch (error) {
