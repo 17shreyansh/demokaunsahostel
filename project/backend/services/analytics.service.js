@@ -244,6 +244,7 @@ class AnalyticsService {
 const sharp = require('sharp'); // For image processing (install: sharp)
 const path = require('path');
 const fs = require('fs').promises;
+const { applyWatermark } = require('../utils/watermark');
 
 class MediaService {
   constructor() {
@@ -292,32 +293,36 @@ class MediaService {
     try {
       // Thumbnail
       const thumbnailFilename = `${baseName}-thumb.jpg`;
-      await sharp(buffer)
-        .resize(this.sizes.thumbnail.width, this.sizes.thumbnail.height, { fit: 'cover' })
+      let thumbStream = sharp(buffer).resize(this.sizes.thumbnail.width, this.sizes.thumbnail.height, { fit: 'cover' });
+      thumbStream = await applyWatermark(thumbStream, this.sizes.thumbnail.width);
+      await thumbStream
         .jpeg({ quality: 80 })
         .toFile(path.join(this.uploadDir, thumbnailFilename));
       versions.thumbnail = `/uploads/${thumbnailFilename}`;
 
       // Medium
       const mediumFilename = `${baseName}-medium.jpg`;
-      await sharp(buffer)
-        .resize(this.sizes.medium.width, this.sizes.medium.height, { fit: 'inside' })
+      let mediumStream = sharp(buffer).resize(this.sizes.medium.width, this.sizes.medium.height, { fit: 'inside' });
+      mediumStream = await applyWatermark(mediumStream, this.sizes.medium.width);
+      await mediumStream
         .jpeg({ quality: 85 })
         .toFile(path.join(this.uploadDir, mediumFilename));
       versions.medium = `/uploads/${mediumFilename}`;
 
       // Large
       const largeFilename = `${baseName}-large.jpg`;
-      await sharp(buffer)
-        .resize(this.sizes.large.width, this.sizes.large.height, { fit: 'inside' })
+      let largeStream = sharp(buffer).resize(this.sizes.large.width, this.sizes.large.height, { fit: 'inside' });
+      largeStream = await applyWatermark(largeStream, this.sizes.large.width);
+      await largeStream
         .jpeg({ quality: 90 })
         .toFile(path.join(this.uploadDir, largeFilename));
       versions.large = `/uploads/${largeFilename}`;
 
       // WebP version (best compression)
       const webpFilename = `${baseName}.webp`;
-      await sharp(buffer)
-        .resize(this.sizes.large.width, this.sizes.large.height, { fit: 'inside' })
+      let webpStream = sharp(buffer).resize(this.sizes.large.width, this.sizes.large.height, { fit: 'inside' });
+      webpStream = await applyWatermark(webpStream, this.sizes.large.width);
+      await webpStream
         .webp({ quality: 85 })
         .toFile(path.join(this.uploadDir, webpFilename));
       versions.webp = `/uploads/${webpFilename}`;
@@ -333,9 +338,10 @@ class MediaService {
   async optimizeImage(filepath) {
     try {
       const buffer = await fs.readFile(filepath);
-      const optimized = await sharp(buffer)
-        .jpeg({ quality: 85, progressive: true })
-        .toBuffer();
+      let optimizedStream = sharp(buffer).jpeg({ quality: 80 });
+      // Watermark optimization path (uses original metadata width if possible, but hard to know here, so we assume 800)
+      optimizedStream = await applyWatermark(optimizedStream, 800);
+      const optimized = await optimizedStream.toBuffer();
       await fs.writeFile(filepath, optimized);
       return true;
     } catch (error) {

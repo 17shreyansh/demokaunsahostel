@@ -1,9 +1,10 @@
 const sharp = require('sharp');
 const fs = require('fs').promises;
 const path = require('path');
+const { applyWatermark } = require('./watermark');
 
 /**
- * Optimizes an uploaded image file by resizing and converting to WebP
+ * Optimizes an uploaded image file by resizing, watermarking, and converting to WebP
  * @param {Object} file - The multer file object
  * @param {number} maxWidth - Maximum width for the image
  * @returns {Promise<string>} The new filename to store in DB
@@ -16,12 +17,16 @@ const optimizeImage = async (file, maxWidth = 1200) => {
   const newPath = path.join(path.dirname(file.path), newFilename);
   
   try {
-    await sharp(file.path)
-      .resize({
-        width: maxWidth,
-        withoutEnlargement: true,
-        fit: 'inside'
-      })
+    let imageStream = sharp(file.path).resize({
+      width: maxWidth,
+      withoutEnlargement: true,
+      fit: 'inside'
+    });
+    
+    // Apply watermark using our utility
+    imageStream = await applyWatermark(imageStream, maxWidth);
+    
+    await imageStream
       .webp({ quality: 80, effort: 4 })
       .toFile(newPath);
       

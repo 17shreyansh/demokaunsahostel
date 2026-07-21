@@ -1,6 +1,7 @@
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs').promises;
+const { applyWatermark } = require('../utils/watermark');
 
 class ImageUploadService {
   constructor() {
@@ -26,36 +27,43 @@ class ImageUploadService {
 
       // Original
       const originalPath = path.join(this.uploadDir, `${filename}-original${path.extname(file.originalname)}`);
-      await image.toFile(originalPath);
+      let originalImage = sharp(file.buffer);
+      originalImage = await applyWatermark(originalImage, metadata.width || 800);
+      await originalImage.toFile(originalPath);
       results.original = `/uploads/blog-images/${filename}-original${path.extname(file.originalname)}`;
 
       // Thumbnail (300x200)
       const thumbPath = path.join(this.uploadDir, `${filename}-thumb.webp`);
-      await sharp(file.buffer)
-        .resize(300, 200, { fit: 'cover', position: 'center' })
+      let thumbStream = sharp(file.buffer).resize(300, 200, { fit: 'cover', position: 'center' });
+      thumbStream = await applyWatermark(thumbStream, 300);
+      await thumbStream
         .webp({ quality: 80 })
         .toFile(thumbPath);
       results.thumbnail = `/uploads/blog-images/${filename}-thumb.webp`;
 
       // Medium (800x600)
       const mediumPath = path.join(this.uploadDir, `${filename}-medium.webp`);
-      await sharp(file.buffer)
-        .resize(800, 600, { fit: 'inside' })
+      let mediumStream = sharp(file.buffer).resize(800, 600, { fit: 'inside' });
+      mediumStream = await applyWatermark(mediumStream, 800);
+      await mediumStream
         .webp({ quality: 85 })
         .toFile(mediumPath);
       results.medium = `/uploads/blog-images/${filename}-medium.webp`;
 
       // Large (1200x900)
       const largePath = path.join(this.uploadDir, `${filename}-large.webp`);
-      await sharp(file.buffer)
-        .resize(1200, 900, { fit: 'inside' })
+      let largeStream = sharp(file.buffer).resize(1200, 900, { fit: 'inside' });
+      largeStream = await applyWatermark(largeStream, 1200);
+      await largeStream
         .webp({ quality: 90 })
         .toFile(largePath);
       results.large = `/uploads/blog-images/${filename}-large.webp`;
 
       // WebP version of original
       const webpPath = path.join(this.uploadDir, `${filename}-webp.webp`);
-      await sharp(file.buffer)
+      let webpStream = sharp(file.buffer);
+      webpStream = await applyWatermark(webpStream, metadata.width || 800);
+      await webpStream
         .webp({ quality: 90 })
         .toFile(webpPath);
       results.webp = `/uploads/blog-images/${filename}-webp.webp`;
