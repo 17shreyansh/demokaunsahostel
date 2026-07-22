@@ -208,8 +208,28 @@ const AdminHostelManagers = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getKycBadge(manager.kyc.status)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600 font-medium">
-                      {manager.hostels?.length || 0} listings
+                    <td className="px-6 py-4">
+                      {manager.hostels?.length > 0 ? (
+                        <div className="flex flex-col gap-1.5 min-w-[200px]">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            {manager.hostels.length} {manager.hostels.length === 1 ? 'Listing' : 'Listings'}
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {manager.hostels.slice(0, 3).map(h => (
+                              <span key={h._id || h} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100" title={h.name || 'Unnamed Hostel'}>
+                                {h.name?.length > 20 ? `${h.name.substring(0, 20)}...` : (h.name || 'Unnamed Hostel')}
+                              </span>
+                            ))}
+                            {manager.hostels.length > 3 && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200">
+                                +{manager.hostels.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400 font-medium">No listings</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button 
