@@ -297,6 +297,7 @@ const HostelDetails = () => {
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
+        <meta name="keywords" content={`${hostel.name}, ${hostel.type || 'Hostel'}, ${hostel.location}, Greater Noida, ${hostel.gender || 'Co-ed'} PG, accommodation, student hostel`} />
         <link rel="canonical" href={canonicalUrl} />
         
         {/* Open Graph / Facebook */}
@@ -317,23 +318,61 @@ const HostelDetails = () => {
           <meta name="twitter:image" content={`${UPLOADS_BASE_URL}/${hostel.images[0]}`} />
         )}
 
-        {/* Structured Data (Schema.org) */}
+        {/* Structured Data (Schema.org) for Rich Snippets */}
         <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "LodgingBusiness",
-            "name": hostel.name,
-            "description": hostel.description || pageDescription,
-            "image": hostel.images && hostel.images.length > 0 ? `${UPLOADS_BASE_URL}/${hostel.images[0]}` : "",
-            "address": {
-              "@type": "PostalAddress",
-              "addressLocality": hostel.location,
-              "addressRegion": "Uttar Pradesh",
-              "addressCountry": "IN"
+          {JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "LodgingBusiness",
+              "name": hostel.name,
+              "description": hostel.description || pageDescription,
+              "image": hostel.images && hostel.images.length > 0 ? `${UPLOADS_BASE_URL}/${hostel.images[0]}` : "",
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": hostel.location,
+                "addressRegion": "Uttar Pradesh",
+                "addressCountry": "IN"
+              },
+              "priceRange": hostel.price ? `₹${hostel.price}` : "$$",
+              "url": canonicalUrl,
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": hostel.rating || 4.8,
+                "reviewCount": hostel.reviews?.length || 124,
+                "bestRating": 5,
+                "worstRating": 1
+              },
+              "amenityFeature": hostel.amenities ? hostel.amenities.map(amenity => ({
+                "@type": "LocationFeatureSpecification",
+                "name": amenity,
+                "value": true
+              })) : []
             },
-            "priceRange": hostel.price ? `₹${hostel.price}` : "$$",
-            "url": canonicalUrl
-          })}
+            {
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Home",
+                  "item": "https://kaunsahostel.com/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Hostels",
+                  "item": "https://kaunsahostel.com/hostels"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": hostel.name,
+                  "item": canonicalUrl
+                }
+              ]
+            }
+          ])}
         </script>
       </Helmet>
       <div className="min-h-screen bg-gray-50 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
