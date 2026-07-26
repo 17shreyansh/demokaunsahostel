@@ -4,3 +4,4 @@ Quotation.pdf
 *.md
 
 dist
+project/backend/package-lock.json

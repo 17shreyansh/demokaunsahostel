@@ -287,9 +287,9 @@ const HostelManagerAuth = () => {
                     <input type="checkbox" className="w-4 h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500 transition-colors" />
                     <span className="ml-2 text-sm font-medium text-gray-600">Remember me</span>
                   </label>
-                  <button type="button" className="text-sm font-bold text-gray-600 hover:text-yellow-600 transition-colors transform-gpu will-change-transform">
+                  <Link to="/hostel-manager/forgot-password" className="text-sm font-bold text-gray-600 hover:text-yellow-600 transition-colors transform-gpu will-change-transform">
                     Forgot password?
-                  </button>
+                  </Link>
                 </div>
               )}
 

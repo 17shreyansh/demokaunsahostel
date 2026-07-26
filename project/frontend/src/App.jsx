@@ -59,6 +59,8 @@ const AdminHostelManagers = lazy(() => import('./pages/AdminHostelManagers'))
 const HostelManagerProfile = lazy(() => import('./pages/HostelManagerProfile'))
 const HostelManagerSettings = lazy(() => import('./pages/HostelManagerSettings'))
 const HostelManagerChangeRequests = lazy(() => import('./pages/HostelManagerChangeRequests'))
+const HostelManagerForgotPassword = lazy(() => import('./pages/HostelManagerForgotPassword'))
+const HostelManagerResetPassword = lazy(() => import('./pages/HostelManagerResetPassword'))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -75,10 +77,10 @@ function App() {
     <HelmetProvider>
       <UserProvider>
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <div className="App">
-              <ScrollToTop />
-              <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
-                <Routes>
+          <div className="App">
+            <ScrollToTop />
+            <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
+              <Routes>
                 {/* ============================================================ */}
                 {/* PUBLIC ROUTES — Shared layout with Header/Footer/Transitions  */}
                 {/* Header & Footer render ONCE and persist across navigations    */}
@@ -136,6 +138,8 @@ function App() {
                 {/* Hostel Manager Routes */}
                 <Route path="/hostel-manager" element={<HostelManagerProvider><Outlet /></HostelManagerProvider>}>
                   <Route path="auth" element={<HostelManagerAuth />} />
+                  <Route path="forgot-password" element={<HostelManagerForgotPassword />} />
+                  <Route path="reset-password/:token" element={<HostelManagerResetPassword />} />
                   <Route path="dashboard" element={<HostelManagerProtectedRoute><HostelManagerDashboard /></HostelManagerProtectedRoute>} />
                   <Route path="profile" element={<HostelManagerProtectedRoute><HostelManagerProfile /></HostelManagerProtectedRoute>} />
                   <Route path="settings" element={<HostelManagerProtectedRoute><HostelManagerSettings /></HostelManagerProtectedRoute>} />
