@@ -169,12 +169,12 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
 
       {/* Occupancy */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2.5">Occupancy</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2.5">Occupancy Type</label>
         <MemoizedSelect
           value={filters.occupancy ? { value: filters.occupancy, label: filters.occupancy } : null}
           onChange={(opt) => updateFilters({ occupancy: opt?.value || '' })}
-          options={[{ value: '', label: 'Any Occupancy' }, ...(filterOptions.occupancies || []).map(occ => ({ value: occ, label: occ }))]}
-          placeholder="Any Occupancy"
+          options={[{ value: '', label: 'Any Occupancy Type' }, ...(filterOptions.occupancies || []).map(occ => ({ value: occ, label: occ }))]}
+          placeholder="Any Occupancy Type"
           isClearable
           isSearchable={false}
           menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
@@ -187,7 +187,7 @@ const FilterContentBlocks = memo(({ filters, updateFilters, filterOptions, clear
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-3">Amenities</label>
         <div className="p-3 border-2 border-gray-100/60 rounded-2xl bg-gray-50/50 shadow-inner max-h-64 overflow-y-auto custom-scrollbar">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 gap-2.5">
             {(filterOptions.amenities || []).map(amenity => {
               const selectedAmenities = filters.amenities ? filters.amenities.split(',') : []
               const isSelected = selectedAmenities.includes(amenity)
@@ -551,7 +551,7 @@ const Hostels = () => {
                 </div>
               ) : (
                 <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-300">
-                  
+
 
 
                   {loading && hostels.length === 0 ? (
@@ -609,22 +609,56 @@ const Hostels = () => {
                   {/* Pagination */}
                   {pagination.pages > 1 && !loading && (
                     <div className="flex justify-center mt-12 mb-8">
-                      <div className="flex items-center space-x-1 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100">
-                        {[...Array(pagination.pages)].map((_, i) => (
-                          <button
-                            key={i + 1}
-                            onClick={() => {
-                              fetchHostels(i + 1);
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className={`w-11 h-11 rounded-xl flex items-center justify-center text-sm transition-all ${pagination.current === i + 1
-                              ? 'bg-gray-900 text-white font-bold shadow-md'
-                              : 'bg-transparent text-gray-600 hover:bg-gray-100 font-semibold'
-                              }`}
-                          >
-                            {i + 1}
-                          </button>
-                        ))}
+                      <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2 bg-white p-1.5 md:p-2 rounded-2xl shadow-sm border border-gray-100 max-w-full">
+                        <button
+                          onClick={() => {
+                            fetchHostels(Math.max(1, pagination.current - 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          disabled={pagination.current === 1}
+                          className="px-3 md:px-4 h-10 md:h-11 rounded-xl flex items-center justify-center bg-transparent text-gray-600 hover:bg-gray-100 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
+                        >
+                          Prev
+                        </button>
+
+                        {Array.from({ length: Math.min(pagination.pages, 5) }, (_, i) => {
+                          let pageNum;
+                          if (pagination.pages <= 5) {
+                            pageNum = i + 1;
+                          } else if (pagination.current <= 3) {
+                            pageNum = i + 1;
+                          } else if (pagination.current >= pagination.pages - 2) {
+                            pageNum = pagination.pages - 4 + i;
+                          } else {
+                            pageNum = pagination.current - 2 + i;
+                          }
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => {
+                                fetchHostels(pageNum);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className={`w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center text-sm transition-all ${pagination.current === pageNum
+                                ? 'bg-gray-900 text-white font-bold shadow-md'
+                                : 'bg-transparent text-gray-600 hover:bg-gray-100 font-semibold'
+                                }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+
+                        <button
+                          onClick={() => {
+                            fetchHostels(Math.min(pagination.pages, pagination.current + 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          disabled={pagination.current === pagination.pages}
+                          className="px-3 md:px-4 h-10 md:h-11 rounded-xl flex items-center justify-center bg-transparent text-gray-600 hover:bg-gray-100 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
+                        >
+                          Next
+                        </button>
                       </div>
                     </div>
                   )}
