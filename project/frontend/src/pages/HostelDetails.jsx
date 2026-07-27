@@ -205,8 +205,6 @@ const HostelDetails = () => {
 
   const handleShare = useCallback(async () => {
     const shareData = {
-      title: `${hostel?.name || 'Hostel'} - KaunsaHostel`,
-      text: hostel?.description || `Check out ${hostel?.name || 'this hostel'} on KaunsaHostel!`,
       url: window.location.href,
     };
 

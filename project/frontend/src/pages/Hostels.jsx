@@ -497,8 +497,6 @@ const Hostels = () => {
                       try {
                         if (navigator.share) {
                           await navigator.share({
-                            title: 'Find Hostels & PGs in Greater Noida',
-                            text: 'Check out these verified hostels and PGs on KaunsaHostel!',
                             url: window.location.href,
                           });
                         } else {

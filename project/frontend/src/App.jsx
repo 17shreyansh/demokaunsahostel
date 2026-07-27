@@ -18,6 +18,8 @@ import HostelDetails from './pages/HostelDetails'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import UserAuth from './pages/UserAuth'
+import UserForgotPassword from './pages/UserForgotPassword'
+import UserResetPassword from './pages/UserResetPassword'
 import UserProfile from './pages/UserProfile'
 import BlogList from './pages/blog/BlogListPage'
 import BlogPost from './pages/blog/BlogPostPage'
@@ -92,6 +94,8 @@ function App() {
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/user/auth" element={<UserAuth />} />
+                  <Route path="/forgot-password" element={<UserForgotPassword />} />
+                  <Route path="/reset-password/:token" element={<UserResetPassword />} />
                   <Route path="/user/profile" element={<UserProfile />} />
                   <Route path="/blog" element={<BlogList />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />

@@ -1,5 +1,5 @@
 import { useState, useCallback, memo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMail, FiLock, FiUser, FiPhone } from 'react-icons/fi';
 import { useUser } from '../contexts/UserContext';
@@ -214,9 +214,9 @@ const UserAuth = () => {
 
             {isLogin && (
               <div className="flex items-center justify-end pt-1">
-                <button type="button" className="text-sm font-semibold text-gray-600 hover:text-yellow-600 transition-colors">
+                <Link to="/forgot-password" className="text-sm font-semibold text-gray-600 hover:text-yellow-600 transition-colors">
                   Forgot your password?
-                </button>
+                </Link>
               </div>
             )}
 
