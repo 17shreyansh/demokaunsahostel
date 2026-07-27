@@ -1,36 +1,30 @@
-const { SendApi, AccountApi, Configuration } = require('hostinger-mail-api-sdk');
+const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
   try {
-    const config = new Configuration({
-      accessToken: process.env.HOSTINGER_API_KEY
+    // Create a transporter using Hostinger SMTP
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.hostinger.com',
+      port: 465,
+      secure: true, // true for 465, false for other ports
+      auth: {
+        user: process.env.SENDER_EMAIL, // Must be your full Hostinger email address (e.g. support@kaunsahostel.com)
+        pass: process.env.SMTP_PASSWORD, // The password for this specific email account
+      },
     });
-    
-    // First, fetch the account to get the mailbox resource ID
-    const accountApi = new AccountApi(config);
-    const accountRes = await accountApi.getCurrentAccount();
-    
-    if (!accountRes.data?.data?.mailboxes?.length) {
-      throw new Error('No mailboxes found for this Hostinger API Key');
-    }
 
-    // Get the first mailbox's resource ID
-    const mailboxResourceId = accountRes.data.data.mailboxes[0].resourceId;
-
-    const sendApi = new SendApi(config);
-    
-    const requestPayload = {
-      to: [options.email],
+    const message = {
+      from: `${process.env.FROM_NAME || 'KaunsaHostel'} <${process.env.SENDER_EMAIL}>`,
+      to: options.email,
       subject: options.subject,
-      html: options.html,
       text: options.message,
+      html: options.html,
     };
 
-    await sendApi.sendEmail(mailboxResourceId, requestPayload);
-    
-    console.log(`Email sent successfully to ${options.email} via Hostinger API`);
+    const info = await transporter.sendMail(message);
+    console.log(`Email sent successfully to ${options.email}. Message ID: ${info.messageId}`);
   } catch (error) {
-    console.error('Error sending email via Hostinger SDK:', error.response?.data || error.message);
+    console.error('Error sending email via SMTP:', error.message);
     throw error;
   }
 };
