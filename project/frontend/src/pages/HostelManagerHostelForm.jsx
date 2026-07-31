@@ -11,7 +11,7 @@ import {
   Image as ImageIcon, Star, Loader2, DollarSign, Percent
 } from 'lucide-react';
 import HostelManagerLayout from '../layouts/HostelManagerLayout';
-import { installmentTemplateAPI, hostelManagerAPI, cityAPI } from '../services/api';
+import { installmentTemplateAPI, hostelManagerAPI, cityAPI, hostelAPI } from '../services/api';
 import NearbyPlacesSelector from '../components/NearbyPlacesSelector.jsx';
 import imageCompression from 'browser-image-compression';
 
@@ -215,7 +215,7 @@ const HostelManagerHostelForm = () => {
       }
 
       try {
-        const response = await axios.get(`/api/hostels/${id}`);
+        const response = await hostelAPI.getById(id);
         const data = response.data;
 
         form.setFieldsValue({
@@ -356,13 +356,9 @@ const HostelManagerHostelForm = () => {
 
       let response;
       if (id && id !== 'new') {
-        response = await axios.put(`/api/hostel-manager/hostels/${id}`, formData, {
-          withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        response = await hostelManagerAPI.updateHostel(id, formData);
       } else {
-        response = await axios.post('/api/hostel-manager/hostels', formData, {
-          withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        response = await hostelManagerAPI.createHostel(formData);
       }
 
       message.success(response.data.message || 'Changes submitted for admin approval.');

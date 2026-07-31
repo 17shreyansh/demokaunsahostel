@@ -304,7 +304,7 @@ const HostelDetails = () => {
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         {hostel.images && hostel.images.length > 0 && (
-          <meta property="og:image" content={`${UPLOADS_BASE_URL}/${hostel.images[0]}`} />
+          <meta property="og:image" content={UPLOADS_BASE_URL.startsWith('http') ? `${UPLOADS_BASE_URL}/${hostel.images[0]}` : `${window.location.origin}${UPLOADS_BASE_URL}/${hostel.images[0]}`} />
         )}
 
         {/* Twitter */}
@@ -313,7 +313,7 @@ const HostelDetails = () => {
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
         {hostel.images && hostel.images.length > 0 && (
-          <meta name="twitter:image" content={`${UPLOADS_BASE_URL}/${hostel.images[0]}`} />
+          <meta name="twitter:image" content={UPLOADS_BASE_URL.startsWith('http') ? `${UPLOADS_BASE_URL}/${hostel.images[0]}` : `${window.location.origin}${UPLOADS_BASE_URL}/${hostel.images[0]}`} />
         )}
 
         {/* Structured Data (Schema.org) for Rich Snippets */}

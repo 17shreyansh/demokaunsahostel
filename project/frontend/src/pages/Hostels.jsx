@@ -424,7 +424,9 @@ const Hostels = () => {
         <meta property="og:description" content="Browse our wide selection of verified hostels, PGs, and co-living spaces in Greater Noida. Filter by price, amenities, and location." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://kaunsahostel.com/hostels" />
+        <meta property="og:image" content="https://kaunsahostel.com/hero-hostel.png" />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://kaunsahostel.com/hero-hostel.png" />
       </Helmet>
       <div className="min-h-screen bg-[#F9FAFB] pb-24 font-sans animate-in fade-in duration-500">
 
