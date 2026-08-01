@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # If it's a social media bot requesting a hostel page, redirect to the backend API
+  RewriteCond %{HTTP_USER_AGENT} "(facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot)" [NC]
+  RewriteRule ^hostel/(.*)$ https://api.kaunsahostel.com/hostel/$1 [R=302,L]
+
+  # Standard SPA fallback for React (for regular users)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>
