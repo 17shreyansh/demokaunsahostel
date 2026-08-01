@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const Hostel = require('./models/Hostel');
 const helmet = require('helmet');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
@@ -81,6 +83,46 @@ app.get('/api/clear-cookies', (req, res) => {
     message: 'All auth cookies cleared. Please login again.', 
     success: true 
   });
+});
+
+// Dynamic Social Media Meta Tag Injection for Hostel Pages
+app.get('/hostel/:slug', async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    
+    // Check if index.html exists in frontend/dist (Prod) or frontend (Dev)
+    let indexPath = path.join(__dirname, '../frontend/dist/index.html');
+    if (!fs.existsSync(indexPath)) {
+      indexPath = path.join(__dirname, '../frontend/index.html');
+    }
+    
+    if (!fs.existsSync(indexPath)) {
+      return next();
+    }
+
+    let html = fs.readFileSync(indexPath, 'utf8');
+
+    // Fetch hostel details
+    const hostel = await Hostel.findOne({ slug });
+    if (hostel) {
+      const pageTitle = `${hostel.name} - Best ${hostel.type || 'Hostel'} in ${hostel.location} | KaunsaHostel`;
+      const pageDescription = hostel.description ? (hostel.description.length > 155 ? hostel.description.substring(0, 155) + '...' : hostel.description) : `Find the best ${hostel.gender || ''} ${hostel.type || 'Hostel'} in ${hostel.location}. ${hostel.name} offers great amenities and comfortable stay.`;
+      const imageUrl = hostel.images && hostel.images.length > 0 
+        ? (hostel.images[0].startsWith('http') ? hostel.images[0] : `${process.env.FRONTEND_URL || 'https://kaunsahostel.com'}/uploads/${hostel.images[0]}`) 
+        : 'https://kaunsahostel.com/hero-hostel.png';
+
+      // Replace default tags
+      html = html.replace(/<title>.*?<\/title>/, `<title>${pageTitle}</title>`);
+      html = html.replace(/content="KaunsaHostel - Hostels in Greater Noida"/g, `content="${pageTitle}"`);
+      html = html.replace(/content="Find the best hostels for students and working professionals in Greater Noida. Affordable, secure, and packed with amenities."/g, `content="${pageDescription}"`);
+      html = html.replace(/content="https:\/\/kaunsahostel.com\/hero-hostel\.png"/g, `content="${imageUrl}"`);
+    }
+
+    res.send(html);
+  } catch (error) {
+    console.error('Error serving dynamic hostel page:', error);
+    next();
+  }
 });
 
 const PORT = process.env.PORT || 5000;
