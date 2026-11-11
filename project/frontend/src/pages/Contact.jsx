@@ -70,7 +70,7 @@ const Contact = () => {
       {/* Contact Cards */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className={`grid gap-8 max-w-4xl mx-auto ${content.contact?.contactInfo?.address ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'}`}>
             <div className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
               <div className="w-16 h-16 bg-yellow-custom rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,17 +90,19 @@ const Contact = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Email Us</h3>
               <p className="text-gray-600">{content.contact?.contactInfo?.email || 'support@kaunsahostel.com'}</p>
             </div>
-            
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
-              <div className="w-16 h-16 bg-yellow-custom rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+
+            {content.contact?.contactInfo?.address && (
+              <div className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
+                <div className="w-16 h-16 bg-yellow-custom rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Visit Us</h3>
+                <p className="text-gray-600 text-sm">{content.contact.contactInfo.address}</p>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Visit Us</h3>
-              <p className="text-gray-600 text-sm">{content.contact?.contactInfo?.address || 'Main Office, Knowledge Park III, Greater Noida, Uttar Pradesh 201310'}</p>
-            </div>
+            )}
           </div>
         </div>
       </section>
